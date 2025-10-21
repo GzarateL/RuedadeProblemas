@@ -82,7 +82,7 @@ export default function LoginPage() {
                   <FormItem>
                     <FormLabel>Correo o Usuario</FormLabel>
                     <FormControl>
-                      <Input placeholder="ej: rodrigotejada2025" {...field} />
+                      <Input placeholder="" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -95,7 +95,7 @@ export default function LoginPage() {
                   <FormItem>
                     <FormLabel>Contraseña</FormLabel>
                     <FormControl>
-                      <Input type="password" placeholder="••••••••" {...field} />
+                      <Input type="password" placeholder="" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
