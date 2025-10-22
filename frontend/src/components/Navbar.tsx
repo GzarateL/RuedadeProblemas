@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/AuthContext";
-import { LogOut, User as UserIcon, FilePlus } from "lucide-react";
+import { LogOut, User as UserIcon, FilePlus, Sparkles } from "lucide-react";
 
 export function Navbar() {
   const { user, logout, isLoading } = useAuth();
@@ -39,22 +39,46 @@ export function Navbar() {
               <div className="h-8 w-24 bg-gray-200 animate-pulse rounded-md"></div>
             ) : user ? (
               <>
-               {user.rol === 'externo' && ( 
-                 <Link 
-                   href="/desafio/registrar" 
-                   className="flex items-center text-neutral-600 hover:text-neutral-900 transition-colors text-sm"
-                 >
-                   <FilePlus className="w-4 h-4 mr-1" />
-                   Registrar Desafío
-                 </Link>
+               {user.rol === 'externo' && (
+                 <>
+                   <Link 
+                     href="/desafio" 
+                     className="text-neutral-600 hover:text-neutral-900 transition-colors text-sm"
+                   >
+                     Mis Desafíos
+                   </Link>
+                   <Link 
+                     href="/desafio/mis-matches" 
+                     className="flex items-center text-blue-600 hover:text-blue-700 transition-colors text-sm font-medium"
+                   >
+                     <Sparkles className="w-4 h-4 mr-1" />
+                     Matches
+                   </Link>
+                 </>
                )}
-               {user.rol === 'unsa' && ( 
+               {user.rol === 'unsa' && (
+                 <>
+                   <Link 
+                     href="/capacidad" 
+                     className="text-neutral-600 hover:text-neutral-900 transition-colors text-sm"
+                   >
+                     Mis Capacidades
+                   </Link>
+                   <Link 
+                     href="/capacidad/mis-matches" 
+                     className="flex items-center text-blue-600 hover:text-blue-700 transition-colors text-sm font-medium"
+                   >
+                     <Sparkles className="w-4 h-4 mr-1" />
+                     Matches
+                   </Link>
+                 </>
+               )}
+               {user.rol === 'admin' && (
                  <Link 
-                   href="/capacidad/registrar" 
-                   className="flex items-center text-neutral-600 hover:text-neutral-900 transition-colors text-sm"
+                   href="/admin/dashboard" 
+                   className="text-neutral-600 hover:text-neutral-900 transition-colors text-sm"
                  >
-                   <FilePlus className="w-4 h-4 mr-1" />
-                   Registrar Capacidad
+                   Dashboard Admin
                  </Link>
                )}
 

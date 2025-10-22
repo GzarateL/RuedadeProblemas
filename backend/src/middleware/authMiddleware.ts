@@ -9,7 +9,12 @@ import { RowDataPacket } from 'mysql2';
 declare global {
   namespace Express {
     interface Request {
-      user?: { userId: number; rol: string };
+      user?: { 
+        userId: number; 
+        rol: string;
+        investigador_id?: number;
+        participante_id?: number;
+      };
       profileId?: number; // ID del participante o investigador
     }
   }
@@ -25,6 +30,13 @@ export const authenticateToken = async (req: Request, res: Response, next: NextF
     const payload = jwt.verify(token, env.JWT_SECRET) as { userId: number; rol: string };
     req.user = payload; // Guarda el payload básico
 
+    // Solo buscar/crear perfiles para usuarios no-admin
+    if (req.user.rol === 'admin') {
+      // Los admins no necesitan perfil adicional
+      next();
+      return;
+    }
+
     // Obtener el ID del perfil específico (participante_id o investigador_id)
     let profileIdResult: RowDataPacket[] = [];
     if (req.user.rol === 'externo') {
@@ -34,6 +46,26 @@ export const authenticateToken = async (req: Request, res: Response, next: NextF
       );
       if (profileIdResult.length > 0) {
         req.profileId = profileIdResult[0].participante_id;
+        req.user.participante_id = profileIdResult[0].participante_id;
+      } else {
+        // AUTO-FIX: Crear perfil automáticamente si no existe
+        console.warn(`⚠️ Usuario externo ${req.user.userId} sin perfil. Creando automáticamente...`);
+        try {
+          const [result] = await dbPool.execute<any>(
+            `INSERT INTO Participantes_Externos 
+             (usuario_id, helice_id, nombres_apellidos, cargo, organizacion) 
+             VALUES (?, 2, 'Perfil pendiente', 'Por completar', 'Por completar')`,
+            [req.user.userId]
+          );
+          req.profileId = result.insertId;
+          req.user.participante_id = result.insertId;
+          console.log(`✅ Perfil creado automáticamente: participante_id=${result.insertId}`);
+        } catch (createError) {
+          console.error('❌ Error al crear perfil automático:', createError);
+          return res.status(500).json({ 
+            message: 'Error al crear perfil de usuario. Contacte al administrador.' 
+          });
+        }
       }
     } else if (req.user.rol === 'unsa') {
       [profileIdResult] = await dbPool.execute<RowDataPacket[]>(
@@ -42,16 +74,28 @@ export const authenticateToken = async (req: Request, res: Response, next: NextF
       );
        if (profileIdResult.length > 0) {
         req.profileId = profileIdResult[0].investigador_id;
+        req.user.investigador_id = profileIdResult[0].investigador_id;
+      } else {
+        // AUTO-FIX: Crear perfil automáticamente si no existe
+        console.warn(`⚠️ Usuario UNSA ${req.user.userId} sin perfil. Creando automáticamente...`);
+        try {
+          const [result] = await dbPool.execute<any>(
+            `INSERT INTO Investigadores_UNSA 
+             (usuario_id, nombres_apellidos, cargo, unidad_academica) 
+             VALUES (?, 'Perfil pendiente', 'Por completar', 'Por completar')`,
+            [req.user.userId]
+          );
+          req.profileId = result.insertId;
+          req.user.investigador_id = result.insertId;
+          console.log(`✅ Perfil creado automáticamente: investigador_id=${result.insertId}`);
+        } catch (createError) {
+          console.error('❌ Error al crear perfil automático:', createError);
+          return res.status(500).json({ 
+            message: 'Error al crear perfil de usuario. Contacte al administrador.' 
+          });
+        }
       }
     }
-     // Si es admin, req.profileId quedará undefined, lo cual está bien si no lo necesita
-
-    if ((req.user.rol === 'externo' || req.user.rol === 'unsa') && !req.profileId) {
-       console.warn(`No se encontró perfil para usuario_id: ${req.user.userId} con rol ${req.user.rol}`);
-       // Considera si esto debe ser un error 403 o si la ruta puede manejarlo
-       // return res.status(403).json({ message: 'Perfil de usuario no encontrado.' });
-    }
-
 
     next(); // Pasa al siguiente middleware o controlador
   } catch (err) {

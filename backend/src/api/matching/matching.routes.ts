@@ -5,15 +5,17 @@ import { authenticateToken, authorizeRole } from '../../middleware/authMiddlewar
 
 const router = Router();
 
-// Middleware para asegurar que solo los admins accedan a estas rutas
-router.use(authenticateToken, authorizeRole(['admin']));
+// Rutas para usuarios autenticados (obtener sus propios matches)
+router.get('/my-matches', authenticateToken, matchingController.getMyMatchesController);
+
+// Rutas administrativas (solo admins)
+router.get('/status', authenticateToken, authorizeRole(['admin']), matchingController.getMatchingStatusController);
+router.post('/toggle', authenticateToken, authorizeRole(['admin']), matchingController.toggleMatchingStatusController);
 
 // Ruta para obtener capacidades que coinciden con un desafío específico
-// GET /api/matches/desafio/:id
-router.get('/desafio/:id', matchingController.getCapacidadMatchesController);
+router.get('/desafio/:id', authenticateToken, authorizeRole(['admin']), matchingController.getCapacidadMatchesController);
 
 // Ruta para obtener desafíos que coinciden con una capacidad específica
-// GET /api/matches/capacidad/:id
-router.get('/capacidad/:id', matchingController.getDesafioMatchesController);
+router.get('/capacidad/:id', authenticateToken, authorizeRole(['admin']), matchingController.getDesafioMatchesController);
 
 export default router;

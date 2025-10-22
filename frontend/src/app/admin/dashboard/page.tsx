@@ -37,6 +37,8 @@ export default function AdminDashboardPage() {
   const [keywordStats, setKeywordStats] = useState<KeywordStat[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [matchingActivo, setMatchingActivo] = useState(false);
+  const [isTogglingMatching, setIsTogglingMatching] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -47,7 +49,6 @@ export default function AdminDashboardPage() {
       if (!token) {
         setError("No autenticado.");
         setIsLoading(false);
-        // Podrías redirigir al login aquí
         return;
       }
 
@@ -60,14 +61,13 @@ export default function AdminDashboardPage() {
         const desafiosData: Desafio[] = await desafiosRes.json();
         setDesafios(desafiosData);
 
-        // <-- FETCH CAPACIDADES (NUEVO) -->
+        // Fetch Capacidades
         const capacidadesRes = await fetch("http://localhost:3001/api/capacidades", {
            headers: { "Authorization": `Bearer ${token}` }
         });
         if (!capacidadesRes.ok) throw new Error(`Error ${capacidadesRes.status}: No se pudieron cargar las capacidades.`);
         const capacidadesData: Capacidad[] = await capacidadesRes.json();
         setCapacidades(capacidadesData);
-        // <-- FIN FETCH CAPACIDADES -->
 
         // Fetch Keyword Stats
         const statsRes = await fetch("http://localhost:3001/api/palabras-clave/stats", {
@@ -76,6 +76,15 @@ export default function AdminDashboardPage() {
         if (!statsRes.ok) throw new Error(`Error ${statsRes.status}: No se pudieron cargar las estadísticas.`);
         const statsData: KeywordStat[] = await statsRes.json();
         setKeywordStats(statsData);
+
+        // Fetch estado del matching
+        const matchingRes = await fetch("http://localhost:3001/api/matches/status", {
+          headers: { "Authorization": `Bearer ${token}` }
+        });
+        if (matchingRes.ok) {
+          const matchingData = await matchingRes.json();
+          setMatchingActivo(matchingData.activo);
+        }
 
       } catch (err: any) {
         console.error("Error fetching dashboard data:", err);
@@ -87,16 +96,73 @@ export default function AdminDashboardPage() {
     };
 
     fetchData();
-  }, []); // El array vacío asegura que se ejecute solo una vez al montar
+  }, []);
+
+  const handleToggleMatching = async () => {
+    const token = Cookies.get('token');
+    if (!token) {
+      toast.error("No autenticado");
+      return;
+    }
+
+    setIsTogglingMatching(true);
+    try {
+      const nuevoEstado = !matchingActivo;
+      const res = await fetch("http://localhost:3001/api/matches/toggle", {
+        method: 'POST',
+        headers: {
+          "Authorization": `Bearer ${token}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ activo: nuevoEstado })
+      });
+
+      if (!res.ok) throw new Error('Error al cambiar estado del matching');
+
+      const data = await res.json();
+      setMatchingActivo(data.activo);
+      toast.success(
+        data.activo ? "Matching Activado" : "Matching Desactivado",
+        { 
+          description: data.activo 
+            ? "Los usuarios ahora recibirán sugerencias de matches" 
+            : "El sistema de matching ha sido desactivado"
+        }
+      );
+    } catch (err: any) {
+      console.error("Error toggling matching:", err);
+      toast.error("Error", { description: err.message });
+    } finally {
+      setIsTogglingMatching(false);
+    }
+  };
 
   return (
     <div>
-      <h1 className="text-3xl font-bold text-neutral-900">
-        Bienvenido al Dashboard
-      </h1>
-      <p className="text-neutral-600 mt-2">
-        Resumen de la actividad en la plataforma.
-      </p>
+      <div className="flex justify-between items-start mb-6">
+        <div>
+          <h1 className="text-3xl font-bold text-neutral-900">
+            Bienvenido al Dashboard
+          </h1>
+          <p className="text-neutral-600 mt-2">
+            Resumen de la actividad en la plataforma.
+          </p>
+        </div>
+        <div className="flex flex-col items-end gap-2">
+          <Button
+            onClick={handleToggleMatching}
+            disabled={isTogglingMatching || isLoading}
+            variant={matchingActivo ? "destructive" : "default"}
+            size="lg"
+            className="min-w-[200px]"
+          >
+            {isTogglingMatching ? "Procesando..." : matchingActivo ? "🔴 Detener Matching" : "🟢 Iniciar Matching"}
+          </Button>
+          <p className="text-xs text-neutral-500">
+            Estado: {matchingActivo ? "Activo" : "Inactivo"}
+          </p>
+        </div>
+      </div>
 
       {isLoading && <p className="mt-8 text-center">Cargando datos...</p>}
       {error && <p className="mt-8 text-center text-red-600">Error: {error}</p>}

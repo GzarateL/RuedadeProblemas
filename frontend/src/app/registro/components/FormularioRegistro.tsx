@@ -20,12 +20,12 @@ const helices = [
   { id: 4, nombre: "Sociedad" },
 ];
 const diasEvento = [
-  { id: 0, nombre: "Día 0: Lanzamiento y Cóctel de Prensa (Lun, 01)" },
-  { id: 1, nombre: "Día 1: Talento y Educación (Mar, 02)" },
-  { id: 2, nombre: "Día 2: Sector Empresarial (Mié, 03)" },
-  { id: 3, nombre: "Día 3: Desarrollo Humano (Jue, 04)" },
-  { id: 4, nombre: "Día 4: Gestión Pública (Vie, 05)" },
-  { id: 5, nombre: "Día 5: Sociedad Civil (Sáb, 06)" },
+  { id: 1, nombre: "Día 0: Lanzamiento y Cóctel de Prensa (Lun, 01)" },
+  { id: 2, nombre: "Día 1: Talento y Educación (Mar, 02)" },
+  { id: 3, nombre: "Día 2: Sector Empresarial (Mié, 03)" },
+  { id: 4, nombre: "Día 3: Desarrollo Humano (Jue, 04)" },
+  { id: 5, nombre: "Día 4: Gestión Pública (Vie, 05)" },
+  { id: 6, nombre: "Día 5: Sociedad Civil (Sáb, 06)" },
 ];
 
 // --- 1) Esquemas Zod ---
