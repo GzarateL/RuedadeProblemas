@@ -10,6 +10,7 @@ import keywordRoutes from './api/palabras-clave/palabras-clave.routes';
 import cronogramaRoutes from './api/cronograma/cronograma.routes'; // <-- NUEVO
 import usersRoutes from './api/users/users.routes';
 import matchingRoutes from './api/matching/matching.routes';
+import matchesRoutes from './api/matches/matches.routes'; 
 
 const app = express();
 
@@ -32,6 +33,7 @@ app.use('/api/capacidades', capacidadRoutes);
 app.use('/api/palabras-clave', keywordRoutes);
 app.use('/api/cronograma', cronogramaRoutes);
 app.use('/api/users', usersRoutes); // <-- NUEVO
-app.use('/api/matches', matchingRoutes);
+app.use('/api/matches', matchesRoutes); // <-- AÑADE ESTA LÍNEA (para las rutas que acabamos de crear)
+app.use('/api/matching', matchingRoutes);
 
 export default app;
