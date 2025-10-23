@@ -6,6 +6,7 @@ import { RowDataPacket, OkPacket } from 'mysql2/promise';
 export interface CapacidadMatch extends RowDataPacket {
   capacidad_id: number;
   descripcion_capacidad: string;
+  investigador_id: number;
   investigador_nombre: string | null;
   palabras_coincidentes: string;
   total_coincidencias: number;
@@ -16,6 +17,7 @@ export interface DesafioMatch extends RowDataPacket {
   desafio_id: number;
   titulo: string;
   descripcion: string | null;
+  participante_id: number;
   participante_nombre: string | null;
   organizacion: string | null;
   palabras_coincidentes: string;
@@ -153,6 +155,7 @@ export const getMatchesForInvestigador = async (investigadorId: number, limit: n
           d.desafio_id,
           d.titulo,
           d.descripcion,
+          d.participante_id,
           p.nombres_apellidos AS participante_nombre,
           p.organizacion,
           GROUP_CONCAT(DISTINCT pc.palabra ORDER BY pc.palabra SEPARATOR ', ') AS palabras_coincidentes,
@@ -186,6 +189,7 @@ export const getMatchesForParticipante = async (participanteId: number, limit: n
       SELECT DISTINCT
           c.capacidad_id,
           c.descripcion_capacidad,
+          c.investigador_id,
           i.nombres_apellidos AS investigador_nombre,
           GROUP_CONCAT(DISTINCT pc.palabra ORDER BY pc.palabra SEPARATOR ', ') AS palabras_coincidentes,
           COUNT(DISTINCT pc.palabra_clave_id) AS total_coincidencias

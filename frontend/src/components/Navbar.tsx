@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/AuthContext";
 import { LogOut, User as UserIcon, FilePlus, Sparkles } from "lucide-react";
+import SolicitudesNotification from "./SolicitudesNotification";
 
 export function Navbar() {
   const { user, logout, isLoading } = useAuth();
@@ -25,6 +26,10 @@ export function Navbar() {
             <Link href="/" className="text-xl font-bold text-neutral-900">
               Rueda de Problemas
             </Link>
+          </div>
+          <div className="flex items-center gap-4">
+            <SolicitudesNotification />  {/* 👈 Aquí aparecerá la campana */}
+            <button>Salir</button>
           </div>
           
           <div className="hidden md:flex items-center space-x-6">
