@@ -38,8 +38,8 @@ export const crearSolicitudController = async (req: Request, res: Response) => {
       return res.status(400).json({ message: 'No puedes enviarte una solicitud a ti mismo.' });
     }
     
-    // Verificar si ya existe una solicitud
-    const existe = await solicitudesService.existeSolicitud(
+    // Verificar si ya existe una solicitud BIDIRECCIONAL
+    const solicitudExistente = await solicitudesService.existeSolicitudBidireccional(
       remitenteTipo,
       profileId,
       destinatario_tipo,
@@ -48,8 +48,11 @@ export const crearSolicitudController = async (req: Request, res: Response) => {
       match_id
     );
     
-    if (existe) {
-      return res.status(409).json({ message: 'Ya has enviado una solicitud a este perfil.' });
+    if (solicitudExistente) {
+      return res.status(409).json({ 
+        message: 'Ya existe una solicitud para este match.',
+        solicitud: solicitudExistente
+      });
     }
     
     // Crear la solicitud
@@ -193,5 +196,44 @@ export const getConteoSolicitudesPendientesController = async (req: Request, res
   } catch (error: any) {
     console.error('Error en getConteoSolicitudesPendientesController:', error);
     res.status(500).json({ message: error.message || 'Error al obtener conteo.' });
+  }
+};
+
+/**
+ * Obtener estado de solicitud para un match específico
+ */
+export const getEstadoSolicitudParaMatchController = async (req: Request, res: Response) => {
+  try {
+    const user = req.user;
+    const profileId = req.profileId;
+    
+    if (!user || !profileId) {
+      return res.status(401).json({ message: 'Usuario no autenticado.' });
+    }
+    
+    const { otro_tipo, otro_id, tipo_match, match_id } = req.query;
+    
+    if (!otro_tipo || !otro_id || !tipo_match || !match_id) {
+      return res.status(400).json({ 
+        message: 'Faltan parámetros: otro_tipo, otro_id, tipo_match, match_id' 
+      });
+    }
+    
+    const miTipo = user.rol === 'unsa' ? 'unsa' : 'externo';
+    
+    const estado = await solicitudesService.getEstadoSolicitudParaMatch(
+      miTipo,
+      profileId,
+      otro_tipo as 'unsa' | 'externo',
+      parseInt(otro_id as string),
+      tipo_match as 'capacidad' | 'desafio',
+      parseInt(match_id as string)
+    );
+    
+    res.status(200).json(estado);
+    
+  } catch (error: any) {
+    console.error('Error en getEstadoSolicitudParaMatchController:', error);
+    res.status(500).json({ message: error.message || 'Error al obtener estado.' });
   }
 };

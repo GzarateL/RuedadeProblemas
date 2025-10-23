@@ -6,7 +6,7 @@ import { toast } from 'sonner';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Loader2, Sparkles, AlertCircle, Send, CheckCircle } from 'lucide-react';
+import { Loader2, Sparkles, AlertCircle, Send, CheckCircle, Clock, XCircle } from 'lucide-react';
 import Link from 'next/link';
 
 interface CapacidadMatch {
@@ -18,72 +18,92 @@ interface CapacidadMatch {
   total_coincidencias: number;
 }
 
-interface SolicitudEstado {
-  [key: number]: boolean; // capacidad_id -> solicitud enviada
+interface EstadoSolicitudMatch {
+  existe: boolean;
+  solicitud: any | null;
+  soyRemitente: boolean;
+  soyDestinatario: boolean;
 }
 
 export default function MisMatchesExternoPage() {
   const [matches, setMatches] = useState<CapacidadMatch[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [matchingActivo, setMatchingActivo] = useState(false);
-  const [solicitudesEnviadas, setSolicitudesEnviadas] = useState<SolicitudEstado>({});
+  const [estadosSolicitudes, setEstadosSolicitudes] = useState<{[key: number]: EstadoSolicitudMatch}>({});
   const [enviandoSolicitud, setEnviandoSolicitud] = useState<number | null>(null);
+  const [respondiendoSolicitud, setRespondiendoSolicitud] = useState<number | null>(null);
 
   useEffect(() => {
-    const fetchData = async () => {
-      setIsLoading(true);
-      const token = Cookies.get('token');
-
-      if (!token) {
-        toast.error("No autenticado");
-        setIsLoading(false);
-        return;
-      }
-
-      try {
-        // Obtener matches
-        const resMatches = await fetch("http://localhost:3001/api/matches/my-matches", {
-          headers: { "Authorization": `Bearer ${token}` }
-        });
-
-        if (!resMatches.ok) throw new Error('Error al cargar matches');
-
-        const dataMatches = await resMatches.json();
-        
-        if (dataMatches.message) {
-          setMatchingActivo(false);
-        } else {
-          setMatchingActivo(true);
-          setMatches(dataMatches.matches || []);
-        }
-
-        // Obtener solicitudes enviadas
-        const resSolicitudes = await fetch("http://localhost:3001/api/solicitudes/enviadas", {
-          headers: { "Authorization": `Bearer ${token}` }
-        });
-
-        if (resSolicitudes.ok) {
-          const dataSolicitudes = await resSolicitudes.json();
-          const estadoSolicitudes: SolicitudEstado = {};
-          
-          dataSolicitudes.solicitudes.forEach((sol: any) => {
-            if (sol.tipo_match === 'capacidad') {
-              estadoSolicitudes[sol.match_id] = true;
-            }
-          });
-          
-          setSolicitudesEnviadas(estadoSolicitudes);
-        }
-      } catch (err: any) {
-        console.error("Error fetching data:", err);
-        toast.error("Error", { description: err.message });
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
     fetchData();
+    
+    // Actualizar cada 5 segundos para ver solicitudes entrantes
+    const interval = setInterval(fetchData, 5000);
+    
+    return () => clearInterval(interval);
   }, []);
+
+  const fetchData = async () => {
+    const token = Cookies.get('token');
+
+    if (!token) {
+      if (isLoading) toast.error("No autenticado");
+      setIsLoading(false);
+      return;
+    }
+
+    try {
+      // Obtener matches
+      const resMatches = await fetch("http://localhost:3001/api/matches/my-matches", {
+        headers: { "Authorization": `Bearer ${token}` }
+      });
+
+      if (!resMatches.ok) throw new Error('Error al cargar matches');
+
+      const dataMatches = await resMatches.json();
+      
+      if (dataMatches.message) {
+        setMatchingActivo(false);
+      } else {
+        setMatchingActivo(true);
+        const matchesData = dataMatches.matches || [];
+        setMatches(matchesData);
+        
+        // Obtener estado de solicitudes para cada match
+        await fetchEstadosSolicitudes(matchesData, token);
+      }
+    } catch (err: any) {
+      console.error("Error fetching data:", err);
+      if (isLoading) toast.error("Error", { description: err.message });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const fetchEstadosSolicitudes = async (matchesData: CapacidadMatch[], token: string) => {
+    const estados: {[key: number]: EstadoSolicitudMatch} = {};
+    
+    for (const match of matchesData) {
+      if (!match.investigador_id) continue;
+      
+      try {
+        const res = await fetch(
+          `http://localhost:3001/api/solicitudes/estado-match?` +
+          `otro_tipo=unsa&otro_id=${match.investigador_id}&` +
+          `tipo_match=capacidad&match_id=${match.capacidad_id}`,
+          { headers: { "Authorization": `Bearer ${token}` } }
+        );
+        
+        if (res.ok) {
+          const data = await res.json();
+          estados[match.capacidad_id] = data;
+        }
+      } catch (err) {
+        console.error(`Error fetching estado for match ${match.capacidad_id}:`, err);
+      }
+    }
+    
+    setEstadosSolicitudes(estados);
+  };
 
   const enviarSolicitud = async (capacidadId: number, investigadorId: number) => {
     const token = Cookies.get('token');
@@ -117,12 +137,56 @@ export default function MisMatchesExternoPage() {
       }
 
       toast.success("Solicitud enviada exitosamente");
-      setSolicitudesEnviadas(prev => ({ ...prev, [capacidadId]: true }));
+      await fetchData(); // Recargar para actualizar estados
     } catch (err: any) {
       console.error("Error enviando solicitud:", err);
       toast.error("Error", { description: err.message });
     } finally {
       setEnviandoSolicitud(null);
+    }
+  };
+
+  const responderSolicitud = async (solicitudId: number, estado: 'aceptada' | 'rechazada') => {
+    const token = Cookies.get('token');
+    if (!token) {
+      toast.error("No autenticado");
+      return;
+    }
+
+    setRespondiendoSolicitud(solicitudId);
+
+    try {
+      const res = await fetch(`http://localhost:3001/api/solicitudes/${solicitudId}/responder`, {
+        method: 'PATCH',
+        headers: {
+          "Authorization": `Bearer ${token}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ estado })
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.message || 'Error al responder solicitud');
+      }
+
+      toast.success(`Solicitud ${estado} exitosamente`);
+      
+      // Si se aceptó, redirigir al chat
+      if (estado === 'aceptada' && data.chat_id) {
+        toast.success('¡Chat creado! Redirigiendo...', { duration: 2000 });
+        setTimeout(() => {
+          window.location.href = `/chats/${data.chat_id}`;
+        }, 2000);
+      } else {
+        await fetchData(); // Recargar para actualizar estados
+      }
+    } catch (err: any) {
+      console.error("Error respondiendo solicitud:", err);
+      toast.error("Error", { description: err.message });
+    } finally {
+      setRespondiendoSolicitud(null);
     }
   };
 
@@ -175,8 +239,9 @@ export default function MisMatchesExternoPage() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {matches.map((match) => {
-            const yaEnviada = solicitudesEnviadas[match.capacidad_id];
+            const estadoSolicitud = estadosSolicitudes[match.capacidad_id];
             const enviando = enviandoSolicitud === match.capacidad_id;
+            const respondiendo = respondiendoSolicitud === estadoSolicitud?.solicitud?.solicitud_id;
             
             return (
               <Card key={match.capacidad_id} className="hover:shadow-lg transition-shadow">
@@ -210,14 +275,10 @@ export default function MisMatchesExternoPage() {
                       </div>
                     </div>
                     
-                    {/* Botón de solicitud */}
+                    {/* Botones dinámicos según estado de solicitud */}
                     <div className="pt-2">
-                      {yaEnviada ? (
-                        <Button disabled className="w-full" variant="outline">
-                          <CheckCircle className="w-4 h-4 mr-2" />
-                          Solicitud enviada
-                        </Button>
-                      ) : (
+                      {!estadoSolicitud?.existe ? (
+                        // No hay solicitud - Mostrar botón de enviar
                         <Button 
                           onClick={() => enviarSolicitud(match.capacidad_id, match.investigador_id || 0)}
                           disabled={enviando || !match.investigador_id}
@@ -235,6 +296,89 @@ export default function MisMatchesExternoPage() {
                             </>
                           )}
                         </Button>
+                      ) : estadoSolicitud.soyRemitente ? (
+                        // Yo envié la solicitud - Mostrar estado
+                        <div className="space-y-2">
+                          {estadoSolicitud.solicitud.estado === 'pendiente' && (
+                            <Button disabled className="w-full" variant="outline">
+                              <Clock className="w-4 h-4 mr-2" />
+                              Solicitud pendiente
+                            </Button>
+                          )}
+                          {estadoSolicitud.solicitud.estado === 'aceptada' && (
+                            <Button 
+                              onClick={() => window.location.href = '/chats'}
+                              className="w-full bg-green-600 hover:bg-green-700"
+                            >
+                              <CheckCircle className="w-4 h-4 mr-2" />
+                              Solicitud aceptada - Ver chat
+                            </Button>
+                          )}
+                          {estadoSolicitud.solicitud.estado === 'rechazada' && (
+                            <Button disabled className="w-full" variant="outline">
+                              <XCircle className="w-4 h-4 mr-2" />
+                              Solicitud rechazada
+                            </Button>
+                          )}
+                        </div>
+                      ) : (
+                        // Existe solicitud (soy remitente o destinatario)
+                        <div className="space-y-2">
+                          {estadoSolicitud.solicitud.estado === 'pendiente' && estadoSolicitud.soyDestinatario ? (
+                            // Me enviaron solicitud pendiente - Mostrar botones de aceptar/rechazar
+                            <>
+                              <div className="text-sm font-medium text-blue-600 mb-2">
+                                ¡Te enviaron una solicitud!
+                              </div>
+                              <div className="flex gap-2">
+                                <Button
+                                  onClick={() => responderSolicitud(estadoSolicitud.solicitud.solicitud_id, 'aceptada')}
+                                  disabled={respondiendo}
+                                  className="flex-1 bg-green-600 hover:bg-green-700"
+                                >
+                                  {respondiendo ? (
+                                    <Loader2 className="w-4 h-4 animate-spin" />
+                                  ) : (
+                                    <>
+                                      <CheckCircle className="w-4 h-4 mr-2" />
+                                      Aceptar
+                                    </>
+                                  )}
+                                </Button>
+                                <Button
+                                  onClick={() => responderSolicitud(estadoSolicitud.solicitud.solicitud_id, 'rechazada')}
+                                  disabled={respondiendo}
+                                  variant="outline"
+                                  className="flex-1"
+                                >
+                                  {respondiendo ? (
+                                    <Loader2 className="w-4 h-4 animate-spin" />
+                                  ) : (
+                                    <>
+                                      <XCircle className="w-4 h-4 mr-2" />
+                                      Rechazar
+                                    </>
+                                  )}
+                                </Button>
+                              </div>
+                            </>
+                          ) : estadoSolicitud.solicitud.estado === 'aceptada' ? (
+                            // Solicitud aceptada (sin importar quién la envió) - Mostrar Ver chat
+                            <Button 
+                              onClick={() => window.location.href = '/chats'}
+                              className="w-full bg-green-600 hover:bg-green-700"
+                            >
+                              <CheckCircle className="w-4 h-4 mr-2" />
+                              Solicitud aceptada - Ver chat
+                            </Button>
+                          ) : estadoSolicitud.solicitud.estado === 'rechazada' ? (
+                            // Solicitud rechazada
+                            <Button disabled className="w-full" variant="outline">
+                              <XCircle className="w-4 h-4 mr-2" />
+                              Solicitud rechazada
+                            </Button>
+                          ) : null}
+                        </div>
                       )}
                     </div>
                   </div>

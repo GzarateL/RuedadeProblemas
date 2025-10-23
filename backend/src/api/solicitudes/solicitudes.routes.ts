@@ -21,6 +21,9 @@ router.get('/recibidas', solicitudesController.getSolicitudesRecibidasController
 // Obtener conteo de solicitudes pendientes
 router.get('/pendientes/count', solicitudesController.getConteoSolicitudesPendientesController);
 
+// Obtener estado de solicitud para un match específico
+router.get('/estado-match', solicitudesController.getEstadoSolicitudParaMatchController);
+
 // Responder a una solicitud
 router.patch('/:solicitud_id/responder', solicitudesController.responderSolicitudController);
 

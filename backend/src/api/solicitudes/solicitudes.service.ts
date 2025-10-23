@@ -14,7 +14,6 @@ export interface Solicitud extends RowDataPacket {
   mensaje: string | null;
   fecha_creacion: string;
   fecha_respuesta: string | null;
-  // Campos adicionales para joins
   remitente_nombre?: string;
   destinatario_nombre?: string;
   match_titulo?: string;
@@ -172,29 +171,85 @@ export const actualizarEstadoSolicitud = async (
 };
 
 /**
- * Verificar si ya existe una solicitud
+ * Verificar si existe una solicitud BIDIRECCIONAL (en cualquier dirección)
+ * Busca por usuarios, no por tipo de match (porque cada usuario ve diferente tipo)
  */
-export const existeSolicitud = async (
-  remitenteTipo: 'unsa' | 'externo',
-  remitenteId: number,
-  destinatarioTipo: 'unsa' | 'externo',
-  destinatarioId: number,
+export const existeSolicitudBidireccional = async (
+  usuario1Tipo: 'unsa' | 'externo',
+  usuario1Id: number,
+  usuario2Tipo: 'unsa' | 'externo',
+  usuario2Id: number,
   tipoMatch: 'capacidad' | 'desafio',
   matchId: number
-): Promise<boolean> => {
+): Promise<Solicitud | null> => {
   try {
-    const [rows] = await dbPool.execute<RowDataPacket[]>(
-      `SELECT solicitud_id FROM Solicitudes 
-       WHERE remitente_tipo = ? AND remitente_id = ?
-         AND destinatario_tipo = ? AND destinatario_id = ?
-         AND tipo_match = ? AND match_id = ?`,
-      [remitenteTipo, remitenteId, destinatarioTipo, destinatarioId, tipoMatch, matchId]
+    // Buscar solicitud entre estos dos usuarios, sin importar el tipo_match
+    // porque cada uno ve un tipo diferente (uno ve desafío, otro ve capacidad)
+    const [rows] = await dbPool.execute<Solicitud[]>(
+      `SELECT * FROM Solicitudes 
+       WHERE (
+         (remitente_tipo = ? AND remitente_id = ? AND destinatario_tipo = ? AND destinatario_id = ?)
+         OR
+         (remitente_tipo = ? AND remitente_id = ? AND destinatario_tipo = ? AND destinatario_id = ?)
+       )`,
+      [
+        usuario1Tipo, usuario1Id, usuario2Tipo, usuario2Id,
+        usuario2Tipo, usuario2Id, usuario1Tipo, usuario1Id
+      ]
     );
     
-    return rows.length > 0;
+    console.log(`🔍 Búsqueda bidireccional: ${rows.length} solicitudes encontradas entre ${usuario1Tipo}:${usuario1Id} y ${usuario2Tipo}:${usuario2Id}`);
+    
+    return rows.length > 0 ? rows[0] : null;
   } catch (error: any) {
-    console.error('Error al verificar solicitud existente:', error);
+    console.error('Error al verificar solicitud bidireccional:', error);
     throw new Error('Error al verificar solicitud.');
+  }
+};
+
+/**
+ * Obtener estado de solicitud para un match específico
+ * Devuelve la solicitud si existe (en cualquier dirección)
+ */
+export const getEstadoSolicitudParaMatch = async (
+  miTipo: 'unsa' | 'externo',
+  miId: number,
+  otroTipo: 'unsa' | 'externo',
+  otroId: number,
+  tipoMatch: 'capacidad' | 'desafio',
+  matchId: number
+): Promise<{
+  existe: boolean;
+  solicitud: Solicitud | null;
+  soyRemitente: boolean;
+  soyDestinatario: boolean;
+}> => {
+  try {
+    console.log(`🔍 Buscando solicitud: miTipo=${miTipo}, miId=${miId}, otroTipo=${otroTipo}, otroId=${otroId}, tipoMatch=${tipoMatch}, matchId=${matchId}`);
+    
+    const solicitud = await existeSolicitudBidireccional(
+      miTipo, miId, otroTipo, otroId, tipoMatch, matchId
+    );
+    
+    if (!solicitud) {
+      console.log('❌ No existe solicitud');
+      return { existe: false, solicitud: null, soyRemitente: false, soyDestinatario: false };
+    }
+    
+    const soyRemitente = solicitud.remitente_tipo === miTipo && solicitud.remitente_id === miId;
+    const soyDestinatario = solicitud.destinatario_tipo === miTipo && solicitud.destinatario_id === miId;
+    
+    console.log(`✅ Solicitud encontrada: estado=${solicitud.estado}, soyRemitente=${soyRemitente}, soyDestinatario=${soyDestinatario}`);
+    
+    return {
+      existe: true,
+      solicitud,
+      soyRemitente,
+      soyDestinatario
+    };
+  } catch (error: any) {
+    console.error('Error al obtener estado de solicitud:', error);
+    throw new Error('Error al obtener estado de solicitud.');
   }
 };
 

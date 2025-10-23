@@ -52,3 +52,22 @@ export const verifyToken = async (req: Request, res: Response) => {
         res.status(401).json({ message: error.message });
     }
 };
+
+// --- OBTENER USUARIO ACTUAL ---
+export const getCurrentUser = async (req: Request, res: Response) => {
+    try {
+        const authHeader = req.headers.authorization;
+        if (!authHeader) {
+            return res.status(401).json({ message: 'No se proveyó un token.' });
+        }
+        const token = authHeader.split(' ')[1];
+        if (!token) {
+            return res.status(401).json({ message: 'Token malformado.' });
+        }
+        const user = await authService.verify(token);
+        
+        res.status(200).json(user);
+    } catch (error: any) {
+        res.status(401).json({ message: error.message });
+    }
+};

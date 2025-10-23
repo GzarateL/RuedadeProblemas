@@ -12,4 +12,7 @@ router.post('/login', authController.loginUser);
 // GET /api/auth/verify
 router.get('/verify', authController.verifyToken);
 
+// GET /api/auth/me - Obtener info del usuario actual
+router.get('/me', authController.getCurrentUser);
+
 export default router;
