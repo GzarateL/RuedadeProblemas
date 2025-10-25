@@ -54,7 +54,7 @@ export default function AdminDashboardPage() {
 
       try {
         // Fetch Desafíos
-        const desafiosRes = await fetch("http://localhost:3001/api/desafios", {
+        const desafiosRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/desafios`, {
           headers: { "Authorization": `Bearer ${token}` }
         });
         if (!desafiosRes.ok) throw new Error(`Error ${desafiosRes.status}: No se pudieron cargar los desafíos.`);
@@ -62,7 +62,7 @@ export default function AdminDashboardPage() {
         setDesafios(desafiosData);
 
         // Fetch Capacidades
-        const capacidadesRes = await fetch("http://localhost:3001/api/capacidades", {
+        const capacidadesRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/capacidades`, {
            headers: { "Authorization": `Bearer ${token}` }
         });
         if (!capacidadesRes.ok) throw new Error(`Error ${capacidadesRes.status}: No se pudieron cargar las capacidades.`);
@@ -70,7 +70,7 @@ export default function AdminDashboardPage() {
         setCapacidades(capacidadesData);
 
         // Fetch Keyword Stats
-        const statsRes = await fetch("http://localhost:3001/api/palabras-clave/stats", {
+        const statsRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/palabras-clave/stats`, {
            headers: { "Authorization": `Bearer ${token}` }
         });
         if (!statsRes.ok) throw new Error(`Error ${statsRes.status}: No se pudieron cargar las estadísticas.`);
@@ -78,7 +78,7 @@ export default function AdminDashboardPage() {
         setKeywordStats(statsData);
 
         // Fetch estado del matching
-        const matchingRes = await fetch("http://localhost:3001/api/matches/status", {
+        const matchingRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/matches/status`, {
           headers: { "Authorization": `Bearer ${token}` }
         });
         if (matchingRes.ok) {
@@ -108,7 +108,7 @@ export default function AdminDashboardPage() {
     setIsTogglingMatching(true);
     try {
       const nuevoEstado = !matchingActivo;
-      const res = await fetch("http://localhost:3001/api/matches/toggle", {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/matches/toggle`, {
         method: 'POST',
         headers: {
           "Authorization": `Bearer ${token}`,

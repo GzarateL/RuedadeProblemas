@@ -43,7 +43,7 @@ export default function MatchingAdminPage() {
     const fetchItems = async () => {
       if (!token) { setError("No autenticado."); toast.error("Error de autenticación"); return; }
       setIsLoadingItems(true); setError(null); setAllItems([]); setSelectedItemId(''); setMatches([]); setMostFrequentKeyword(null);
-      const endpoint = searchType === 'desafio' ? "http://localhost:3001/api/desafios" : "http://localhost:3001/api/capacidades";
+      const endpoint = searchType === 'desafio' ? `${process.env.NEXT_PUBLIC_API_URL}/api/desafios` : `${process.env.NEXT_PUBLIC_API_URL}/api/capacidades`;
       try {
         const res = await fetch(endpoint, { headers: { "Authorization": `Bearer ${token}` } });
         if (!res.ok) { throw new Error(`Error al cargar ${searchType === 'desafio' ? 'desafíos' : 'capacidades'}`); }
@@ -81,7 +81,7 @@ export default function MatchingAdminPage() {
     const fetchMatches = async () => {
       if (!selectedItemId || !token) { setMatches([]); setMostFrequentKeyword(null); return; }
       setIsLoadingMatches(true); setError(null);
-      const matchEndpoint = searchType === 'desafio' ? `http://localhost:3001/api/matches/desafio/${selectedItemId}` : `http://localhost:3001/api/matches/capacidad/${selectedItemId}`;
+      const matchEndpoint = searchType === 'desafio' ? `${process.env.NEXT_PUBLIC_API_URL}/api/matches/desafio/${selectedItemId}` : `${process.env.NEXT_PUBLIC_API_URL}/api/matches/capacidad/${selectedItemId}`;
       try {
         const res = await fetch(matchEndpoint, { headers: { "Authorization": `Bearer ${token}` } });
         if (!res.ok) { throw new Error(`Error al buscar coincidencias`); }

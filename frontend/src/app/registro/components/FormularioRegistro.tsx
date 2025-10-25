@@ -153,13 +153,13 @@ export function FormularioRegistro({ rol, onVolver }: Props) {
     const valuesToSubmit =
       formData.rol === "externo"
         ? {
-            ...formData,
-            helice_id: parseInt(formData.helice_id, 10),
-          }
+          ...formData,
+          helice_id: parseInt(formData.helice_id, 10),
+        }
         : { ...formData };
 
     try {
-      const res = await fetch("http://localhost:3000/api/auth/register", {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(valuesToSubmit),

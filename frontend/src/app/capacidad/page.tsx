@@ -40,7 +40,7 @@ export default function MisCapacidadesPage() {
       if (!token) return;
 
       try {
-        const res = await fetch("http://localhost:3000/api/capacidades/mis-capacidades", {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/capacidades/mis-capacidades`, {
           headers: { "Authorization": `Bearer ${token}` }
         });
 

@@ -35,7 +35,7 @@ export default function AdminCapacidadesPage() {
 
       try {
         // Llama al endpoint del backend para obtener TODAS las capacidades (protegido)
-        const res = await fetch("http://localhost:3001/api/capacidades", {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/capacidades`, {
           headers: { "Authorization": `Bearer ${token}` }
         });
 

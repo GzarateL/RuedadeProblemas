@@ -53,7 +53,7 @@ export default function MisMatchesExternoPage() {
 
     try {
       // Obtener matches
-      const resMatches = await fetch("http://localhost:3000/api/matches/my-matches", {
+      const resMatches = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/matches/my-matches`, {
         headers: { "Authorization": `Bearer ${token}` }
       });
 
@@ -87,7 +87,7 @@ export default function MisMatchesExternoPage() {
       
       try {
         const res = await fetch(
-          `http://localhost:3000/api/solicitudes/estado-match?` +
+          `${process.env.NEXT_PUBLIC_API_URL}/api/solicitudes/estado-match?` +
           `otro_tipo=unsa&otro_id=${match.investigador_id}&` +
           `tipo_match=capacidad&match_id=${match.capacidad_id}`,
           { headers: { "Authorization": `Bearer ${token}` } }
@@ -115,7 +115,7 @@ export default function MisMatchesExternoPage() {
     setEnviandoSolicitud(capacidadId);
 
     try {
-      const res = await fetch("http://localhost:3000/api/solicitudes", {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/solicitudes`, {
         method: 'POST',
         headers: {
           "Authorization": `Bearer ${token}`,
@@ -156,7 +156,7 @@ export default function MisMatchesExternoPage() {
     setRespondiendoSolicitud(solicitudId);
 
     try {
-      const res = await fetch(`http://localhost:3000/api/solicitudes/${solicitudId}/responder`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/solicitudes/${solicitudId}/responder`, {
         method: 'PATCH',
         headers: {
           "Authorization": `Bearer ${token}`,

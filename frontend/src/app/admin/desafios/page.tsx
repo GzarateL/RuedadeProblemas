@@ -39,7 +39,7 @@ export default function AdminDesafiosPage() {
 
       try {
         // Llama al endpoint del backend para obtener todos los desafíos (protegido por token)
-        const res = await fetch("http://localhost:3001/api/desafios", {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/desafios`, {
           method: 'GET', // Método GET por defecto, pero explícito es bueno
           headers: {
               "Authorization": `Bearer ${token}` // Envía el token en la cabecera

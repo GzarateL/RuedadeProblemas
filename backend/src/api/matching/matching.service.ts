@@ -150,6 +150,9 @@ export const toggleMatchingStatus = async (activo: boolean): Promise<void> => {
  */
 export const getMatchesForInvestigador = async (investigadorId: number, limit: number = 10): Promise<DesafioMatch[]> => {
   try {
+    // Asegurar que limit sea un número entero válido
+    const limitValue = Math.max(1, Math.min(100, Math.floor(limit)));
+    
     const query = `
       SELECT DISTINCT
           d.desafio_id,
@@ -169,10 +172,10 @@ export const getMatchesForInvestigador = async (investigadorId: number, limit: n
       WHERE c.investigador_id = ?
       GROUP BY d.desafio_id
       ORDER BY total_coincidencias DESC, d.desafio_id DESC
-      LIMIT ?;
+      LIMIT ${limitValue};
     `;
 
-    const [rows] = await dbPool.execute<DesafioMatch[]>(query, [investigadorId, limit]);
+    const [rows] = await dbPool.execute<DesafioMatch[]>(query, [investigadorId]);
     return rows;
   } catch (error: any) {
     console.error(`Error al obtener matches para investigador ${investigadorId}:`, error);
@@ -185,6 +188,9 @@ export const getMatchesForInvestigador = async (investigadorId: number, limit: n
  */
 export const getMatchesForParticipante = async (participanteId: number, limit: number = 10): Promise<CapacidadMatch[]> => {
   try {
+    // Asegurar que limit sea un número entero válido
+    const limitValue = Math.max(1, Math.min(100, Math.floor(limit)));
+    
     const query = `
       SELECT DISTINCT
           c.capacidad_id,
@@ -202,10 +208,10 @@ export const getMatchesForParticipante = async (participanteId: number, limit: n
       WHERE d.participante_id = ?
       GROUP BY c.capacidad_id
       ORDER BY total_coincidencias DESC, c.capacidad_id DESC
-      LIMIT ?;
+      LIMIT ${limitValue};
     `;
 
-    const [rows] = await dbPool.execute<CapacidadMatch[]>(query, [participanteId, limit]);
+    const [rows] = await dbPool.execute<CapacidadMatch[]>(query, [participanteId]);
     return rows;
   } catch (error: any) {
     console.error(`Error al obtener matches para participante ${participanteId}:`, error);

@@ -33,10 +33,10 @@ export default function SolicitudesPage() {
 
     try {
       const [resRecibidas, resEnviadas] = await Promise.all([
-        fetch("http://localhost:3000/api/solicitudes/recibidas", {
+        fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/solicitudes/recibidas`, {
           headers: { "Authorization": `Bearer ${token}` }
         }),
-        fetch("http://localhost:3000/api/solicitudes/enviadas", {
+        fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/solicitudes/enviadas`, {
           headers: { "Authorization": `Bearer ${token}` }
         })
       ]);
@@ -68,7 +68,7 @@ export default function SolicitudesPage() {
     setRespondiendo(solicitudId);
 
     try {
-      const res = await fetch(`http://localhost:3000/api/solicitudes/${solicitudId}/responder`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/solicitudes/${solicitudId}/responder`, {
         method: 'PATCH',
         headers: {
           "Authorization": `Bearer ${token}`,

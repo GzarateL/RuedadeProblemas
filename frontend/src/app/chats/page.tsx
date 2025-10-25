@@ -28,7 +28,7 @@ export default function ChatsPage() {
     }
 
     try {
-      const res = await fetch("http://localhost:3000/api/chats", {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/chats`, {
         headers: { "Authorization": `Bearer ${token}` }
       });
 

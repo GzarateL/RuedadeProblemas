@@ -77,7 +77,7 @@ export default function UsuariosPage() {
           toast.error("Sesión expirada. Inicia sesión nuevamente.");
           return;
         }
-        const url = new URL("http://localhost:3001/api/users");
+        const url = new URL(`${process.env.NEXT_PUBLIC_API_URL}/api/users`);
         if (qDebounced) url.searchParams.set("q", qDebounced);
         if (rol !== "todos") url.searchParams.set("role", rol);
         url.searchParams.set("page", String(page));
@@ -164,7 +164,7 @@ export default function UsuariosPage() {
         toast.error("Sesión expirada. Inicia sesión nuevamente.");
         return;
       }
-      const url = new URL("http://localhost:3001/api/users/export");
+      const url = new URL(`${process.env.NEXT_PUBLIC_API_URL}/api/users/export`);
       if (qDebounced) url.searchParams.set("q", qDebounced);
       if (rol !== "todos") url.searchParams.set("role", rol);
 

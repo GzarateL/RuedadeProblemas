@@ -99,8 +99,8 @@ export default function AdminCronogramaPage() {
         }
         try {
             const [diasRes, sesionesRes] = await Promise.all([
-                fetch("http://localhost:3001/api/cronograma/admin/dias", { headers: { "Authorization": `Bearer ${token}` } }),
-                fetch("http://localhost:3001/api/cronograma/admin/sesiones", { headers: { "Authorization": `Bearer ${token}` } })
+                fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/cronograma/admin/dias`, { headers: { "Authorization": `Bearer ${token}` } }),
+                fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/cronograma/admin/sesiones`, { headers: { "Authorization": `Bearer ${token}` } })
             ]);
 
             if (!diasRes.ok) throw new Error('Error al cargar días');
@@ -154,8 +154,8 @@ export default function AdminCronogramaPage() {
         }
         try {
             const endpoint = editingDiaId
-                ? `http://localhost:3001/api/cronograma/admin/dias/${editingDiaId}`
-                : "http://localhost:3001/api/cronograma/admin/dias";
+                ? `${process.env.NEXT_PUBLIC_API_URL}/api/cronograma/admin/dias/${editingDiaId}`
+                : `${process.env.NEXT_PUBLIC_API_URL}/api/cronograma/admin/dias`;
             const method = editingDiaId ? 'PUT' : 'POST';
 
             const res = await fetch(endpoint, {
@@ -201,8 +201,8 @@ export default function AdminCronogramaPage() {
         }
         try {
             const endpoint = editingSesionId
-                ? `http://localhost:3001/api/cronograma/admin/sesiones/${editingSesionId}`
-                : "http://localhost:3001/api/cronograma/admin/sesiones";
+                ? `${process.env.NEXT_PUBLIC_API_URL}/api/cronograma/admin/sesiones/${editingSesionId}`
+                : `${process.env.NEXT_PUBLIC_API_URL}/api/cronograma/admin/sesiones`;
             const method = editingSesionId ? 'PUT' : 'POST';
 
             const res = await fetch(endpoint, {
@@ -244,7 +244,7 @@ export default function AdminCronogramaPage() {
     const handleDeleteDia = async (id: number) => {
         if (!token || !confirm("¿Seguro que quieres eliminar este día y todas sus sesiones?")) return;
         try {
-            const res = await fetch(`http://localhost:3001/api/cronograma/admin/dias/${id}`, {
+            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/cronograma/admin/dias/${id}`, {
                 method: 'DELETE',
                 headers: { "Authorization": `Bearer ${token}` }
             });
@@ -263,7 +263,7 @@ export default function AdminCronogramaPage() {
     const handleDeleteSesion = async (id: number) => {
         if (!token || !confirm("¿Seguro que quieres eliminar esta sesión?")) return;
         try {
-            const res = await fetch(`http://localhost:3001/api/cronograma/admin/sesiones/${id}`, {
+            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/cronograma/admin/sesiones/${id}`, {
                 method: 'DELETE',
                 headers: { "Authorization": `Bearer ${token}` }
             });

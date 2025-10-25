@@ -53,7 +53,7 @@ export default function ChatDetailPage() {
     }
 
     try {
-      const res = await fetch(`http://localhost:3000/api/chats/${chatId}/mensajes`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/chats/${chatId}/mensajes`, {
         headers: { "Authorization": `Bearer ${token}` }
       });
 
@@ -71,7 +71,7 @@ export default function ChatDetailPage() {
       }
       
       // Obtener info del usuario actual
-      const resMe = await fetch('http://localhost:3000/api/auth/me', {
+      const resMe = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/me`, {
         headers: { "Authorization": `Bearer ${token}` }
       });
       
@@ -105,7 +105,7 @@ export default function ChatDetailPage() {
     setEnviando(true);
 
     try {
-      const res = await fetch(`http://localhost:3000/api/chats/${chatId}/mensajes`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/chats/${chatId}/mensajes`, {
         method: 'POST',
         headers: {
           "Authorization": `Bearer ${token}`,
