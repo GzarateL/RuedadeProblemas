@@ -137,7 +137,7 @@ export default function AdminCronogramaPage() {
         setNewDia(prev => ({ ...prev, [e.target.name]: e.target.value }));
     };
     const handleSesionChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-         setNewSesion(prev => ({ ...prev, [e.target.name]: e.target.value }));
+        setNewSesion(prev => ({ ...prev, [e.target.name]: e.target.value }));
     };
 
     const handleDiaSubmit = async (e: FormEvent) => {
@@ -262,7 +262,7 @@ export default function AdminCronogramaPage() {
 
     const handleDeleteSesion = async (id: number) => {
         if (!token || !confirm("¿Seguro que quieres eliminar esta sesión?")) return;
-         try {
+        try {
             const res = await fetch(`http://localhost:3001/api/cronograma/admin/sesiones/${id}`, {
                 method: 'DELETE',
                 headers: { "Authorization": `Bearer ${token}` }
@@ -331,7 +331,7 @@ export default function AdminCronogramaPage() {
                             <tbody className="divide-y divide-gray-200">
                                 {dias.map(d => (
                                     <tr key={d.dia_id}>
-                                          <td className="px-4 py-2 text-gray-900">{d.dia_numero}</td>
+                                        <td className="px-4 py-2 text-gray-900">{d.dia_numero}</td>
                                         <td className="px-4 py-2 text-gray-900">{d.nombre_dia}</td>
                                         <td className="px-4 py-2 text-gray-900">{formatDateForDisplay(d.fecha)}</td>
                                         <td className="px-4 py-2 text-right">
@@ -353,7 +353,7 @@ export default function AdminCronogramaPage() {
             </Card>
 
             {/* Sección Sesiones */}
-             <Card>
+            <Card>
                 <CardHeader>
                     <CardTitle>Sesiones del Evento</CardTitle>
                     <CardDescription>Añade o modifica las sesiones dentro de cada día.</CardDescription>
@@ -364,7 +364,7 @@ export default function AdminCronogramaPage() {
                         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                             <div className="space-y-1">
                                 <Label htmlFor="dia_id_sesion">Día *</Label>
-                                <select id="dia_id_sesion" name="dia_id" value={newSesion.dia_id} onChange={(e) => setNewSesion(p=>({...p, dia_id: e.target.value}))} required className="border rounded p-2 w-full">
+                                <select id="dia_id_sesion" name="dia_id" value={newSesion.dia_id} onChange={(e) => setNewSesion(p => ({ ...p, dia_id: e.target.value }))} required className="border rounded p-2 w-full">
                                     <option value="">Selecciona...</option>
                                     {dias.map(d => (
                                         <option key={d.dia_id} value={d.dia_id}>
@@ -377,11 +377,11 @@ export default function AdminCronogramaPage() {
                                 <Label htmlFor="horario_display">Horario (Texto) *</Label>
                                 <Input id="horario_display" name="horario_display" value={newSesion.horario_display} onChange={handleSesionChange} placeholder="Ej: 09:00 - 11:00" required />
                             </div>
-                             <div className="space-y-1">
+                            <div className="space-y-1">
                                 <Label htmlFor="hora_inicio">Hora Inicio (Opc)</Label>
                                 <Input type="time" id="hora_inicio" name="hora_inicio" value={newSesion.hora_inicio} onChange={handleSesionChange} />
                             </div>
-                             <div className="space-y-1">
+                            <div className="space-y-1">
                                 <Label htmlFor="hora_fin">Hora Fin (Opc)</Label>
                                 <Input type="time" id="hora_fin" name="hora_fin" value={newSesion.hora_fin} onChange={handleSesionChange} />
                             </div>
@@ -390,12 +390,12 @@ export default function AdminCronogramaPage() {
                             <Label htmlFor="bloque_tematico">Bloque Temático *</Label>
                             <Textarea id="bloque_tematico" name="bloque_tematico" value={newSesion.bloque_tematico} onChange={handleSesionChange} required rows={2} />
                         </div>
-                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                             <div className="space-y-1">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="space-y-1">
                                 <Label htmlFor="foco_objetivos">Foco / Objetivos</Label>
                                 <Textarea id="foco_objetivos" name="foco_objetivos" value={newSesion.foco_objetivos} onChange={handleSesionChange} rows={3} />
                             </div>
-                             <div className="space-y-1">
+                            <div className="space-y-1">
                                 <Label htmlFor="entregable_clave">Entregable Clave</Label>
                                 <Textarea id="entregable_clave" name="entregable_clave" value={newSesion.entregable_clave} onChange={handleSesionChange} rows={3} />
                             </div>
@@ -408,11 +408,11 @@ export default function AdminCronogramaPage() {
                         </div>
                     </form>
 
-                     {/* Tabla de Sesiones */}
-                     <div className="overflow-x-auto">
+                    {/* Tabla de Sesiones */}
+                    <div className="overflow-x-auto">
                         <table className="min-w-full divide-y divide-gray-200 text-sm">
-                             <thead><tr><th>Día</th><th>Horario</th><th>Bloque</th><th>Acciones</th></tr></thead>
-                             <tbody className="divide-y divide-gray-200">
+                            <thead><tr><th>Día</th><th>Horario</th><th>Bloque</th><th>Acciones</th></tr></thead>
+                            <tbody className="divide-y divide-gray-200">
                                 {sesiones.map(s => (
                                     <tr key={s.sesion_id}>
                                         <td>{s.nombre_dia}</td>
@@ -426,9 +426,9 @@ export default function AdminCronogramaPage() {
                                         </td>
                                     </tr>
                                 ))}
-                             </tbody>
+                            </tbody>
                         </table>
-                     </div>
+                    </div>
                 </CardContent>
             </Card>
 

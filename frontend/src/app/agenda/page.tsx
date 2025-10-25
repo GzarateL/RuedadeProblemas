@@ -22,7 +22,7 @@ interface DiaConSesiones {
 // Función para obtener los datos (Server Component)
 async function getScheduleData(): Promise<DiaConSesiones[]> {
     try {
-        const res = await fetch("http://localhost:3001/api/cronograma", {
+        const res = await fetch("http://localhost:3000/api/cronograma", {
             cache: 'no-store' // Para asegurar datos frescos, o ajusta el cache
         });
         if (!res.ok) {

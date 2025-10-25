@@ -41,7 +41,7 @@ export default function MisDesafiosPage() {
       if (!token) return;
 
       try {
-        const res = await fetch("http://localhost:3001/api/desafios/mis-desafios", {
+        const res = await fetch("http://localhost:3000/api/desafios/mis-desafios", {
           headers: { "Authorization": `Bearer ${token}` }
         });
 

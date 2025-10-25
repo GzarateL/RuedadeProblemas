@@ -78,7 +78,7 @@ export default function FormularioCapacidadUnsa() {
     }
 
     try {
-      const res = await fetch("http://localhost:3001/api/capacidades", {
+      const res = await fetch("http://localhost:3000/api/capacidades", {
         method: "POST",
         headers: {
             "Content-Type": "application/json",

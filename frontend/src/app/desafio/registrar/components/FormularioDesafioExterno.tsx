@@ -102,7 +102,7 @@ export default function FormularioDesafioExterno() {
 
     try {
       // Nota: No se usa 'Content-Type': 'application/json' con FormData
-      const res = await fetch("http://localhost:3001/api/desafios", {
+      const res = await fetch("http://localhost:3000/api/desafios", {
         method: "POST",
         headers: {
             // 'Content-Type' es establecido automáticamente por el navegador para FormData

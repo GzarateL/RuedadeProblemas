@@ -62,7 +62,7 @@ export default function MisMatchesUNSAPage() {
 
     try {
       // Obtener matches
-      const resMatches = await fetch("http://localhost:3001/api/matches/my-matches", {
+      const resMatches = await fetch("http://localhost:3000/api/matches/my-matches", {
         headers: { "Authorization": `Bearer ${token}` }
       });
 
@@ -96,7 +96,7 @@ export default function MisMatchesUNSAPage() {
       
       try {
         const res = await fetch(
-          `http://localhost:3001/api/solicitudes/estado-match?` +
+          `http://localhost:3000/api/solicitudes/estado-match?` +
           `otro_tipo=externo&otro_id=${match.participante_id}&` +
           `tipo_match=desafio&match_id=${match.desafio_id}`,
           { headers: { "Authorization": `Bearer ${token}` } }
@@ -126,7 +126,7 @@ export default function MisMatchesUNSAPage() {
     setEnviandoSolicitud(desafioId);
 
     try {
-      const res = await fetch("http://localhost:3001/api/solicitudes", {
+      const res = await fetch("http://localhost:3000/api/solicitudes", {
         method: 'POST',
         headers: {
           "Authorization": `Bearer ${token}`,
@@ -167,7 +167,7 @@ export default function MisMatchesUNSAPage() {
     setRespondiendoSolicitud(solicitudId);
 
     try {
-      const res = await fetch(`http://localhost:3001/api/solicitudes/${solicitudId}/responder`, {
+      const res = await fetch(`http://localhost:3000/api/solicitudes/${solicitudId}/responder`, {
         method: 'PATCH',
         headers: {
           "Authorization": `Bearer ${token}`,

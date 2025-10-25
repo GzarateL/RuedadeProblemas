@@ -15,7 +15,7 @@ export default function SolicitudesNotification() {
       if (!token) return;
 
       try {
-        const res = await fetch("http://localhost:3001/api/solicitudes/pendientes/count", {
+        const res = await fetch("http://localhost:3000/api/solicitudes/pendientes/count", {
           headers: { "Authorization": `Bearer ${token}` }
         });
 

@@ -22,6 +22,8 @@ app.use(express.json());
 
 // --- SERVIR ARCHIVOS ESTÁTICOS (Adjuntos subidos) --- // <--- AÑADE ESTA SECCIÓN
 const uploadsPath = path.join(__dirname, '../../uploads');
+console.log('DB_PASSWORD length:', process.env.DB_PASSWORD?.length);
+console.log('DB_PASSWORD has spaces?', /\s/.test(process.env.DB_PASSWORD || ''));
 console.log(`Sirviendo archivos estáticos desde: ${uploadsPath}`); // Log para depuración
 app.use('/uploads', express.static(uploadsPath));
 // --- FIN SERVIR ARCHIVOS ESTÁTICOS --- // <--- HASTA AQUÍ
