@@ -29,7 +29,6 @@ export function Navbar() {
           </div>
           <div className="flex items-center gap-4">
             <SolicitudesNotification />  {/* 👈 Aquí aparecerá la campana */}
-            <button>Salir</button>
           </div>
           
           <div className="hidden md:flex items-center space-x-6">
