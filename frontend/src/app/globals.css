@@ -1,8 +1,9 @@
 @import "tailwindcss";
-@import "tw-animate-css";
+@import "tw-animate-css"; /* Opcional si lo usas */
 
 @custom-variant dark (&:is(.dark *));
 
+/* Tus variables @theme inline existentes */
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -43,6 +44,7 @@
   --radius-xl: calc(var(--radius) + 4px);
 }
 
+/* Tus variables :root existentes */
 :root {
   --radius: 0.625rem;
   --card: oklch(1 0 0);
@@ -78,6 +80,7 @@
   --foreground: oklch(0.129 0.042 264.695);
 }
 
+/* Tus variables .dark existentes */
 .dark {
   --background: oklch(0.129 0.042 264.695);
   --foreground: oklch(0.984 0.003 247.858);
@@ -120,3 +123,62 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* --- Keyframes y Clases para Animaciones --- */
+@layer utilities {
+  .animation-delay-custom {
+    animation-delay: calc(var(--stagger, 0) * 150ms + 200ms);
+  }
+  .animation-delay-200 { animation-delay: 200ms; }
+  .animation-delay-400 { animation-delay: 400ms; }
+  .animation-delay-600 { animation-delay: 600ms; }
+}
+
+/* Fade In */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+.animate-fade-in {
+  opacity: 0;
+  animation: fadeIn 0.8s ease-out forwards;
+}
+
+/* Fade In Up */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.animate-fade-in-up {
+  opacity: 0;
+  animation: fadeInUp 0.8s ease-out forwards;
+}
+
+/* Fondo Rojo Degradado Suave */
+@keyframes softRedGradientShift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.animate-soft-red-gradient {
+  /* Fondo con gradiente lineal que incluye tu rojo y tonos cercanos */
+  background: linear-gradient(-45deg, #d80c0d, #c00a0b, #a00809, #d80c0d); /* Ajusta los tonos si quieres */
+  background-size: 400% 400%; /* Tamaño grande para que el movimiento sea suave */
+  animation: softRedGradientShift 20s ease-in-out infinite; /* Animación lenta y suave */
+  position: relative; /* Para el z-index del contenido */
+  overflow: hidden; /* Para contener la animación */
+}
+
+/* Pseudo-elemento opcional si prefieres separar gradiente de color base */
+/* Si usas esto, quita background y background-size de .animate-soft-red-gradient */
+/* .animate-soft-red-gradient::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: linear-gradient(-45deg, #d80c0d, #c00a0b, #a00809, #d80c0d);
+  background-size: 400% 400%;
+  animation: softRedGradientShift 20s ease-in-out infinite;
+  z-index: 0;
+} */
+/* --- FIN --- */
