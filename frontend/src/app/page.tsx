@@ -1,6 +1,7 @@
 // /frontend/src/app/page.tsx
 "use client";
 
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import Image from "next/image";
@@ -8,6 +9,126 @@ import { useAuth } from "@/context/AuthContext";
 
 export default function HomePage() {
   const { user, isLoading } = useAuth();
+  const [activeStep, setActiveStep] = useState(0);
+  const timeoutsRef = useRef<Array<ReturnType<typeof setTimeout>>>([]);
+  const previousScrollY = useRef(0);
+  const scrollDirectionRef = useRef<"up" | "down">("down");
+  const hasTriggeredRef = useRef(false);
+  const isSectionVisibleRef = useRef(false);
+  const howItWorksRef = useRef<HTMLElement | null>(null);
+
+  const clearTimers = useCallback(() => {
+    timeoutsRef.current.forEach((timeoutId) => clearTimeout(timeoutId));
+    timeoutsRef.current = [];
+  }, []);
+
+  const resetSequence = useCallback(() => {
+    clearTimers();
+    setActiveStep(0);
+  }, [clearTimers]);
+
+  const triggerSequence = useCallback(() => {
+    clearTimers();
+    setActiveStep(0);
+    timeoutsRef.current = [
+      setTimeout(() => setActiveStep(1), 0),
+      setTimeout(() => setActiveStep(2), 600),
+      setTimeout(() => setActiveStep(3), 1200),
+    ];
+  }, [clearTimers]);
+
+  useEffect(() => {
+    previousScrollY.current = window.scrollY;
+
+    const handleScroll = () => {
+      const currentY = window.scrollY;
+
+      let newDirection: "up" | "down" = scrollDirectionRef.current;
+
+      if (currentY > previousScrollY.current) {
+        newDirection = "down";
+      } else if (currentY < previousScrollY.current) {
+        newDirection = "up";
+      }
+
+      if (newDirection !== scrollDirectionRef.current) {
+        scrollDirectionRef.current = newDirection;
+
+        if (newDirection === "up") {
+          hasTriggeredRef.current = false;
+          resetSequence();
+        } else if (newDirection === "down" && isSectionVisibleRef.current && !hasTriggeredRef.current) {
+          hasTriggeredRef.current = true;
+          triggerSequence();
+        }
+      } else if (newDirection === "down" && isSectionVisibleRef.current && !hasTriggeredRef.current) {
+        hasTriggeredRef.current = true;
+        triggerSequence();
+      }
+
+      previousScrollY.current = currentY;
+    };
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+    };
+  }, [resetSequence, triggerSequence]);
+
+  useEffect(() => {
+    const sectionElement = howItWorksRef.current;
+    if (!sectionElement) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            isSectionVisibleRef.current = true;
+
+            if (scrollDirectionRef.current === "down" && !hasTriggeredRef.current) {
+              hasTriggeredRef.current = true;
+              triggerSequence();
+            }
+          } else {
+            isSectionVisibleRef.current = false;
+            hasTriggeredRef.current = false;
+            resetSequence();
+          }
+        });
+      },
+      { threshold: 0.3 }
+    );
+
+    observer.observe(sectionElement);
+
+    return () => {
+      observer.disconnect();
+    };
+  }, [resetSequence, triggerSequence]);
+
+  useEffect(() => () => clearTimers(), [clearTimers]);
+
+  const steps = [
+    {
+      number: "01",
+      title: "Identifica Problemas",
+      description:
+        "Actores externos (empresas, gobierno, sociedad civil) presentan desafíos reales que requieren soluciones innovadoras a través de esta plataforma.",
+    },
+    {
+      number: "02",
+      title: "Conecta Capacidades",
+      description:
+        "Investigadores y grupos de la UNSA registran sus capacidades, líneas de investigación y expertise disponibles para abordar dichos desafíos.",
+    },
+    {
+      number: "03",
+      title: "Genera Proyectos",
+      description:
+        "La plataforma facilita el emparejamiento. Se identifican sinergias y se formulan fichas de proyectos I+D+i+e con potencial de financiamiento (ej. fondos de canon).",
+    },
+  ];
 
   // Función renderActionButtons (ajustada justificación para layout izquierda/derecha)
   const renderActionButtons = () => {
@@ -126,45 +247,31 @@ export default function HomePage() {
 
 
       {/* Sección 3: ¿Cómo Funciona? */}
-      <section className="bg-white py-20 md:py-28">
-         <div className="max-w-7xl mx-auto px-6 sm:px-8">
+      <section ref={howItWorksRef} className="bg-white py-20 md:py-28">
+        <div className="max-w-7xl mx-auto px-6 sm:px-8">
           <h2 className="text-4xl font-bold text-neutral-900 text-center mb-16 animate-fade-in-up">
             ¿Cómo Funciona?
           </h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8" style={{ '--stagger': '1' } as React.CSSProperties}>
-            <div className="border border-neutral-200 p-8 rounded-lg shadow-sm bg-white animate-fade-in-up animation-delay-custom">
-              <h3 className="text-2xl font-semibold text-neutral-900 mb-4">
-                <span className="text-red-500 font-bold mr-3 text-3xl">01</span>
-                Identifica Problemas
-              </h3>
-               {/* Añadido text-justify */}
-              <p className="text-neutral-600 leading-relaxed text-justify">
-                Actores externos (empresas, gobierno, sociedad civil) presentan desafíos reales que requieren
-                soluciones innovadoras a través de esta plataforma.
-              </p>
-            </div>
-            <div className="border border-neutral-200 p-8 rounded-lg shadow-sm bg-white animate-fade-in-up animation-delay-custom" style={{ '--stagger': '2' } as React.CSSProperties}>
-              <h3 className="text-2xl font-semibold text-neutral-900 mb-4">
-                <span className="text-red-500 font-bold mr-3 text-3xl">02</span>
-                Conecta Capacidades
-              </h3>
-               {/* Añadido text-justify */}
-              <p className="text-neutral-600 leading-relaxed text-justify">
-                Investigadores y grupos de la UNSA registran sus capacidades, líneas de investigación y expertise
-                disponibles para abordar dichos desafíos.
-              </p>
-            </div>
-            <div className="border border-neutral-200 p-8 rounded-lg shadow-sm bg-white animate-fade-in-up animation-delay-custom" style={{ '--stagger': '3' } as React.CSSProperties}>
-              <h3 className="text-2xl font-semibold text-neutral-900 mb-4">
-                <span className="text-red-500 font-bold mr-3 text-3xl">03</span>
-                Genera Proyectos
-              </h3>
-               {/* Añadido text-justify */}
-              <p className="text-neutral-600 leading-relaxed text-justify">
-                La plataforma facilita el emparejamiento. Se identifican sinergias y se formulan fichas de proyectos I+D+i+e con potencial
-                de financiamiento (ej. fondos de canon).
-              </p>
-            </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {steps.map((step, index) => {
+              const stepOrder = index + 1;
+              const isVisible = activeStep >= stepOrder;
+
+              return (
+                <div
+                  key={step.number}
+                  className={`border border-neutral-200 p-8 rounded-lg shadow-sm bg-white transition-all duration-700 ease-out ${
+                    isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"
+                  }`}
+                >
+                  <h3 className="text-2xl font-semibold text-neutral-900 mb-4">
+                    <span className="text-red-500 font-bold mr-3 text-3xl">{step.number}</span>
+                    {step.title}
+                  </h3>
+                  <p className="text-neutral-600 leading-relaxed text-justify">{step.description}</p>
+                </div>
+              );
+            })}
           </div>
         </div>
       </section>
