@@ -7,10 +7,40 @@ import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/AuthContext";
 import { LogOut, User as UserIcon, FilePlus, Sparkles } from "lucide-react";
 import SolicitudesNotification from "./SolicitudesNotification";
+import { useEffect, useState } from "react";
 
 export function Navbar() {
   const { user, logout, isLoading } = useAuth();
   const router = useRouter();
+  const [isVisible, setIsVisible] = useState(true);
+  const [lastScrollY, setLastScrollY] = useState(0);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY;
+      
+      // Si estamos en la parte superior, siempre mostrar
+      if (currentScrollY < 10) {
+        setIsVisible(true);
+      } 
+      // Si scrolleamos hacia abajo, ocultar
+      else if (currentScrollY > lastScrollY && currentScrollY > 80) {
+        setIsVisible(false);
+      } 
+      // Si scrolleamos hacia arriba, mostrar
+      else if (currentScrollY < lastScrollY) {
+        setIsVisible(true);
+      }
+      
+      setLastScrollY(currentScrollY);
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+    };
+  }, [lastScrollY]);
 
   const handleLogout = () => {
     logout();
@@ -18,7 +48,7 @@ export function Navbar() {
   };
 
   return (
-    <nav className="fixed top-0 left-0 right-0 w-full bg-white/80 border-b z-50 backdrop-blur-sm">
+    <nav className={`fixed top-0 left-0 right-0 w-full bg-white/80 border-b z-50 backdrop-blur-sm transition-transform duration-300 ${isVisible ? 'translate-y-0' : '-translate-y-full'}`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           
