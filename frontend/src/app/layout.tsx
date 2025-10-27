@@ -27,7 +27,7 @@ export default function RootLayout({
         <meta name="description" content="Conectando Desafíos con Soluciones" />
       </Head>
       <body 
-        className={`${inter.className} bg-white`}
+        className={`${inter.className} bg-neutral-50`}
         style={{ 
           margin: 0, 
           padding: 0, 

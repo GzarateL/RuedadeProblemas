@@ -44,75 +44,75 @@
   --radius-xl: calc(var(--radius) + 4px);
 }
 
-/* Tus variables :root existentes */
+/* Tus variables :root existentes - TEMA ROJO/NEGRO/GRIS */
 :root {
   --radius: 0.625rem;
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.129 0.042 264.695);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.129 0.042 264.695);
-  --primary: oklch(0.208 0.042 265.755);
-  --primary-foreground: oklch(0.984 0.003 247.858);
-  --secondary: oklch(0.968 0.007 247.896);
-  --secondary-foreground: oklch(0.208 0.042 265.755);
-  --muted: oklch(0.968 0.007 247.896);
-  --muted-foreground: oklch(0.554 0.046 257.417);
-  --accent: oklch(0.968 0.007 247.896);
-  --accent-foreground: oklch(0.208 0.042 265.755);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.929 0.013 255.508);
-  --input: oklch(0.929 0.013 255.508);
-  --ring: oklch(0.704 0.04 256.788);
-  --chart-1: oklch(0.646 0.222 41.116);
-  --chart-2: oklch(0.6 0.118 184.704);
-  --chart-3: oklch(0.398 0.07 227.392);
-  --chart-4: oklch(0.828 0.189 84.429);
-  --chart-5: oklch(0.769 0.188 70.08);
-  --sidebar: oklch(0.984 0.003 247.858);
-  --sidebar-foreground: oklch(0.129 0.042 264.695);
-  --sidebar-primary: oklch(0.208 0.042 265.755);
-  --sidebar-primary-foreground: oklch(0.984 0.003 247.858);
-  --sidebar-accent: oklch(0.968 0.007 247.896);
-  --sidebar-accent-foreground: oklch(0.208 0.042 265.755);
-  --sidebar-border: oklch(0.929 0.013 255.508);
-  --sidebar-ring: oklch(0.704 0.04 256.788);
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.129 0.042 264.695);
+  --card: oklch(0.98 0 0); /* Blanco casi puro */
+  --card-foreground: oklch(0.15 0 0); /* Negro suave */
+  --popover: oklch(0.98 0 0);
+  --popover-foreground: oklch(0.15 0 0);
+  --primary: oklch(0.45 0.22 25); /* Rojo intenso */
+  --primary-foreground: oklch(0.98 0 0); /* Blanco */
+  --secondary: oklch(0.85 0 0); /* Gris claro */
+  --secondary-foreground: oklch(0.15 0 0); /* Negro */
+  --muted: oklch(0.90 0 0); /* Gris muy claro */
+  --muted-foreground: oklch(0.45 0 0); /* Gris medio */
+  --accent: oklch(0.45 0.22 25); /* Rojo acento */
+  --accent-foreground: oklch(0.98 0 0); /* Blanco */
+  --destructive: oklch(0.50 0.25 25); /* Rojo destructivo */
+  --border: oklch(0.85 0 0); /* Gris claro */
+  --input: oklch(0.90 0 0); /* Gris muy claro */
+  --ring: oklch(0.45 0.22 25); /* Rojo para focus */
+  --chart-1: oklch(0.45 0.22 25); /* Rojo */
+  --chart-2: oklch(0.30 0 0); /* Negro grisáceo */
+  --chart-3: oklch(0.60 0 0); /* Gris medio */
+  --chart-4: oklch(0.50 0.15 25); /* Rojo suave */
+  --chart-5: oklch(0.70 0 0); /* Gris claro */
+  --sidebar: oklch(0.95 0 0); /* Gris muy claro */
+  --sidebar-foreground: oklch(0.15 0 0); /* Negro */
+  --sidebar-primary: oklch(0.45 0.22 25); /* Rojo */
+  --sidebar-primary-foreground: oklch(0.98 0 0); /* Blanco */
+  --sidebar-accent: oklch(0.90 0 0); /* Gris claro */
+  --sidebar-accent-foreground: oklch(0.15 0 0); /* Negro */
+  --sidebar-border: oklch(0.85 0 0); /* Gris */
+  --sidebar-ring: oklch(0.45 0.22 25); /* Rojo */
+  --background: oklch(0.98 0 0); /* Blanco casi puro */
+  --foreground: oklch(0.15 0 0); /* Negro suave */
 }
 
-/* Tus variables .dark existentes */
+/* Tus variables .dark existentes - TEMA ROJO/NEGRO/GRIS OSCURO */
 .dark {
-  --background: oklch(0.129 0.042 264.695);
-  --foreground: oklch(0.984 0.003 247.858);
-  --card: oklch(0.208 0.042 265.755);
-  --card-foreground: oklch(0.984 0.003 247.858);
-  --popover: oklch(0.208 0.042 265.755);
-  --popover-foreground: oklch(0.984 0.003 247.858);
-  --primary: oklch(0.929 0.013 255.508);
-  --primary-foreground: oklch(0.208 0.042 265.755);
-  --secondary: oklch(0.279 0.041 260.031);
-  --secondary-foreground: oklch(0.984 0.003 247.858);
-  --muted: oklch(0.279 0.041 260.031);
-  --muted-foreground: oklch(0.704 0.04 256.788);
-  --accent: oklch(0.279 0.041 260.031);
-  --accent-foreground: oklch(0.984 0.003 247.858);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.551 0.027 264.364);
-  --chart-1: oklch(0.488 0.243 264.376);
-  --chart-2: oklch(0.696 0.17 162.48);
-  --chart-3: oklch(0.769 0.188 70.08);
-  --chart-4: oklch(0.627 0.265 303.9);
-  --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: oklch(0.208 0.042 265.755);
-  --sidebar-foreground: oklch(0.984 0.003 247.858);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.984 0.003 247.858);
-  --sidebar-accent: oklch(0.279 0.041 260.031);
-  --sidebar-accent-foreground: oklch(0.984 0.003 247.858);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.551 0.027 264.364);
+  --background: oklch(0.12 0 0); /* Negro profundo */
+  --foreground: oklch(0.95 0 0); /* Blanco casi puro */
+  --card: oklch(0.18 0 0); /* Negro grisáceo */
+  --card-foreground: oklch(0.95 0 0); /* Blanco */
+  --popover: oklch(0.18 0 0); /* Negro grisáceo */
+  --popover-foreground: oklch(0.95 0 0); /* Blanco */
+  --primary: oklch(0.50 0.25 25); /* Rojo brillante */
+  --primary-foreground: oklch(0.98 0 0); /* Blanco */
+  --secondary: oklch(0.25 0 0); /* Gris oscuro */
+  --secondary-foreground: oklch(0.95 0 0); /* Blanco */
+  --muted: oklch(0.25 0 0); /* Gris oscuro */
+  --muted-foreground: oklch(0.60 0 0); /* Gris medio */
+  --accent: oklch(0.50 0.25 25); /* Rojo acento */
+  --accent-foreground: oklch(0.98 0 0); /* Blanco */
+  --destructive: oklch(0.55 0.28 25); /* Rojo destructivo brillante */
+  --border: oklch(0.30 0 0); /* Gris oscuro */
+  --input: oklch(0.25 0 0); /* Gris oscuro */
+  --ring: oklch(0.50 0.25 25); /* Rojo para focus */
+  --chart-1: oklch(0.50 0.25 25); /* Rojo */
+  --chart-2: oklch(0.70 0 0); /* Gris claro */
+  --chart-3: oklch(0.40 0 0); /* Gris medio oscuro */
+  --chart-4: oklch(0.55 0.18 25); /* Rojo suave */
+  --chart-5: oklch(0.35 0 0); /* Gris oscuro */
+  --sidebar: oklch(0.15 0 0); /* Negro grisáceo */
+  --sidebar-foreground: oklch(0.95 0 0); /* Blanco */
+  --sidebar-primary: oklch(0.50 0.25 25); /* Rojo */
+  --sidebar-primary-foreground: oklch(0.98 0 0); /* Blanco */
+  --sidebar-accent: oklch(0.25 0 0); /* Gris oscuro */
+  --sidebar-accent-foreground: oklch(0.95 0 0); /* Blanco */
+  --sidebar-border: oklch(0.30 0 0); /* Gris oscuro */
+  --sidebar-ring: oklch(0.50 0.25 25); /* Rojo */
 }
 
 @layer base {
@@ -154,7 +154,17 @@
   animation: fadeInUp 0.8s ease-out forwards;
 }
 
-/* Fondo Rojo Degradado Suave */
+/* Loading Bar Animation */
+@keyframes loadingBar {
+  0% { transform: translateX(-100%); }
+  50% { transform: translateX(0%); }
+  100% { transform: translateX(100%); }
+}
+.animate-loading-bar {
+  animation: loadingBar 1.5s ease-in-out infinite;
+}
+
+/* Fondo Rojo Degradado Suave - ACTUALIZADO */
 @keyframes softRedGradientShift {
   0% { background-position: 0% 50%; }
   50% { background-position: 100% 50%; }
@@ -162,12 +172,12 @@
 }
 
 .animate-soft-red-gradient {
-  /* Fondo con gradiente lineal que incluye tu rojo y tonos cercanos */
-  background: linear-gradient(-45deg, #d80c0d, #c00a0b, #a00809, #d80c0d); /* Ajusta los tonos si quieres */
-  background-size: 400% 400%; /* Tamaño grande para que el movimiento sea suave */
-  animation: softRedGradientShift 20s ease-in-out infinite; /* Animación lenta y suave */
-  position: relative; /* Para el z-index del contenido */
-  overflow: hidden; /* Para contener la animación */
+  /* Gradiente rojo intenso con negro */
+  background: linear-gradient(-45deg, #dc2626, #991b1b, #1a1a1a, #dc2626);
+  background-size: 400% 400%;
+  animation: softRedGradientShift 20s ease-in-out infinite;
+  position: relative;
+  overflow: hidden;
 }
 
 /* Pseudo-elemento opcional si prefieres separar gradiente de color base */
@@ -187,15 +197,15 @@
    🎭 THEATRICAL CINEMATIC STYLES
    ======================================== */
 
-/* Cinematic Background Gradient - Solo para páginas específicas */
+/* Cinematic Background Gradient - TEMA ROJO/NEGRO */
 body.theatrical-bg {
-  background: linear-gradient(135deg, #0B0B0B 0%, #111111 100%);
+  background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%);
   background-attachment: fixed;
 }
 
-/* Fondo normal para la mayoría de páginas */
+/* Fondo normal para la mayoría de páginas - Gris muy claro */
 body {
-  background: #ffffff;
+  background: #fafafa;
 }
 
 /* Theatrical Text Glow */
@@ -203,27 +213,27 @@ h1, h2, h3, .theatrical-text {
   text-shadow: 0 0 18px rgba(255, 255, 255, 0.08);
 }
 
-/* Accent Color for Key Elements */
+/* Accent Color for Key Elements - ROJO INTENSO */
 .theatrical-accent {
-  color: #E02020;
+  color: #dc2626;
 }
 
 .theatrical-accent-bg {
-  background-color: #E02020;
+  background-color: #dc2626;
 }
 
-/* Spotlight Effect on Cards */
+/* Spotlight Effect on Cards - TEMA ROJO/NEGRO */
 .theatrical-card {
-  background: rgba(17, 17, 17, 0.8);
+  background: rgba(26, 26, 26, 0.9);
   backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(220, 38, 38, 0.1);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
   transition: all 0.4s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .theatrical-card:hover {
-  box-shadow: 0 12px 48px rgba(224, 32, 32, 0.15);
-  border-color: rgba(224, 32, 32, 0.2);
+  box-shadow: 0 12px 48px rgba(220, 38, 38, 0.25);
+  border-color: rgba(220, 38, 38, 0.3);
 }
 
 /* Smooth Scroll (Natural, No Animation) */
@@ -265,7 +275,7 @@ html {
   height: 2px;
   background: linear-gradient(90deg, 
     transparent 0%, 
-    rgba(224, 32, 32, 0.3) 50%, 
+    rgba(220, 38, 38, 0.4) 50%, 
     transparent 100%
   );
 }
@@ -301,28 +311,30 @@ button, .btn {
   transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-/* Remove any jarring animations */
-*, *::before, *::after {
-  animation-duration: 0s !important;
-  transition-duration: 0s !important;
+/* Animaciones teatrales suaves - sin bloquear scroll */
+html {
+  scroll-behavior: smooth;
+  overflow-x: hidden;
+  scroll-padding-top: 80px; /* Espacio para navbar */
 }
 
-/* But allow our theatrical transitions */
-[data-theatrical="true"] {
+body {
+  overflow-x: hidden;
+  position: relative;
+}
+
+/* Prevenir scroll horizontal en todas las secciones */
+section {
+  overflow-x: hidden;
+  position: relative;
+}
+
+/* Transiciones teatrales permitidas */
+.page-transition,
+[data-theatrical="true"],
+.theatrical-element {
   animation-duration: revert !important;
   transition-duration: revert !important;
-}
-
-/* Ensure page transitions work */
-.page-transition {
-  animation-duration: 0.55s !important;
-  transition-duration: 0.55s !important;
-}
-
-/* Allow chat animations */
-.animate-fade-in {
-  animation-duration: 0.3s !important;
-  transition-duration: 0.3s !important;
 }
 
 /* Allow chat animations and layout - IMPORTANTE: No ocultar elementos */
@@ -331,6 +343,18 @@ button, .btn {
   transition-duration: revert !important;
   opacity: 1 !important;
   visibility: visible !important;
+}
+
+/* Optimización de rendimiento para animaciones */
+.transition-all,
+[class*="transition-"] {
+  will-change: transform, opacity;
+}
+
+/* Suavizar todas las transiciones teatrales */
+* {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 
@@ -344,20 +368,9 @@ button, .btn {
   display: none;  /* Chrome, Safari and Opera */
 }
 
-/* Scroll suave */
+/* Scroll suave y natural */
 .smooth-scroll {
   scroll-behavior: smooth;
-}
-
-
-/* Prevenir scroll durante transiciones */
-html {
-  scroll-behavior: smooth;
-  overflow-x: hidden;
-}
-
-body {
-  overflow-x: hidden;
 }
 
 /* Transiciones de página sin scroll visible */
@@ -369,6 +382,68 @@ main {
 /* Asegurar que las transiciones no muestren scroll */
 [data-framer-motion] {
   overflow: hidden;
+}
+
+/* Animaciones teatrales de construcción/deconstrucción */
+@keyframes theatrical-build-in {
+  0% {
+    opacity: 0;
+    transform: translateY(40px) scale(0.95);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes theatrical-slide-in-left {
+  0% {
+    opacity: 0;
+    transform: translateX(-60px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes theatrical-slide-in-right {
+  0% {
+    opacity: 0;
+    transform: translateX(60px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes theatrical-fade-scale {
+  0% {
+    opacity: 0;
+    transform: scale(0.9) rotate(-5deg);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) rotate(0deg);
+  }
+}
+
+/* Clases de utilidad para animaciones teatrales */
+.theatrical-build-in {
+  animation: theatrical-build-in 1s ease-out forwards;
+}
+
+.theatrical-slide-in-left {
+  animation: theatrical-slide-in-left 1s ease-out forwards;
+}
+
+.theatrical-slide-in-right {
+  animation: theatrical-slide-in-right 1s ease-out forwards;
+}
+
+.theatrical-fade-scale {
+  animation: theatrical-fade-scale 1.2s ease-out forwards;
 }
 /* Reset box-sizing global */
 html, body {

@@ -27,12 +27,12 @@ export function Navbar() {
   const closeMobileMenu = () => setMobileMenuOpen(false);
 
   return (
-    <nav className={`${isChatsPage ? 'fixed' : 'sticky'} top-0 left-0 right-0 w-full bg-white/95 border-b z-[9998] backdrop-blur-sm shadow-sm flex-shrink-0 h-16`}>
+    <nav className={`${isChatsPage ? 'fixed' : 'sticky'} top-0 left-0 right-0 w-full bg-neutral-900/95 border-b border-neutral-800 z-[9998] backdrop-blur-sm shadow-sm flex-shrink-0 h-16`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
 
           <div className="flex-shrink-0">
-            <Link href="/" className="text-xl font-bold text-neutral-900" onClick={closeMobileMenu}>
+            <Link href="/" className="text-xl font-bold text-white" onClick={closeMobileMenu}>
               Rueda de Problemas
             </Link>
           </div>
@@ -40,7 +40,7 @@ export function Navbar() {
           {/* Botón Hamburguesa - Solo móvil */}
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="md:hidden p-2 rounded-md text-neutral-600 hover:text-neutral-900 hover:bg-gray-100 transition-colors"
+            className="md:hidden p-2 rounded-md text-neutral-300 hover:text-white hover:bg-neutral-800 transition-colors"
             aria-label="Toggle menu"
           >
             {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
@@ -51,15 +51,15 @@ export function Navbar() {
             <Link
               href="/agenda"
               className={`text-sm transition-all px-3 py-2 rounded-md ${isActive('/agenda')
-                ? 'bg-blue-50 text-blue-600 font-medium shadow-sm'
-                : 'text-neutral-600 hover:text-neutral-900 hover:bg-gray-50'
+                ? 'bg-red-600 text-white font-medium shadow-sm'
+                : 'text-neutral-300 hover:text-white hover:bg-neutral-800'
                 }`}
             >
               Agenda
             </Link>
 
             {isLoading ? (
-              <div className="h-8 w-24 bg-gray-200 animate-pulse rounded-md"></div>
+              <div className="h-8 w-24 bg-neutral-700 animate-pulse rounded-md"></div>
             ) : user ? (
               <>
                 {user.rol === 'externo' && (
@@ -67,8 +67,8 @@ export function Navbar() {
                     <Link
                       href="/desafio"
                       className={`text-sm transition-all px-3 py-2 rounded-md ${isActive('/desafio')
-                        ? 'bg-blue-50 text-blue-600 font-medium shadow-sm'
-                        : 'text-neutral-600 hover:text-neutral-900 hover:bg-gray-50'
+                        ? 'bg-red-600 text-white font-medium shadow-sm'
+                        : 'text-neutral-300 hover:text-white hover:bg-neutral-800'
                         }`}
                     >
                       Mis Desafíos
@@ -76,8 +76,8 @@ export function Navbar() {
                     <Link
                       href="/desafio/mis-matches"
                       className={`text-sm transition-all px-3 py-2 rounded-md ${isActive('/desafio/mis-matches')
-                        ? 'bg-blue-50 text-blue-600 font-medium shadow-sm'
-                        : 'text-neutral-600 hover:text-neutral-900 hover:bg-gray-50'
+                        ? 'bg-red-600 text-white font-medium shadow-sm'
+                        : 'text-neutral-300 hover:text-white hover:bg-neutral-800'
                         }`}
                     >
                       Matches
@@ -89,8 +89,8 @@ export function Navbar() {
                     <Link
                       href="/capacidad"
                       className={`text-sm transition-all px-3 py-2 rounded-md ${isActive('/capacidad')
-                        ? 'bg-blue-50 text-blue-600 font-medium shadow-sm'
-                        : 'text-neutral-600 hover:text-neutral-900 hover:bg-gray-50'
+                        ? 'bg-red-600 text-white font-medium shadow-sm'
+                        : 'text-neutral-300 hover:text-white hover:bg-neutral-800'
                         }`}
                     >
                       Mis Capacidades
@@ -98,8 +98,8 @@ export function Navbar() {
                     <Link
                       href="/capacidad/mis-matches"
                       className={`text-sm transition-all px-3 py-2 rounded-md ${isActive('/capacidad/mis-matches')
-                        ? 'bg-blue-50 text-blue-600 font-medium shadow-sm'
-                        : 'text-neutral-600 hover:text-neutral-900 hover:bg-gray-50'
+                        ? 'bg-red-600 text-white font-medium shadow-sm'
+                        : 'text-neutral-300 hover:text-white hover:bg-neutral-800'
                         }`}
                     >
                       Matches
@@ -110,8 +110,8 @@ export function Navbar() {
                   <Link
                     href="/admin/dashboard"
                     className={`text-sm transition-all px-3 py-2 rounded-md ${pathname?.startsWith('/admin')
-                      ? 'bg-blue-50 text-blue-600 font-medium shadow-sm'
-                      : 'text-neutral-600 hover:text-neutral-900 hover:bg-gray-50'
+                      ? 'bg-red-600 text-white font-medium shadow-sm'
+                      : 'text-neutral-300 hover:text-white hover:bg-neutral-800'
                       }`}
                   >
                     Dashboard Admin
@@ -123,8 +123,8 @@ export function Navbar() {
                   <Link
                     href="/chats"
                     className={`text-sm transition-all px-3 py-2 rounded-md ${isActive('/chats') || pathname?.startsWith('/chats/')
-                      ? 'bg-blue-50 text-blue-600 font-medium shadow-sm'
-                      : 'text-neutral-600 hover:text-neutral-900 hover:bg-gray-50'
+                      ? 'bg-red-600 text-white font-medium shadow-sm'
+                      : 'text-neutral-300 hover:text-white hover:bg-neutral-800'
                       }`}
                   >
                     Chats
@@ -135,19 +135,19 @@ export function Navbar() {
                 <SolicitudesNotification />
 
                 {/* Dropdown de Usuario */}
-                <div className="relative group">
-                  <button className="flex items-center gap-2 text-sm text-neutral-700 hover:text-neutral-900 px-3 py-2 rounded-md hover:bg-gray-50 transition-all">
+                <div className="relative group/dropdown">
+                  <button className="flex items-center gap-2 text-sm text-neutral-300 hover:text-white px-3 py-2 rounded-md hover:bg-neutral-800 transition-all">
                     <UserIcon className="w-4 h-4" />
                     <span>{user.nombres_apellidos}</span>
-                    {user.rol === 'admin' && <span className="text-xs text-red-600 font-semibold">(Admin)</span>}
+                    {user.rol === 'admin' && <span className="text-xs text-red-500 font-semibold">(Admin)</span>}
                   </button>
 
-                  {/* Dropdown Menu */}
-                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
+                  {/* Dropdown Menu - con delay para evitar cierre rápido */}
+                  <div className="absolute right-0 mt-2 w-48 bg-neutral-800 rounded-lg shadow-lg border border-neutral-700 opacity-0 invisible group-hover/dropdown:opacity-100 group-hover/dropdown:visible transition-all duration-300 z-50 before:content-[''] before:absolute before:-top-2 before:left-0 before:right-0 before:h-2">
                     <div className="p-2">
                       <button
                         onClick={handleLogout}
-                        className="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded-md transition-colors"
+                        className="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-400 hover:bg-neutral-700 rounded-md transition-colors"
                       >
                         <LogOut className="w-4 h-4" />
                         Cerrar Sesión
@@ -158,10 +158,10 @@ export function Navbar() {
               </>
             ) : (
               <>
-                <Button asChild variant="outline" size="sm">
+                <Button asChild variant="outline" size="sm" className="border-red-600 text-red-500 hover:bg-red-600 hover:text-white">
                   <Link href="/login">Iniciar Sesión</Link>
                 </Button>
-                <Button asChild size="sm">
+                <Button asChild size="sm" className="bg-red-600 hover:bg-red-700 text-white">
                   <Link href="/registro">Registrarse</Link>
                 </Button>
               </>
@@ -172,21 +172,21 @@ export function Navbar() {
 
       {/* Menú Mobile - Dropdown */}
       {mobileMenuOpen && (
-        <div className="md:hidden fixed top-16 left-0 right-0 bg-white border-b shadow-2xl z-[9999]">
+        <div className="md:hidden fixed top-16 left-0 right-0 bg-neutral-900 border-b border-neutral-800 shadow-2xl z-[9999]">
           <div className="px-4 py-3 space-y-2 max-h-[calc(100vh-4rem)] overflow-y-auto">
             <Link
               href="/agenda"
               onClick={closeMobileMenu}
               className={`block text-sm transition-all px-3 py-2 rounded-md ${isActive('/agenda')
-                ? 'bg-blue-50 text-blue-600 font-medium'
-                : 'text-neutral-600 hover:bg-gray-50'
+                ? 'bg-red-600 text-white font-medium'
+                : 'text-neutral-300 hover:bg-neutral-800'
                 }`}
             >
               Agenda
             </Link>
 
             {isLoading ? (
-              <div className="h-8 bg-gray-200 animate-pulse rounded-md"></div>
+              <div className="h-8 bg-neutral-700 animate-pulse rounded-md"></div>
             ) : user ? (
               <>
                 {user.rol === 'externo' && (
@@ -195,8 +195,8 @@ export function Navbar() {
                       href="/desafio"
                       onClick={closeMobileMenu}
                       className={`block text-sm transition-all px-3 py-2 rounded-md ${isActive('/desafio')
-                        ? 'bg-blue-50 text-blue-600 font-medium'
-                        : 'text-neutral-600 hover:bg-gray-50'
+                        ? 'bg-red-600 text-white font-medium'
+                        : 'text-neutral-300 hover:bg-neutral-800'
                         }`}
                     >
                       Mis Desafíos
@@ -205,8 +205,8 @@ export function Navbar() {
                       href="/desafio/mis-matches"
                       onClick={closeMobileMenu}
                       className={`block text-sm transition-all px-3 py-2 rounded-md ${isActive('/desafio/mis-matches')
-                        ? 'bg-blue-50 text-blue-600 font-medium'
-                        : 'text-neutral-600 hover:bg-gray-50'
+                        ? 'bg-red-600 text-white font-medium'
+                        : 'text-neutral-300 hover:bg-neutral-800'
                         }`}
                     >
                       Matches
@@ -219,8 +219,8 @@ export function Navbar() {
                       href="/capacidad"
                       onClick={closeMobileMenu}
                       className={`block text-sm transition-all px-3 py-2 rounded-md ${isActive('/capacidad')
-                        ? 'bg-blue-50 text-blue-600 font-medium'
-                        : 'text-neutral-600 hover:bg-gray-50'
+                        ? 'bg-red-600 text-white font-medium'
+                        : 'text-neutral-300 hover:bg-neutral-800'
                         }`}
                     >
                       Mis Capacidades
@@ -229,8 +229,8 @@ export function Navbar() {
                       href="/capacidad/mis-matches"
                       onClick={closeMobileMenu}
                       className={`block text-sm transition-all px-3 py-2 rounded-md ${isActive('/capacidad/mis-matches')
-                        ? 'bg-blue-50 text-blue-600 font-medium'
-                        : 'text-neutral-600 hover:bg-gray-50'
+                        ? 'bg-red-600 text-white font-medium'
+                        : 'text-neutral-300 hover:bg-neutral-800'
                         }`}
                     >
                       Matches
@@ -242,8 +242,8 @@ export function Navbar() {
                     href="/admin/dashboard"
                     onClick={closeMobileMenu}
                     className={`block text-sm transition-all px-3 py-2 rounded-md ${pathname?.startsWith('/admin')
-                      ? 'bg-blue-50 text-blue-600 font-medium'
-                      : 'text-neutral-600 hover:bg-gray-50'
+                      ? 'bg-red-600 text-white font-medium'
+                      : 'text-neutral-300 hover:bg-neutral-800'
                       }`}
                   >
                     Dashboard Admin
@@ -255,8 +255,8 @@ export function Navbar() {
                     href="/chats"
                     onClick={closeMobileMenu}
                     className={`block text-sm transition-all px-3 py-2 rounded-md ${isActive('/chats') || pathname?.startsWith('/chats/')
-                      ? 'bg-blue-50 text-blue-600 font-medium'
-                      : 'text-neutral-600 hover:bg-gray-50'
+                      ? 'bg-red-600 text-white font-medium'
+                      : 'text-neutral-300 hover:bg-neutral-800'
                       }`}
                   >
                     Chats
@@ -267,14 +267,14 @@ export function Navbar() {
                   <SolicitudesNotification />
                 </div>
 
-                <div className="border-t pt-2 mt-2">
-                  <div className="px-3 py-2 text-sm text-neutral-700 font-medium">
+                <div className="border-t border-neutral-800 pt-2 mt-2">
+                  <div className="px-3 py-2 text-sm text-neutral-300 font-medium">
                     {user.nombres_apellidos}
-                    {user.rol === 'admin' && <span className="text-xs text-red-600 ml-2">(Admin)</span>}
+                    {user.rol === 'admin' && <span className="text-xs text-red-500 ml-2">(Admin)</span>}
                   </div>
                   <button
                     onClick={handleLogout}
-                    className="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded-md transition-colors"
+                    className="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-400 hover:bg-neutral-800 rounded-md transition-colors"
                   >
                     <LogOut className="w-4 h-4" />
                     Cerrar Sesión
@@ -284,12 +284,12 @@ export function Navbar() {
             ) : (
               <div className="space-y-2">
                 <Link href="/login" onClick={closeMobileMenu}>
-                  <Button variant="outline" size="sm" className="w-full">
+                  <Button variant="outline" size="sm" className="w-full border-red-600 text-red-500 hover:bg-red-600 hover:text-white">
                     Iniciar Sesión
                   </Button>
                 </Link>
                 <Link href="/registro" onClick={closeMobileMenu}>
-                  <Button size="sm" className="w-full">
+                  <Button size="sm" className="w-full bg-red-600 hover:bg-red-700">
                     Registrarse
                   </Button>
                 </Link>
