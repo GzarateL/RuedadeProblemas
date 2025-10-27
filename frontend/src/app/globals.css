@@ -325,10 +325,12 @@ button, .btn {
   transition-duration: 0.3s !important;
 }
 
-/* Allow chat animations and layout */
+/* Allow chat animations and layout - IMPORTANTE: No ocultar elementos */
 .chat-container, .chat-container * {
   animation-duration: revert !important;
   transition-duration: revert !important;
+  opacity: 1 !important;
+  visibility: visible !important;
 }
 
 

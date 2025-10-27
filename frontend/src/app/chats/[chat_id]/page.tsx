@@ -6,14 +6,14 @@ import Cookies from 'js-cookie';
 import { toast } from 'sonner';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Loader2, Send, ArrowLeft, MessageCircle } from 'lucide-react';
+import { Loader2, Send, MessageCircle } from 'lucide-react';
 import { Mensaje } from '@/types/chat';
 
 export default function ChatDetailPage() {
   const params = useParams();
   const router = useRouter();
   const chatId = params.chat_id as string;
-  
+
   const [mensajes, setMensajes] = useState<Mensaje[]>([]);
   const [nuevoMensaje, setNuevoMensaje] = useState('');
   const [isLoading, setIsLoading] = useState(true);
@@ -21,7 +21,7 @@ export default function ChatDetailPage() {
   const [otroUsuario, setOtroUsuario] = useState('');
   const [miTipo, setMiTipo] = useState<'unsa' | 'externo' | null>(null);
   const [shouldScroll, setShouldScroll] = useState(true);
-  
+
   const mensajesEndRef = useRef<HTMLDivElement>(null);
   const mensajesContainerRef = useRef<HTMLDivElement>(null);
 
@@ -61,7 +61,7 @@ export default function ChatDetailPage() {
       const resMe = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/me`, {
         headers: { "Authorization": `Bearer ${token}` }
       });
-      
+
       if (resMe.ok) {
         const userData = await resMe.json();
         setMiTipo(userData.rol); // 'unsa' o 'externo'
@@ -75,18 +75,18 @@ export default function ChatDetailPage() {
 
       const data = await res.json();
       setMensajes(data.mensajes || []);
-      
+
       // Obtener nombre del otro usuario
       if (data.mensajes.length > 0) {
         const userData = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/me`, {
           headers: { "Authorization": `Bearer ${token}` }
         }).then(r => r.json());
-        
+
         const miTipoActual = userData.rol;
-        const mensajeDelOtro = data.mensajes.find((m: Mensaje) => 
+        const mensajeDelOtro = data.mensajes.find((m: Mensaje) =>
           m.remitente_tipo !== miTipoActual
         );
-        
+
         if (mensajeDelOtro && mensajeDelOtro.remitente_nombre) {
           setOtroUsuario(mensajeDelOtro.remitente_nombre);
         } else {
@@ -97,7 +97,7 @@ export default function ChatDetailPage() {
           }
         }
       }
-      
+
     } catch (err: any) {
       console.error("Error:", err);
       if (isLoading) toast.error("Error al cargar chat");
@@ -109,7 +109,7 @@ export default function ChatDetailPage() {
   const enviarMensaje = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!nuevoMensaje.trim()) return;
-    
+
     const token = Cookies.get('token');
     if (!token) {
       toast.error("No autenticado");
@@ -155,53 +155,12 @@ export default function ChatDetailPage() {
   }
 
   return (
-    <div className="chat-container flex flex-col bg-gray-50" style={{ height: '100%', width: '100%', position: 'relative' }}>
-      {/* Header del Chat - Altura fija */}
-      <div 
-        className="flex items-center gap-4 px-4 sm:px-6 py-4 bg-white border-b shadow-sm" 
-        style={{ 
-          flexShrink: 0, 
-          minHeight: '64px', 
-          height: '64px',
-          zIndex: 100,
-          position: 'relative',
-          backgroundColor: '#ffffff'
-        }}
-      >
-        <button 
-          onClick={() => router.push('/chats')}
-          className="text-blue-600 hover:text-blue-700"
-          aria-label="Volver a chats"
-        >
-          <ArrowLeft className="w-5 h-5" />
-        </button>
-        <h1 className="text-lg font-semibold text-neutral-900">
-          {otroUsuario || 'Chat'}
-        </h1>
-      
-        <button 
-          onClick={() => router.push('/chats')}
-          className="text-blue-600 hover:text-blue-700 transition-colors"
-          aria-label="Volver a chats"
-        >
-          <ArrowLeft className="w-5 h-5" />
-        </button>
-        <h1 className="text-lg font-semibold text-neutral-900">
-          {otroUsuario || 'Chat'}
-        </h1>
-      </div>
-
+    <div className="chat-container flex flex-col bg-gray-50 h-full w-full">
       {/* Área de Mensajes - Toma el espacio restante con scroll */}
-      <div 
+      <div
         ref={mensajesContainerRef}
         onScroll={handleScroll}
-        className="p-4 sm:p-6 bg-gradient-to-b from-gray-50 to-gray-100"
-        style={{ 
-          flex: 1, 
-          overflowY: 'auto',
-          overflowX: 'hidden',
-          minHeight: 0 
-        }}
+        className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden p-4 sm:p-6 bg-gradient-to-b from-gray-50 to-gray-100"
       >
         {mensajes.length === 0 ? (
           <div className="flex items-center justify-center h-full">
@@ -215,18 +174,17 @@ export default function ChatDetailPage() {
           <div className="space-y-3">
             {mensajes.map((mensaje) => {
               const esMio = esMiMensaje(mensaje);
-              
+
               return (
                 <div
                   key={mensaje.mensaje_id}
                   className={`flex w-full ${esMio ? 'justify-end' : 'justify-start'}`}
                 >
                   <div
-                    className={`max-w-[75%] rounded-2xl px-4 py-2.5 shadow-sm ${
-                      esMio
-                        ? 'bg-blue-600 text-white rounded-br-sm'
-                        : 'bg-white text-gray-900 border border-gray-200 rounded-bl-sm'
-                    }`}
+                    className={`max-w-[75%] rounded-2xl px-4 py-2.5 shadow-sm ${esMio
+                      ? 'bg-blue-600 text-white rounded-br-sm'
+                      : 'bg-white text-gray-900 border border-gray-200 rounded-bl-sm'
+                      }`}
                   >
                     {!esMio && (
                       <p className="text-xs font-semibold mb-1 text-blue-600">
@@ -252,9 +210,11 @@ export default function ChatDetailPage() {
       </div>
 
       {/* Input Box - Anclado en la parte inferior */}
-      <div className="border-t p-4 bg-white shadow-lg" style={{ flexShrink: 0 }}>
+      <div className="flex-shrink-0 border-t p-4 bg-white shadow-lg">
         <form onSubmit={enviarMensaje} className="flex gap-2 w-full max-w-4xl mx-auto">
           <Input
+            name="mensaje"
+            id="mensaje-input"
             value={nuevoMensaje}
             onChange={(e) => setNuevoMensaje(e.target.value)}
             placeholder="Escribe un mensaje..."
@@ -262,8 +222,8 @@ export default function ChatDetailPage() {
             className="flex-1 border-gray-300 focus:border-blue-500 focus:ring-blue-500"
             autoFocus
           />
-          <Button 
-            type="submit" 
+          <Button
+            type="submit"
             disabled={enviando || !nuevoMensaje.trim()}
             className="bg-blue-600 hover:bg-blue-700 transition-colors"
           >
