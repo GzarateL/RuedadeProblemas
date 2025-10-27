@@ -106,14 +106,43 @@ export default function HeroSection({ user, isLoading }: HeroSectionProps) {
   };
 
   return (
-    <section className="relative bg-white text-neutral-900 h-full flex items-center overflow-hidden py-8">
-      <div className="max-w-6xl w-full mx-auto px-6 sm:px-8 flex flex-col md:flex-row items-center justify-between gap-6 md:gap-12 z-10">
-        {/* Logo */}
+    <section
+      className="
+        relative bg-white text-neutral-900 w-full overflow-hidden
+        flex items-center justify-center 
+        min-h-[calc(100vh-4rem)]
+      "
+    >
+      {/* Explicación:
+        1. min-h-[calc(100vh-4rem)]:
+           - 100vh = 100% de la altura de la pantalla.
+           - 4rem = La altura de tu Navbar (h-16 = 16 * 0.25rem = 4rem).
+           - Esto hace que la sección llene EXACTAMENTE el espacio restante.
+        2. flex items-center justify-center:
+           - Centra verticalmente (items-center) y horizontalmente (justify-center)
+             el <div> hijo (el max-w-6xl).
+      */}
+
+      <div
+        className="
+          max-w-6xl w-full mx-auto px-6 sm:px-8 z-10
+          flex flex-col md:flex-row items-center justify-center 
+          gap-6 md:gap-12
+        "
+      >
+        {/* Explicación:
+          1. md:flex-row: Pone las columnas una al lado de la otra en desktop.
+          2. items-center: ¡Esta es la clave! Alinea verticalmente
+             ambas columnas (Logo y Texto) para que estén centradas
+             una respecto a la otra.
+        */}
+        
+        {/* Columna Logo */}
         <motion.div
           initial={{ opacity: 0, scale: 0.9, rotate: -12 }}
           animate={{ opacity: 1, scale: 1, rotate: 0 }}
           transition={{ duration: 1, ease: [0.22, 1, 0.36, 1] }}
-          className="w-full md:w-1/2 flex justify-center md:justify-start"
+          className="w-full md:w-1/2 flex items-center justify-center md:justify-start"
         >
           <Image
             src="/logo-rueda-problemas.svg"
@@ -121,12 +150,13 @@ export default function HeroSection({ user, isLoading }: HeroSectionProps) {
             width={400}
             height={130}
             priority
-            className="w-auto h-auto max-w-[60%] sm:max-w-[280px] md:max-w-[350px] lg:max-w-[400px]"
+            className="w-auto h-auto max-w-[60%] sm:max-w-[250px] md:max-w-[300px] lg:max-w-[350px]"
           />
         </motion.div>
 
-        {/* Texto y Botones */}
-        <div className="w-full md:w-1/2 text-center md:text-left">
+        {/* Columna Texto y Botones */}
+        {/* Ya no necesita 'justify-center' porque el 'items-center' del div padre se encarga */}
+        <div className="w-full md:w-1/2 text-center md:text-left flex flex-col">
           <motion.header
             initial={{ opacity: 0, x: 40 }}
             animate={{ opacity: 1, x: 0 }}

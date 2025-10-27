@@ -19,6 +19,7 @@ export default function RootLayout({
 }>) {
   const pathname = usePathname();
   const isChatsPage = pathname?.startsWith('/chats');
+  const isHomePage = pathname === '/';
 
   return (
     <html lang="es">
@@ -71,12 +72,12 @@ export default function RootLayout({
               overflow: 'auto'
             }}>
               <Navbar />
-              <main className="flex-grow pt-16">
+              <main className={isHomePage ? "flex-grow" : "flex-grow pt-16"}>
                 <PageTransitionProvider>
                   {children}
                 </PageTransitionProvider>
               </main>
-              <Footer />
+              {!isHomePage && <Footer />}
             </div>
           )}
           <Toaster />
