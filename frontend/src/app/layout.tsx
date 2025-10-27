@@ -26,19 +26,47 @@ export default function RootLayout({
         <title>Rueda de Problemas - UNSA</title>
         <meta name="description" content="Conectando Desafíos con Soluciones" />
       </Head>
-      <body className={`${inter.className} bg-white m-0 p-0`} style={{ overflow: 'hidden' }}>
+      <body 
+        className={`${inter.className} bg-white`}
+        style={{ 
+          margin: 0, 
+          padding: 0, 
+          height: '100vh',
+          overflow: 'hidden'
+        }}
+      >
         <AuthProvider>
           {isChatsPage ? (
-            <div style={{ height: '100vh', display: 'flex', flexDirection: 'column' }}>
+            // Layout para chats
+            <div style={{ 
+              height: '100vh', 
+              width: '100%',
+              display: 'flex', 
+              flexDirection: 'column',
+              overflow: 'hidden'
+            }}>
               <Navbar />
-              <div style={{ flex: 1, minHeight: 0, overflow: 'hidden' }}>
+              <div style={{ 
+                flex: 1,
+                minHeight: 0,
+                overflow: 'hidden',
+                display: 'flex',
+                flexDirection: 'column'
+              }}>
                 <PageTransitionProvider>
                   {children}
                 </PageTransitionProvider>
               </div>
             </div>
           ) : (
-            <div className="flex flex-col min-h-screen" style={{ overflow: 'auto' }}>
+            // Layout normal
+            <div style={{ 
+              display: 'flex', 
+              flexDirection: 'column',
+              minHeight: '100vh',
+              height: 'auto',
+              overflow: 'auto'
+            }}>
               <Navbar />
               <main className="flex-grow pt-16">
                 <PageTransitionProvider>

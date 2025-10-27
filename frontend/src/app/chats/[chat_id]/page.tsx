@@ -142,9 +142,9 @@ export default function ChatDetailPage() {
   }
 
   return (
-    <div className="flex flex-col w-full h-full bg-gray-50">
+    <div className="flex flex-col bg-gray-50" style={{ height: '100%', width: '100%' }}>
       {/* Header del Chat - Altura fija */}
-      <div className="flex items-center gap-4 px-4 sm:px-6 py-4 bg-white border-b shadow-sm flex-shrink-0">
+      <div className="flex items-center gap-4 px-4 sm:px-6 py-4 bg-white border-b shadow-sm" style={{ flexShrink: 0 }}>
         <button 
           onClick={() => router.push('/chats')}
           className="text-blue-600 hover:text-blue-700 transition-colors"
