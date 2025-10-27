@@ -182,3 +182,183 @@
   z-index: 0;
 } */
 /* --- FIN --- */
+/* =
+=======================================
+   🎭 THEATRICAL CINEMATIC STYLES
+   ======================================== */
+
+/* Cinematic Background Gradient - Solo para páginas específicas */
+body.theatrical-bg {
+  background: linear-gradient(135deg, #0B0B0B 0%, #111111 100%);
+  background-attachment: fixed;
+}
+
+/* Fondo normal para la mayoría de páginas */
+body {
+  background: #ffffff;
+}
+
+/* Theatrical Text Glow */
+h1, h2, h3, .theatrical-text {
+  text-shadow: 0 0 18px rgba(255, 255, 255, 0.08);
+}
+
+/* Accent Color for Key Elements */
+.theatrical-accent {
+  color: #E02020;
+}
+
+.theatrical-accent-bg {
+  background-color: #E02020;
+}
+
+/* Spotlight Effect on Cards */
+.theatrical-card {
+  background: rgba(17, 17, 17, 0.8);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  transition: all 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.theatrical-card:hover {
+  box-shadow: 0 12px 48px rgba(224, 32, 32, 0.15);
+  border-color: rgba(224, 32, 32, 0.2);
+}
+
+/* Smooth Scroll (Natural, No Animation) */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Remove any scroll-triggered animations */
+* {
+  scroll-behavior: auto !important;
+}
+
+/* Floating Animation for Images (Subtle) */
+@keyframes theatrical-float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-5px);
+  }
+}
+
+.theatrical-float {
+  animation: theatrical-float 6s ease-in-out infinite;
+}
+
+/* Stage Curtain Effect (Optional for specific pages) */
+.stage-curtain {
+  position: relative;
+  overflow: hidden;
+}
+
+.stage-curtain::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, 
+    transparent 0%, 
+    rgba(224, 32, 32, 0.3) 50%, 
+    transparent 100%
+  );
+}
+
+/* Spotlight Focus Effect */
+.spotlight-focus {
+  position: relative;
+}
+
+.spotlight-focus::after {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(
+    circle at center,
+    rgba(255, 255, 255, 0.03) 0%,
+    transparent 70%
+  );
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.6s ease;
+}
+
+.spotlight-focus:hover::after {
+  opacity: 1;
+}
+
+/* Elegant Button Transitions */
+button, .btn {
+  transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* Remove any jarring animations */
+*, *::before, *::after {
+  animation-duration: 0s !important;
+  transition-duration: 0s !important;
+}
+
+/* But allow our theatrical transitions */
+[data-theatrical="true"] {
+  animation-duration: revert !important;
+  transition-duration: revert !important;
+}
+
+/* Ensure page transitions work */
+.page-transition {
+  animation-duration: 0.55s !important;
+  transition-duration: 0.55s !important;
+}
+
+/* Allow chat animations */
+.animate-fade-in {
+  animation-duration: 0.3s !important;
+  transition-duration: 0.3s !important;
+}
+
+
+/* Ocultar scrollbar pero mantener funcionalidad */
+.scrollbar-hide {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;  /* Chrome, Safari and Opera */
+}
+
+/* Scroll suave */
+.smooth-scroll {
+  scroll-behavior: smooth;
+}
+
+
+/* Prevenir scroll durante transiciones */
+html {
+  scroll-behavior: smooth;
+  overflow-x: hidden;
+}
+
+body {
+  overflow-x: hidden;
+}
+
+/* Transiciones de página sin scroll visible */
+main {
+  position: relative;
+  min-height: 100vh;
+}
+
+/* Asegurar que las transiciones no muestren scroll */
+[data-framer-motion] {
+  overflow: hidden;
+}

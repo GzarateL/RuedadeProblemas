@@ -1,7 +1,7 @@
 // /frontend/src/app/page.tsx
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import Image from "next/image";
@@ -9,105 +9,8 @@ import { useAuth } from "@/context/AuthContext";
 
 export default function HomePage() {
   const { user, isLoading } = useAuth();
-  const [activeStep, setActiveStep] = useState(0);
-  const timeoutsRef = useRef<Array<ReturnType<typeof setTimeout>>>([]);
-  const previousScrollY = useRef(0);
-  const scrollDirectionRef = useRef<"up" | "down">("down");
-  const hasTriggeredRef = useRef(false);
-  const isSectionVisibleRef = useRef(false);
+  const [activeStep, setActiveStep] = useState(3); // Mostrar todos los pasos inmediatamente
   const howItWorksRef = useRef<HTMLElement | null>(null);
-
-  const clearTimers = useCallback(() => {
-    timeoutsRef.current.forEach((timeoutId) => clearTimeout(timeoutId));
-    timeoutsRef.current = [];
-  }, []);
-
-  const resetSequence = useCallback(() => {
-    clearTimers();
-    setActiveStep(0);
-  }, [clearTimers]);
-
-  const triggerSequence = useCallback(() => {
-    clearTimers();
-    setActiveStep(0);
-    timeoutsRef.current = [
-      setTimeout(() => setActiveStep(1), 0),
-      setTimeout(() => setActiveStep(2), 600),
-      setTimeout(() => setActiveStep(3), 1200),
-    ];
-  }, [clearTimers]);
-
-  useEffect(() => {
-    previousScrollY.current = window.scrollY;
-
-    const handleScroll = () => {
-      const currentY = window.scrollY;
-
-      let newDirection: "up" | "down" = scrollDirectionRef.current;
-
-      if (currentY > previousScrollY.current) {
-        newDirection = "down";
-      } else if (currentY < previousScrollY.current) {
-        newDirection = "up";
-      }
-
-      if (newDirection !== scrollDirectionRef.current) {
-        scrollDirectionRef.current = newDirection;
-
-        if (newDirection === "up") {
-          hasTriggeredRef.current = false;
-          resetSequence();
-        } else if (newDirection === "down" && isSectionVisibleRef.current && !hasTriggeredRef.current) {
-          hasTriggeredRef.current = true;
-          triggerSequence();
-        }
-      } else if (newDirection === "down" && isSectionVisibleRef.current && !hasTriggeredRef.current) {
-        hasTriggeredRef.current = true;
-        triggerSequence();
-      }
-
-      previousScrollY.current = currentY;
-    };
-
-    window.addEventListener("scroll", handleScroll, { passive: true });
-
-    return () => {
-      window.removeEventListener("scroll", handleScroll);
-    };
-  }, [resetSequence, triggerSequence]);
-
-  useEffect(() => {
-    const sectionElement = howItWorksRef.current;
-    if (!sectionElement) return;
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            isSectionVisibleRef.current = true;
-
-            if (scrollDirectionRef.current === "down" && !hasTriggeredRef.current) {
-              hasTriggeredRef.current = true;
-              triggerSequence();
-            }
-          } else {
-            isSectionVisibleRef.current = false;
-            hasTriggeredRef.current = false;
-            resetSequence();
-          }
-        });
-      },
-      { threshold: 0.3 }
-    );
-
-    observer.observe(sectionElement);
-
-    return () => {
-      observer.disconnect();
-    };
-  }, [resetSequence, triggerSequence]);
-
-  useEffect(() => () => clearTimers(), [clearTimers]);
 
   const steps = [
     {
@@ -249,29 +152,22 @@ export default function HomePage() {
       {/* Sección 3: ¿Cómo Funciona? */}
       <section ref={howItWorksRef} className="bg-white py-20 md:py-28">
         <div className="max-w-7xl mx-auto px-6 sm:px-8">
-          <h2 className="text-4xl font-bold text-neutral-900 text-center mb-16 animate-fade-in-up">
+          <h2 className="text-4xl font-bold text-neutral-900 text-center mb-16">
             ¿Cómo Funciona?
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {steps.map((step, index) => {
-              const stepOrder = index + 1;
-              const isVisible = activeStep >= stepOrder;
-
-              return (
-                <div
-                  key={step.number}
-                  className={`border border-neutral-200 p-8 rounded-lg shadow-sm bg-white transition-all duration-700 ease-out ${
-                    isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"
-                  }`}
-                >
-                  <h3 className="text-2xl font-semibold text-neutral-900 mb-4">
-                    <span className="text-red-500 font-bold mr-3 text-3xl">{step.number}</span>
-                    {step.title}
-                  </h3>
-                  <p className="text-neutral-600 leading-relaxed text-justify">{step.description}</p>
-                </div>
-              );
-            })}
+            {steps.map((step) => (
+              <div
+                key={step.number}
+                className="border border-neutral-200 p-8 rounded-lg shadow-sm bg-white hover:shadow-md transition-shadow duration-300"
+              >
+                <h3 className="text-2xl font-semibold text-neutral-900 mb-4">
+                  <span className="text-red-500 font-bold mr-3 text-3xl">{step.number}</span>
+                  {step.title}
+                </h3>
+                <p className="text-neutral-600 leading-relaxed text-justify">{step.description}</p>
+              </div>
+            ))}
           </div>
         </div>
       </section>

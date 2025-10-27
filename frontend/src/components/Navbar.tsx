@@ -2,69 +2,43 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/AuthContext";
-import { LogOut, User as UserIcon, FilePlus, Sparkles } from "lucide-react";
+import { LogOut, User as UserIcon } from "lucide-react";
 import SolicitudesNotification from "./SolicitudesNotification";
-import { useEffect, useState } from "react";
 
 export function Navbar() {
   const { user, logout, isLoading } = useAuth();
   const router = useRouter();
-  const [isVisible, setIsVisible] = useState(true);
-  const [lastScrollY, setLastScrollY] = useState(0);
-
-  useEffect(() => {
-    const handleScroll = () => {
-      const currentScrollY = window.scrollY;
-      
-      // Si estamos en la parte superior, siempre mostrar
-      if (currentScrollY < 10) {
-        setIsVisible(true);
-      } 
-      // Si scrolleamos hacia abajo, ocultar
-      else if (currentScrollY > lastScrollY && currentScrollY > 80) {
-        setIsVisible(false);
-      } 
-      // Si scrolleamos hacia arriba, mostrar
-      else if (currentScrollY < lastScrollY) {
-        setIsVisible(true);
-      }
-      
-      setLastScrollY(currentScrollY);
-    };
-
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    
-    return () => {
-      window.removeEventListener('scroll', handleScroll);
-    };
-  }, [lastScrollY]);
+  const pathname = usePathname();
+  const isChatsPage = pathname?.startsWith('/chats');
 
   const handleLogout = () => {
     logout();
     router.push("/");
   };
 
+  const isActive = (path: string) => pathname === path;
+
   return (
-    <nav className={`fixed top-0 left-0 right-0 w-full bg-white/80 border-b z-50 backdrop-blur-sm transition-transform duration-300 ${isVisible ? 'translate-y-0' : '-translate-y-full'}`}>
+    <nav className={`${isChatsPage ? '' : 'sticky top-0'} left-0 right-0 w-full bg-white/95 border-b z-50 backdrop-blur-sm shadow-sm flex-shrink-0 h-16`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
-          
+
           <div className="flex-shrink-0">
             <Link href="/" className="text-xl font-bold text-neutral-900">
               Rueda de Problemas
             </Link>
           </div>
-          <div className="flex items-center gap-4">
-            <SolicitudesNotification />  {/* 👈 Aquí aparecerá la campana */}
-          </div>
-          
+
           <div className="hidden md:flex items-center space-x-6">
-            <Link 
-              href="/agenda" 
-              className="text-neutral-600 hover:text-neutral-900 transition-colors text-sm"
+            <Link
+              href="/agenda"
+              className={`text-sm transition-all px-3 py-2 rounded-md ${isActive('/agenda')
+                ? 'bg-blue-50 text-blue-600 font-medium shadow-sm'
+                : 'text-neutral-600 hover:text-neutral-900 hover:bg-gray-50'
+                }`}
             >
               Agenda
             </Link>
@@ -73,67 +47,108 @@ export function Navbar() {
               <div className="h-8 w-24 bg-gray-200 animate-pulse rounded-md"></div>
             ) : user ? (
               <>
-               {user.rol === 'externo' && (
-                 <>
-                   <Link 
-                     href="/desafio" 
-                     className="text-neutral-600 hover:text-neutral-900 transition-colors text-sm"
-                   >
-                     Mis Desafíos
-                   </Link>
-                   <Link 
-                     href="/desafio/mis-matches" 
-                     className="flex items-center text-blue-600 hover:text-blue-700 transition-colors text-sm font-medium"
-                   >
-                     <Sparkles className="w-4 h-4 mr-1" />
-                     Matches
-                   </Link>
-                 </>
-               )}
-               {user.rol === 'unsa' && (
-                 <>
-                   <Link 
-                     href="/capacidad" 
-                     className="text-neutral-600 hover:text-neutral-900 transition-colors text-sm"
-                   >
-                     Mis Capacidades
-                   </Link>
-                   <Link 
-                     href="/capacidad/mis-matches" 
-                     className="flex items-center text-blue-600 hover:text-blue-700 transition-colors text-sm font-medium"
-                   >
-                     <Sparkles className="w-4 h-4 mr-1" />
-                     Matches
-                   </Link>
-                 </>
-               )}
-               {user.rol === 'admin' && (
-                 <Link 
-                   href="/admin/dashboard" 
-                   className="text-neutral-600 hover:text-neutral-900 transition-colors text-sm"
-                 >
-                   Dashboard Admin
-                 </Link>
-               )}
+                {user.rol === 'externo' && (
+                  <>
+                    <Link
+                      href="/desafio"
+                      className={`text-sm transition-all px-3 py-2 rounded-md ${isActive('/desafio')
+                        ? 'bg-blue-50 text-blue-600 font-medium shadow-sm'
+                        : 'text-neutral-600 hover:text-neutral-900 hover:bg-gray-50'
+                        }`}
+                    >
+                      Mis Desafíos
+                    </Link>
+                    <Link
+                      href="/desafio/mis-matches"
+                      className={`text-sm transition-all px-3 py-2 rounded-md ${isActive('/desafio/mis-matches')
+                        ? 'bg-blue-50 text-blue-600 font-medium shadow-sm'
+                        : 'text-neutral-600 hover:text-neutral-900 hover:bg-gray-50'
+                        }`}
+                    >
+                      Matches
+                    </Link>
+                  </>
+                )}
+                {user.rol === 'unsa' && (
+                  <>
+                    <Link
+                      href="/capacidad"
+                      className={`text-sm transition-all px-3 py-2 rounded-md ${isActive('/capacidad')
+                        ? 'bg-blue-50 text-blue-600 font-medium shadow-sm'
+                        : 'text-neutral-600 hover:text-neutral-900 hover:bg-gray-50'
+                        }`}
+                    >
+                      Mis Capacidades
+                    </Link>
+                    <Link
+                      href="/capacidad/mis-matches"
+                      className={`text-sm transition-all px-3 py-2 rounded-md ${isActive('/capacidad/mis-matches')
+                        ? 'bg-blue-50 text-blue-600 font-medium shadow-sm'
+                        : 'text-neutral-600 hover:text-neutral-900 hover:bg-gray-50'
+                        }`}
+                    >
+                      Matches
+                    </Link>
+                  </>
+                )}
+                {user.rol === 'admin' && (
+                  <Link
+                    href="/admin/dashboard"
+                    className={`text-sm transition-all px-3 py-2 rounded-md ${pathname?.startsWith('/admin')
+                      ? 'bg-blue-50 text-blue-600 font-medium shadow-sm'
+                      : 'text-neutral-600 hover:text-neutral-900 hover:bg-gray-50'
+                      }`}
+                  >
+                    Dashboard Admin
+                  </Link>
+                )}
 
-                {/* --- CAMBIO AQUÍ: Mostrar nombre en lugar de email --- */}
-                <span className="text-sm text-neutral-700 flex items-center">
-                   <UserIcon className="w-4 h-4 mr-1 text-neutral-500"/> 
-                   {user.nombres_apellidos} {/* <-- CAMBIADO */}
-                   {user.rol === 'admin' && <span className="ml-1 text-xs text-red-600 font-semibold">(Admin)</span>}
-                </span>
-                <Button variant="ghost" size="sm" onClick={handleLogout} className="text-neutral-600 hover:text-red-600">
-                   <LogOut className="w-4 h-4 mr-1" /> Salir
-                </Button>
+                {/* Chats/Mensajes */}
+                {(user.rol === 'externo' || user.rol === 'unsa') && (
+                  <Link
+                    href="/chats"
+                    className={`text-sm transition-all px-3 py-2 rounded-md ${isActive('/chats') || pathname?.startsWith('/chats/')
+                      ? 'bg-blue-50 text-blue-600 font-medium shadow-sm'
+                      : 'text-neutral-600 hover:text-neutral-900 hover:bg-gray-50'
+                      }`}
+                  >
+                    Chats
+                  </Link>
+                )}
+
+                {/* Solicitudes */}
+                <SolicitudesNotification />
+
+                {/* Dropdown de Usuario */}
+                <div className="relative group">
+                  <button className="flex items-center gap-2 text-sm text-neutral-700 hover:text-neutral-900 px-3 py-2 rounded-md hover:bg-gray-50 transition-all">
+                    <UserIcon className="w-4 h-4" />
+                    <span>{user.nombres_apellidos}</span>
+                    {user.rol === 'admin' && <span className="text-xs text-red-600 font-semibold">(Admin)</span>}
+                  </button>
+
+                  {/* Dropdown Menu */}
+                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
+                    <div className="p-2">
+                      <button
+                        onClick={handleLogout}
+                        className="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded-md transition-colors"
+                      >
+                        <LogOut className="w-4 h-4" />
+                        Cerrar Sesión
+                      </button>
+                    </div>
+                  </div>
+                </div>
               </>
             ) : (
               <>
                 <Button asChild variant="outline" size="sm">
                   <Link href="/login">Iniciar Sesión</Link>
                 </Button>
-                 <Button asChild size="sm">
-                   <Link href="/registro">Registrarse</Link>
-                 </Button>
+                <Button asChild size="sm">
+                  <Link href="/registro">Registrarse</Link>
+                </Button>
               </>
             )}
           </div>

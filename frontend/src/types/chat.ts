@@ -22,8 +22,8 @@ export interface Mensaje {
   chat_id: number;
   remitente_tipo: 'unsa' | 'externo';
   remitente_id: number;
+  remitente_nombre: string;
   contenido: string;
-  leido: boolean;
   fecha_envio: string;
-  remitente_nombre?: string;
+  leido: boolean;
 }
