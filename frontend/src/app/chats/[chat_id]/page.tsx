@@ -76,12 +76,25 @@ export default function ChatDetailPage() {
       const data = await res.json();
       setMensajes(data.mensajes || []);
       
-      if (isLoading && data.mensajes.length > 0 && miTipo) {
+      // Obtener nombre del otro usuario
+      if (data.mensajes.length > 0) {
+        const userData = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/me`, {
+          headers: { "Authorization": `Bearer ${token}` }
+        }).then(r => r.json());
+        
+        const miTipoActual = userData.rol;
         const mensajeDelOtro = data.mensajes.find((m: Mensaje) => 
-          m.remitente_tipo !== miTipo
+          m.remitente_tipo !== miTipoActual
         );
-        if (mensajeDelOtro) {
-          setOtroUsuario(mensajeDelOtro.remitente_nombre || 'Usuario');
+        
+        if (mensajeDelOtro && mensajeDelOtro.remitente_nombre) {
+          setOtroUsuario(mensajeDelOtro.remitente_nombre);
+        } else {
+          // Si no hay mensajes del otro, usar el primer mensaje disponible
+          const primerMensaje = data.mensajes[0];
+          if (primerMensaje && primerMensaje.remitente_nombre) {
+            setOtroUsuario(primerMensaje.remitente_nombre);
+          }
         }
       }
       
@@ -142,9 +155,30 @@ export default function ChatDetailPage() {
   }
 
   return (
-    <div className="flex flex-col bg-gray-50" style={{ height: '100%', width: '100%' }}>
+    <div className="chat-container flex flex-col bg-gray-50" style={{ height: '100%', width: '100%', position: 'relative' }}>
       {/* Header del Chat - Altura fija */}
-      <div className="flex items-center gap-4 px-4 sm:px-6 py-4 bg-white border-b shadow-sm" style={{ flexShrink: 0 }}>
+      <div 
+        className="flex items-center gap-4 px-4 sm:px-6 py-4 bg-white border-b shadow-sm" 
+        style={{ 
+          flexShrink: 0, 
+          minHeight: '64px', 
+          height: '64px',
+          zIndex: 100,
+          position: 'relative',
+          backgroundColor: '#ffffff'
+        }}
+      >
+        <button 
+          onClick={() => router.push('/chats')}
+          className="text-blue-600 hover:text-blue-700"
+          aria-label="Volver a chats"
+        >
+          <ArrowLeft className="w-5 h-5" />
+        </button>
+        <h1 className="text-lg font-semibold text-neutral-900">
+          {otroUsuario || 'Chat'}
+        </h1>
+      
         <button 
           onClick={() => router.push('/chats')}
           className="text-blue-600 hover:text-blue-700 transition-colors"
@@ -161,7 +195,13 @@ export default function ChatDetailPage() {
       <div 
         ref={mensajesContainerRef}
         onScroll={handleScroll}
-        className="flex-1 overflow-y-auto p-4 sm:p-6 bg-gradient-to-b from-gray-50 to-gray-100 min-h-0"
+        className="p-4 sm:p-6 bg-gradient-to-b from-gray-50 to-gray-100"
+        style={{ 
+          flex: 1, 
+          overflowY: 'auto',
+          overflowX: 'hidden',
+          minHeight: 0 
+        }}
       >
         {mensajes.length === 0 ? (
           <div className="flex items-center justify-center h-full">
@@ -212,7 +252,7 @@ export default function ChatDetailPage() {
       </div>
 
       {/* Input Box - Anclado en la parte inferior */}
-      <div className="border-t p-4 bg-white shadow-lg flex-shrink-0">
+      <div className="border-t p-4 bg-white shadow-lg" style={{ flexShrink: 0 }}>
         <form onSubmit={enviarMensaje} className="flex gap-2 w-full max-w-4xl mx-auto">
           <Input
             value={nuevoMensaje}

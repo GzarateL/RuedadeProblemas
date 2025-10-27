@@ -25,5 +25,5 @@ export interface Mensaje {
   remitente_nombre: string;
   contenido: string;
   fecha_envio: string;
-  leido: boolean;
+  leido?: boolean;
 }

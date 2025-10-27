@@ -325,6 +325,12 @@ button, .btn {
   transition-duration: 0.3s !important;
 }
 
+/* Allow chat animations and layout */
+.chat-container, .chat-container * {
+  animation-duration: revert !important;
+  transition-duration: revert !important;
+}
+
 
 /* Ocultar scrollbar pero mantener funcionalidad */
 .scrollbar-hide {
@@ -361,4 +367,16 @@ main {
 /* Asegurar que las transiciones no muestren scroll */
 [data-framer-motion] {
   overflow: hidden;
+}
+/* Reset box-sizing global */
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
 }

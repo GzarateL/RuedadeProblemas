@@ -32,12 +32,13 @@ export default function RootLayout({
           margin: 0, 
           padding: 0, 
           height: '100vh',
-          overflow: 'hidden'
+          width: '100vw',
+          overflow: isChatsPage ? 'hidden' : 'auto'
         }}
       >
         <AuthProvider>
           {isChatsPage ? (
-            // Layout para chats
+            // Layout para chats: estructura de altura fija
             <div style={{ 
               height: '100vh', 
               width: '100%',
@@ -45,13 +46,16 @@ export default function RootLayout({
               flexDirection: 'column',
               overflow: 'hidden'
             }}>
-              <Navbar />
+              <div style={{ flexShrink: 0 }}>
+                <Navbar />
+              </div>
               <div style={{ 
                 flex: 1,
                 minHeight: 0,
                 overflow: 'hidden',
                 display: 'flex',
-                flexDirection: 'column'
+                flexDirection: 'column',
+                position: 'relative'
               }}>
                 <PageTransitionProvider>
                   {children}
@@ -64,7 +68,6 @@ export default function RootLayout({
               display: 'flex', 
               flexDirection: 'column',
               minHeight: '100vh',
-              height: 'auto',
               overflow: 'auto'
             }}>
               <Navbar />
