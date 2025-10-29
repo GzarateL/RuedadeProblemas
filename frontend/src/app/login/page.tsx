@@ -1,17 +1,15 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { toast } from "sonner";
 import { useAuth } from "@/context/AuthContext";
-import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Card, CardContent, CardDescription, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { RainEffect } from "@/components/RainDrop";
+import { BouncingBall } from "@/components/BouncingBall";
 
 const formSchema = z.object({
   email: z.string().min(1, { message: "El correo es requerido." }),
@@ -23,12 +21,7 @@ export default function LoginPage() {
   const searchParams = useSearchParams();
   const error = searchParams.get('error');
   const [isLoading, setIsLoading] = useState(false);
-  const [isMounted, setIsMounted] = useState(false);
   const { login } = useAuth();
-
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -66,104 +59,106 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="relative flex min-h-screen items-center justify-center bg-gradient-to-br from-sky-50 to-white px-4 py-12 overflow-hidden">
-      {/* Animación de gotas cayendo */}
-      <RainEffect />
+    <div className="min-h-screen flex items-center justify-center bg-white p-4">
+      <div className="w-full max-w-md">
+        <div className="relative">
+          {/* Borde neón exterior */}
+          <div
+            className="absolute inset-0 rounded-2xl"
+            style={{
+              background: "linear-gradient(45deg, hsl(350 100% 50%), hsl(350 100% 40%))",
+              filter: "blur(2px)",
+              boxShadow: "var(--neon-glow-strong)",
+            }}
+          />
 
-      <Card
-        className={`relative z-10 w-full max-w-lg border border-slate-200 shadow-2xl transform transition-all duration-500 ease-out ${isMounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"
-          }`}
-      >
-        <div className="flex flex-col bg-white p-8 sm:p-10">
-          <CardContent className="p-0">
-            {error && (
-              <Alert variant="destructive" className="mb-6">
-                <AlertDescription>
-                  {error === "unauthorized" && "No tiene permisos para acceder a esa página."}
-                  {error === "session_expired" && "Tu sesión ha expirado. Por favor, inicia sesión de nuevo."}
-                </AlertDescription>
-              </Alert>
-            )}
-            <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                <div
-                  className={`space-y-10 text-center pb-3 transform transition-all duration-700 ease-out ${isMounted ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-6"
-                    }`}
-                  style={{ transitionDelay: "120ms" }}
-                >
-                  <CardTitle className="text-3xl font-semibold text-slate-900">Iniciar sesión</CardTitle>
-                  <CardDescription className="text-sm text-slate-500">
-                    Ingresa tus credenciales institucionales para continuar con tu trabajo.
-                  </CardDescription>
-                </div>
-                <FormField
-                  control={form.control}
-                  name="email"
-                  render={({ field }) => (
-                    <div
-                      className={`transform transition-all duration-700 ease-out ${isMounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"
-                        }`}
-                      style={{ transitionDelay: "220ms" }}
-                    >
+          {/* Tarjeta con animación */}
+          <div
+            className="relative bg-white border-2 border-[#FF0033] rounded-2xl overflow-hidden"
+            style={{ boxShadow: "var(--neon-glow)" }}
+          >
+            {/* Canvas abarca toda la tarjeta */}
+            <BouncingBall />
+
+            {/* Formulario */}
+            <div className="p-8 space-y-6 relative z-10">
+              {error && (
+                <Alert variant="destructive" className="mb-6">
+                  <AlertDescription>
+                    {error === "unauthorized" && "No tiene permisos para acceder a esa página."}
+                    {error === "session_expired" && "Tu sesión ha expirado. Por favor, inicia sesión de nuevo."}
+                  </AlertDescription>
+                </Alert>
+              )}
+
+              <div className="text-center space-y-2">
+                <h1 className="text-3xl font-bold text-gray-900">Iniciar Sesión</h1>
+                <p className="text-gray-600">Ingresa tus credenciales</p>
+              </div>
+
+              <Form {...form}>
+                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                  <FormField
+                    control={form.control}
+                    name="email"
+                    render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="text-sm font-medium text-slate-700">Correo o usuario</FormLabel>
+                        <FormLabel className="text-gray-900 font-medium">Email</FormLabel>
                         <FormControl>
                           <Input
                             type="email"
-                            autoComplete="email"
-                            placeholder="ejemplo@unsa.edu.pe"
-                            className="h-11 rounded-lg border-slate-200 bg-slate-50 text-sm transform transition-all duration-200 ease-out hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-sm focus:-translate-y-0.5 focus:border-emerald-500 focus:bg-white focus:shadow-md focus:outline-none focus:ring-2 focus:ring-emerald-200/90"
+                            placeholder="tu@email.com"
+                            className="w-full px-4 py-2 bg-gray-50 border border-gray-300 rounded-lg focus:border-[#FF0033] focus:ring-2 focus:ring-[#FF0033]/20 outline-none"
                             {...field}
                           />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
-                    </div>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="password"
-                  render={({ field }) => (
-                    <div
-                      className={`transform transition-all duration-700 ease-out ${isMounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"
-                        }`}
-                      style={{ transitionDelay: "320ms" }}
-                    >
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="password"
+                    render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="text-sm font-medium text-slate-700">Contraseña</FormLabel>
+                        <FormLabel className="text-gray-900 font-medium">Contraseña</FormLabel>
                         <FormControl>
                           <Input
                             type="password"
-                            autoComplete="current-password"
-                            placeholder="Ingresa tu contraseña"
-                            className="h-11 rounded-lg border-slate-200 bg-slate-50 text-sm transform transition-all duration-200 ease-out hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-sm focus:-translate-y-0.5 focus:border-emerald-500 focus:bg-white focus:shadow-md focus:outline-none focus:ring-2 focus:ring-emerald-200/90"
+                            placeholder="••••••••"
+                            className="w-full px-4 py-2 bg-gray-50 border border-gray-300 rounded-lg focus:border-[#FF0033] focus:ring-2 focus:ring-[#FF0033]/20 outline-none"
                             {...field}
                           />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
-                    </div>
-                  )}
-                />
-                <div
-                  className={`transform transition-all duration-700 ease-out ${isMounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"
-                    }`}
-                  style={{ transitionDelay: "420ms" }}
-                >
-                  <Button
+                    )}
+                  />
+
+                  <button
                     type="submit"
-                    className="w-full h-12 mt-4 transform transition-all duration-200 ease-out hover:-translate-y-0.5 hover:bg-[#d80c0d] hover:shadow-md active:translate-y-0"
+                    className="w-full bg-[#FF0033] hover:bg-[#CC0029] text-white font-semibold py-3 rounded-lg transition-colors"
+                    style={{ boxShadow: "var(--neon-glow)" }}
                     disabled={isLoading}
                   >
-                    {isLoading ? "Ingresando..." : "Ingresar"}
-                  </Button>
-                </div>
-              </form>
-            </Form>
-          </CardContent>
+                    {isLoading ? "Ingresando..." : "Entrar"}
+                  </button>
+                </form>
+              </Form>
+
+              <div className="text-center">
+                <a
+                  href="#"
+                  className="text-sm text-[#FF0033] hover:text-[#FF3366] transition-colors"
+                >
+                  ¿Olvidaste tu contraseña?
+                </a>
+              </div>
+            </div>
+          </div>
         </div>
-      </Card>
+      </div>
     </div>
   );
 }

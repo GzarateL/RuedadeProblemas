@@ -94,6 +94,10 @@
   --sidebar-ring: oklch(0.704 0.04 256.788);
   --background: oklch(1 0 0);
   --foreground: oklch(0.129 0.042 264.695);
+  
+  /* Variables de neón para BouncingBall */
+  --neon-glow: 0 0 20px hsl(350 100% 50% / 0.5), 0 0 40px hsl(350 100% 50% / 0.3);
+  --neon-glow-strong: 0 0 10px hsl(350 100% 50%), 0 0 20px hsl(350 100% 50% / 0.8), 0 0 30px hsl(350 100% 50% / 0.6);
 }
 
 /* Tus variables .dark existentes */
