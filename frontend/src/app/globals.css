@@ -3,6 +3,22 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* Animación de gotas cayendo */
+@keyframes fall {
+  0% {
+    transform: translateY(0) rotate(0deg);
+    opacity: 0.7;
+  }
+  100% {
+    transform: translateY(100vh) rotate(360deg);
+    opacity: 0;
+  }
+}
+
+@utility animate-fall {
+  animation: fall 5s linear infinite;
+}
+
 /* Tus variables @theme inline existentes */
 @theme inline {
   --color-background: var(--background);

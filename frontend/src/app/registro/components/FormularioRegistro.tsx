@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
+import { RainEffect } from "@/components/RainDrop";
 
 // --- Simulación de datos ---
 const helices = [
@@ -200,9 +201,12 @@ export function FormularioRegistro({ rol, onVolver }: Props) {
 
   // --- 7) JSX ---
   return (
-    <div className="relative flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-100 via-white to-slate-200 px-4 py-12">
+    <div className="relative flex min-h-screen items-center justify-center bg-gradient-to-br from-sky-50 to-white px-4 py-12 overflow-hidden">
+      {/* Animación de gotas cayendo */}
+      <RainEffect />
+      
       <Card
-        className={`w-full max-w-3xl border border-slate-200 bg-white/90 shadow-2xl backdrop-blur-sm transition-all duration-500 ease-out ${
+        className={`relative z-10 w-full max-w-3xl border border-slate-200 bg-white/90 shadow-2xl backdrop-blur-sm transition-all duration-500 ease-out ${
           sectionAnimationFlag ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"
         }`}
       >

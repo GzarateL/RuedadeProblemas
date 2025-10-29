@@ -11,6 +11,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Card, CardContent, CardDescription, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { RainEffect } from "@/components/RainDrop";
 
 const formSchema = z.object({
   email: z.string().min(1, { message: "El correo es requerido." }),
@@ -48,7 +49,7 @@ export default function LoginPage() {
       }
       login(data.user, data.token);
       toast.success("¡Bienvenido!", { description: "Has iniciado sesión correctamente." });
-      
+
       // Redirigir según el rol
       if (data.user.rol === 'admin') {
         router.push("/admin/dashboard");
@@ -65,11 +66,13 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="relative flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-100 via-white to-slate-200 px-4 py-12">
+    <div className="relative flex min-h-screen items-center justify-center bg-gradient-to-br from-sky-50 to-white px-4 py-12 overflow-hidden">
+      {/* Animación de gotas cayendo */}
+      <RainEffect />
+
       <Card
-        className={`w-full max-w-lg border border-slate-200 shadow-2xl transform transition-all duration-500 ease-out ${
-          isMounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"
-        }`}
+        className={`relative z-10 w-full max-w-lg border border-slate-200 shadow-2xl transform transition-all duration-500 ease-out ${isMounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"
+          }`}
       >
         <div className="flex flex-col bg-white p-8 sm:p-10">
           <CardContent className="p-0">
@@ -84,9 +87,8 @@ export default function LoginPage() {
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
                 <div
-                  className={`space-y-10 text-center pb-3 transform transition-all duration-700 ease-out ${
-                    isMounted ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-6"
-                  }`}
+                  className={`space-y-10 text-center pb-3 transform transition-all duration-700 ease-out ${isMounted ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-6"
+                    }`}
                   style={{ transitionDelay: "120ms" }}
                 >
                   <CardTitle className="text-3xl font-semibold text-slate-900">Iniciar sesión</CardTitle>
@@ -99,9 +101,8 @@ export default function LoginPage() {
                   name="email"
                   render={({ field }) => (
                     <div
-                      className={`transform transition-all duration-700 ease-out ${
-                        isMounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"
-                      }`}
+                      className={`transform transition-all duration-700 ease-out ${isMounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"
+                        }`}
                       style={{ transitionDelay: "220ms" }}
                     >
                       <FormItem>
@@ -125,9 +126,8 @@ export default function LoginPage() {
                   name="password"
                   render={({ field }) => (
                     <div
-                      className={`transform transition-all duration-700 ease-out ${
-                        isMounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"
-                      }`}
+                      className={`transform transition-all duration-700 ease-out ${isMounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"
+                        }`}
                       style={{ transitionDelay: "320ms" }}
                     >
                       <FormItem>
@@ -147,9 +147,8 @@ export default function LoginPage() {
                   )}
                 />
                 <div
-                  className={`transform transition-all duration-700 ease-out ${
-                    isMounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"
-                  }`}
+                  className={`transform transition-all duration-700 ease-out ${isMounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"
+                    }`}
                   style={{ transitionDelay: "420ms" }}
                 >
                   <Button

@@ -2,6 +2,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { RainEffect } from "@/components/RainDrop";
 
 interface Props {
   onSelectRol: (rol: "externo" | "unsa") => void;
@@ -27,10 +28,13 @@ export function SeleccionRol({ onSelectRol }: Props) {
 
   return (
     <div
-      className={`relative flex min-h-screen items-center justify-center overflow-hidden bg-gradient-to-br from-neutral-100 via-white to-neutral-200 transition-opacity duration-700 ${
+      className={`relative flex min-h-screen items-center justify-center overflow-hidden bg-gradient-to-br from-sky-50 to-white transition-opacity duration-700 ${
         isMounted ? "opacity-100" : "opacity-0"
       }`}
     >
+      {/* Animación de gotas cayendo */}
+      <RainEffect />
+      
       <div className="absolute inset-0 -z-10 overflow-hidden">
         <div
           className={`absolute -top-32 -left-24 h-72 w-72 rounded-full bg-[#d80c0d]/15 blur-3xl transition-all duration-[1200ms] ease-out ${
@@ -49,7 +53,7 @@ export function SeleccionRol({ onSelectRol }: Props) {
         />
       </div>
       <Card
-        className={`relative w-full max-w-3xl border border-slate-200 bg-white shadow-[0_25px_70px_-25px_rgba(15,23,42,0.35)] transform-gpu transition-all duration-700 ease-out ${
+        className={`relative z-10 w-full max-w-3xl border border-slate-200 bg-white shadow-[0_25px_70px_-25px_rgba(15,23,42,0.35)] transform-gpu transition-all duration-700 ease-out ${
           isMounted
             ? "opacity-100 translate-y-0 scale-100 blur-0"
             : "opacity-0 translate-y-8 scale-95 blur-sm"
