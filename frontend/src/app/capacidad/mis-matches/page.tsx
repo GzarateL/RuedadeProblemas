@@ -6,7 +6,7 @@ import { toast } from 'sonner';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Loader2, Sparkles, AlertCircle, Send, CheckCircle, Clock, XCircle } from 'lucide-react';
+import { Loader2, AlertCircle, Send, CheckCircle, Clock, XCircle } from 'lucide-react';
 import Link from 'next/link';
 
 interface DesafioMatch {
@@ -230,10 +230,7 @@ export default function MisMatchesUNSAPage() {
   return (
     <div className="max-w-6xl mx-auto p-6">
       <div className="mb-6">
-        <div className="flex items-center gap-2 mb-2">
-          <Sparkles className="w-6 h-6 text-blue-600" />
-          <h1 className="text-3xl font-bold text-neutral-900">Mis Matches</h1>
-        </div>
+        <h1 className="text-3xl font-bold text-neutral-900 mb-2">Mis Matches</h1>
         <p className="text-neutral-600">
           Desafíos que coinciden con tus capacidades registradas
         </p>
@@ -328,7 +325,7 @@ export default function MisMatchesUNSAPage() {
                           {estadoSolicitud.solicitud.estado === 'aceptada' && (
                             <Button 
                               onClick={() => window.location.href = '/chats'}
-                              className="w-full bg-green-600 hover:bg-green-700"
+                              className="w-full bg-red-600 text-white font-medium rounded-md px-4 py-2 hover:bg-white hover:text-red-600 hover:shadow-[0_0_12px_rgba(255,0,0,0.6)] transition-all"
                             >
                               <CheckCircle className="w-4 h-4 mr-2" />
                               Solicitud aceptada - Ver chat
@@ -386,7 +383,7 @@ export default function MisMatchesUNSAPage() {
                             // Solicitud aceptada (sin importar quién la envió) - Mostrar Ver chat
                             <Button 
                               onClick={() => window.location.href = '/chats'}
-                              className="w-full bg-green-600 hover:bg-green-700"
+                              className="w-full bg-red-600 text-white font-medium rounded-md px-4 py-2 hover:bg-white hover:text-red-600 hover:shadow-[0_0_12px_rgba(255,0,0,0.6)] transition-all"
                             >
                               <CheckCircle className="w-4 h-4 mr-2" />
                               Solicitud aceptada - Ver chat

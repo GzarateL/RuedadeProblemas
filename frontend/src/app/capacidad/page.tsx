@@ -8,7 +8,7 @@ import { toast } from 'sonner';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, Plus, Sparkles } from 'lucide-react';
+import { Loader2, Plus } from 'lucide-react';
 import Link from 'next/link';
 
 interface Capacidad {
@@ -80,8 +80,7 @@ export default function MisCapacidadesPage() {
         </div>
         <div className="flex gap-2">
           <Link href="/capacidad/mis-matches">
-            <Button variant="outline" className="flex items-center gap-2">
-              <Sparkles className="w-4 h-4" />
+            <Button variant="outline">
               Ver Matches
             </Button>
           </Link>

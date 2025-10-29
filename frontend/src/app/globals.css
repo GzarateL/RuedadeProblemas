@@ -58,6 +58,9 @@
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
+  --color-electric: hsl(0 100% 50%);
+  --color-electric-glow: hsl(0 100% 60%);
+  --color-purple-bolt: hsl(280 100% 60%);
 }
 
 /* Tus variables :root existentes */
@@ -202,3 +205,26 @@
   z-index: 0;
 } */
 /* --- FIN --- */
+
+/* Glow Pulse Animation */
+@keyframes glow-pulse {
+  0%, 100% {
+    text-shadow: 0 0 20px hsl(0 100% 50%), 0 0 30px hsl(0 100% 60%);
+  }
+  50% {
+    text-shadow: 0 0 30px hsl(0 100% 50%), 0 0 50px hsl(0 100% 60%);
+  }
+}
+
+.animate-glow-pulse {
+  animation: glow-pulse 2s ease-in-out infinite;
+}
+
+/* Patrón cuadriculado para el fondo del Home */
+.bg-grid-pattern {
+  background-color: #ffffff;
+  background-image: 
+    linear-gradient(rgba(0, 0, 0, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 0, 0, 0.05) 1px, transparent 1px);
+  background-size: 50px 50px;
+}

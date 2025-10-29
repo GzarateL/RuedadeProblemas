@@ -146,7 +146,7 @@ export default function HomePage() {
         case 'externo':
           return (
             <div className="flex flex-col sm:flex-row justify-center md:justify-start items-center gap-4 mt-12 animate-fade-in animation-delay-600"> {/* Cambiado a md:justify-start */}
-              <Button asChild size="lg" className="w-full sm:w-auto bg-red-600 hover:bg-red-700 text-white px-8 py-3 rounded-lg shadow-md transition-transform transform hover:scale-105">
+              <Button asChild size="lg" className="bg-electric text-white font-semibold px-8 py-3 rounded-lg transition-all duration-300 hover:bg-white hover:text-electric focus:bg-white focus:text-electric hover:drop-shadow-[0_0_12px_hsl(0,100%,60%)] focus:drop-shadow-[0_0_12px_hsl(0,100%,60%)]">
                 <Link href="/desafio/registrar">Registrar mi Desafío</Link>
               </Button>
             </div>
@@ -154,7 +154,7 @@ export default function HomePage() {
         case 'unsa':
           return (
             <div className="flex flex-col sm:flex-row justify-center md:justify-start items-center gap-4 mt-12 animate-fade-in animation-delay-600"> {/* Cambiado a md:justify-start */}
-              <Button asChild size="lg" className="w-full sm:w-auto bg-red-600 hover:bg-red-700 text-white px-8 py-3 rounded-lg shadow-md transition-transform transform hover:scale-105">
+              <Button asChild size="lg" className="bg-electric text-white font-semibold px-8 py-3 rounded-lg transition-all duration-300 hover:bg-white hover:text-electric focus:bg-white focus:text-electric hover:drop-shadow-[0_0_12px_hsl(0,100%,60%)] focus:drop-shadow-[0_0_12px_hsl(0,100%,60%)]">
                 <Link href="/capacidad/registrar">Registrar Capacidad</Link>
               </Button>
             </div>
@@ -172,10 +172,10 @@ export default function HomePage() {
     } else {
       return (
         <div className="flex flex-col sm:flex-row justify-center md:justify-start items-center gap-4 mt-12 animate-fade-in animation-delay-600"> {/* Cambiado a md:justify-start */}
-          <Button asChild size="lg" className="w-full sm:w-auto bg-red-600 hover:bg-red-700 text-white px-8 py-3 rounded-lg shadow-md transition-transform transform hover:scale-105">
+          <Button asChild size="lg" className="bg-electric text-white font-semibold px-8 py-3 rounded-lg transition-all duration-300 hover:bg-white hover:text-electric focus:bg-white focus:text-electric hover:drop-shadow-[0_0_12px_hsl(0,100%,60%)] focus:drop-shadow-[0_0_12px_hsl(0,100%,60%)]">
             <Link href="/registro">Registrarse</Link>
           </Button>
-          <Button asChild size="lg" variant="outline" className="w-full sm:w-auto px-8 py-3 rounded-lg shadow-sm border-neutral-300 hover:bg-neutral-100 transition-transform transform hover:scale-105">
+          <Button asChild size="lg" variant="outline" className="w-full sm:w-auto bg-white text-black font-semibold px-8 py-3 rounded-lg transition-all duration-300 hover:bg-electric hover:text-white focus:bg-electric focus:text-white hover:drop-shadow-[0_0_20px_hsl(0,100%,60%)] focus:drop-shadow-[0_0_20px_hsl(0,100%,60%)]">
             <Link href="/login">Iniciar Sesión</Link>
           </Button>
         </div>
@@ -186,7 +186,7 @@ export default function HomePage() {
   return (
     <div className="overflow-x-hidden">
       {/* Sección 1: Hero */}
-      <section className="relative bg-white text-neutral-900 min-h-[70vh] flex items-center py-20 md:py-32 overflow-hidden">
+      <section className="relative bg-grid-pattern text-neutral-900 min-h-[70vh] flex items-center py-20 md:py-32 overflow-hidden">
         {/* Contenedor principal con flex row en md y superior */}
         <div className="max-w-6xl w-full mx-auto px-6 sm:px-8 flex flex-col md:flex-row items-center justify-between gap-8 md:gap-12 z-10">
 
@@ -260,12 +260,11 @@ export default function HomePage() {
               return (
                 <div
                   key={step.number}
-                  className={`border border-neutral-200 p-8 rounded-lg shadow-sm bg-white transition-all duration-700 ease-out ${
-                    isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"
-                  }`}
+                  className={`border border-neutral-200 p-8 rounded-lg shadow-sm bg-white transition-all duration-700 ease-out ${isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"
+                    }`}
                 >
                   <h3 className="text-2xl font-semibold text-neutral-900 mb-4">
-                    <span className="text-red-500 font-bold mr-3 text-3xl">{step.number}</span>
+                    <span className="text-electric animate-glow-pulse font-bold mr-3 text-3xl">{step.number}</span>
                     {step.title}
                   </h3>
                   <p className="text-neutral-600 leading-relaxed text-justify">{step.description}</p>

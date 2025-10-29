@@ -56,8 +56,7 @@ export function SeleccionRol({ onSelectRol }: Props) {
                       Conecta desafíos reales de organizaciones y coordina soluciones colaborativas junto a la comunidad Hélice UNSA.
                     </p>
                     <button
-                      className="w-full bg-[#FF0033] text-white font-semibold py-3 rounded-lg opacity-0 transition-all duration-200 ease-out group-hover:-translate-y-0.5 group-hover:opacity-100 group-hover:shadow-md group-hover:delay-200 group-focus-within:-translate-y-0.5 group-focus-within:opacity-100 group-focus-within:shadow-md pointer-events-none group-hover:pointer-events-auto group-focus-within:pointer-events-auto hover:!bg-[#CC0029]"
-                      style={{ boxShadow: "var(--neon-glow)" }}
+                      className="w-full bg-electric text-white font-semibold py-3 rounded-lg opacity-0 transition-all duration-200 ease-out group-hover:-translate-y-0.5 group-hover:opacity-100 group-hover:delay-200 group-focus-within:-translate-y-0.5 group-focus-within:opacity-100 pointer-events-none group-hover:pointer-events-auto group-focus-within:pointer-events-auto hover:bg-white hover:text-electric focus:bg-white focus:text-electric hover:drop-shadow-[0_0_12px_hsl(0,100%,60%)] focus:drop-shadow-[0_0_12px_hsl(0,100%,60%)]"
                     >
                       Seleccionar
                     </button>
@@ -79,8 +78,7 @@ export function SeleccionRol({ onSelectRol }: Props) {
                       Participa con equipos académicos, comparte capacidades y acompaña la resolución de desafíos con instituciones aliadas.
                     </p>
                     <button
-                      className="w-full bg-[#FF0033] text-white font-semibold py-3 rounded-lg opacity-0 transition-all duration-200 ease-out group-hover:-translate-y-0.5 group-hover:opacity-100 group-hover:shadow-md group-hover:delay-200 group-focus-within:-translate-y-0.5 group-focus-within:opacity-100 group-focus-within:shadow-md pointer-events-none group-hover:pointer-events-auto group-focus-within:pointer-events-auto hover:!bg-[#CC0029]"
-                      style={{ boxShadow: "var(--neon-glow)" }}
+                      className="w-full bg-electric text-white font-semibold py-3 rounded-lg opacity-0 transition-all duration-200 ease-out group-hover:-translate-y-0.5 group-hover:opacity-100 group-hover:delay-200 group-focus-within:-translate-y-0.5 group-focus-within:opacity-100 pointer-events-none group-hover:pointer-events-auto group-focus-within:pointer-events-auto hover:bg-white hover:text-electric focus:bg-white focus:text-electric hover:drop-shadow-[0_0_12px_hsl(0,100%,60%)] focus:drop-shadow-[0_0_12px_hsl(0,100%,60%)]"
                     >
                       Seleccionar
                     </button>

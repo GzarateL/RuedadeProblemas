@@ -142,8 +142,7 @@ export default function LoginPage() {
 
                   <button
                     type="submit"
-                    className="w-full bg-[#FF0033] hover:bg-[#CC0029] text-white font-semibold py-3 rounded-lg transition-colors"
-                    style={{ boxShadow: "var(--neon-glow)" }}
+                    className="w-full bg-electric text-white font-semibold py-3 rounded-lg transition-all duration-300 hover:bg-white hover:text-electric focus:bg-white focus:text-electric hover:drop-shadow-[0_0_12px_hsl(0,100%,60%)] focus:drop-shadow-[0_0_12px_hsl(0,100%,60%)]"
                     disabled={isLoading}
                   >
                     {isLoading ? "Ingresando..." : "Entrar"}

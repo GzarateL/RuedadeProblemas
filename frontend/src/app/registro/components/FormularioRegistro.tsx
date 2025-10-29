@@ -229,7 +229,7 @@ export function FormularioRegistro({ rol, onVolver }: Props) {
             {/* Contenido del formulario */}
             <div className="relative z-10 bg-white/95">
               <div className="flex flex-col items-center gap-4 px-8 pt-6 pb-8 text-center">
-                <Button variant="outline" size="sm" className="self-start rounded-full border-gray-300 px-4" onClick={onVolver}>
+                <Button variant="outline" size="sm" className="self-start bg-white text-black font-semibold rounded-full border-gray-300 px-4 transition-all duration-300 hover:bg-electric hover:text-white focus:bg-electric focus:text-white hover:drop-shadow-[0_0_20px_hsl(0,100%,60%)] focus:drop-shadow-[0_0_20px_hsl(0,100%,60%)]" onClick={onVolver}>
                   Volver
                 </Button>
                 <div className="w-full space-y-4">
@@ -409,8 +409,7 @@ export function FormularioRegistro({ rol, onVolver }: Props) {
 
                   <button
                     type="submit"
-                    className="w-full bg-[#FF0033] hover:bg-[#CC0029] text-white font-semibold py-3 rounded-lg transition-colors"
-                    style={{ boxShadow: "var(--neon-glow)" }}
+                    className="w-full bg-electric text-white font-semibold py-3 rounded-lg transition-all duration-300 hover:bg-white hover:text-electric focus:bg-white focus:text-electric hover:drop-shadow-[0_0_12px_hsl(0,100%,60%)] focus:drop-shadow-[0_0_12px_hsl(0,100%,60%)]"
                     disabled={isLoading}
                   >
                     {isLoading ? "Registrando..." : "Crear Cuenta"}
