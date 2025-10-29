@@ -4,11 +4,11 @@ import { useEffect, useState } from "react";
 
 // Genera estilos aleatorios para cada gota
 const createRaindropStyle = (): React.CSSProperties => {
-  const size = Math.random() * 30 + 10; // 10-40px (más grandes)
+  const size = Math.random() * 8 + 3; // 3-11px (más pequeñas)
   const left = Math.random() * 100; // 0-100% horizontal
-  const duration = Math.random() * 3 + 2; // 2-5 segundos
-  const delay = Math.random() * 2; // 0-2s delay
-  const opacity = Math.random() * 0.5 + 0.4; // 0.4-0.9 opacidad (más visibles)
+  const duration = Math.random() * 4 + 3; // 3-7 segundos (más lentas)
+  const delay = Math.random() * 3; // 0-3s delay
+  const opacity = Math.random() * 0.15 + 0.05; // 0.05-0.2 opacidad (más sutiles)
 
   return {
     width: `${size}px`,
@@ -35,20 +35,18 @@ export function RainEffect() {
   const [raindrops, setRaindrops] = useState<React.CSSProperties[]>([]);
 
   useEffect(() => {
-    console.log("RainEffect montado - iniciando animación");
-    // Crear 50 gotas iniciales
-    const initialDrops = Array.from({ length: 50 }, () => createRaindropStyle());
+    // Crear 20 gotas iniciales (menos cantidad)
+    const initialDrops = Array.from({ length: 20 }, () => createRaindropStyle());
     setRaindrops(initialDrops);
-    console.log(`Creadas ${initialDrops.length} gotas iniciales`);
 
-    // Crear nuevas gotas cada 300ms
+    // Crear nuevas gotas cada 800ms (menos frecuentes)
     const interval = setInterval(() => {
       setRaindrops((prev) => {
-        // Limitar a 100 gotas máximo para performance
-        const filtered = prev.length > 100 ? prev.slice(-80) : prev;
+        // Limitar a 40 gotas máximo para performance
+        const filtered = prev.length > 40 ? prev.slice(-30) : prev;
         return [...filtered, createRaindropStyle()];
       });
-    }, 300);
+    }, 800);
 
     return () => clearInterval(interval);
   }, []);

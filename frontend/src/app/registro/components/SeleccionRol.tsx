@@ -1,7 +1,5 @@
 "use client";
-import { useEffect, useMemo, useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { BouncingBall } from "@/components/BouncingBall";
 import { RainEffect } from "@/components/RainDrop";
 
 interface Props {
@@ -9,117 +7,90 @@ interface Props {
 }
 
 export function SeleccionRol({ onSelectRol }: Props) {
-  const [isMounted, setIsMounted] = useState(false);
-
-  useEffect(() => {
-    const timeout = requestAnimationFrame(() => setIsMounted(true));
-    return () => cancelAnimationFrame(timeout);
-  }, []);
-
-  const roleCardBase = useMemo(
-    () =>
-      "group relative flex h-full w-full transform-gpu flex-col items-center justify-center gap-4 rounded-xl border border-neutral-200 bg-white/80 p-6 text-center shadow-sm transition-all duration-300 ease-out hover:-translate-y-1 hover:scale-[1.02] hover:border-neutral-300 hover:bg-white hover:shadow-lg focus-within:-translate-y-1 focus-within:scale-[1.02] focus-within:border-neutral-300 focus-within:shadow-lg cursor-pointer overflow-hidden group-hover:items-start group-hover:text-left",
-    []
-  );
-
-  const roleAnimation = isMounted
-    ? "opacity-100 translate-y-0 scale-100"
-    : "opacity-0 translate-y-8 scale-95";
-
   return (
-    <div
-      className={`relative flex min-h-screen items-center justify-center overflow-hidden bg-gradient-to-br from-sky-50 to-white transition-opacity duration-700 ${
-        isMounted ? "opacity-100" : "opacity-0"
-      }`}
-    >
+    <div className="relative min-h-screen flex items-center justify-center bg-white p-4 overflow-hidden">
       {/* Animación de gotas cayendo */}
       <RainEffect />
       
-      <div className="absolute inset-0 -z-10 overflow-hidden">
-        <div
-          className={`absolute -top-32 -left-24 h-72 w-72 rounded-full bg-[#d80c0d]/15 blur-3xl transition-all duration-[1200ms] ease-out ${
-            isMounted ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-16"
-          }`}
-        />
-        <div
-          className={`absolute -bottom-24 -right-28 h-80 w-80 rounded-full bg-emerald-400/20 blur-3xl transition-all duration-[1200ms] ease-out ${
-            isMounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-16"
-          }`}
-        />
-        <div
-          className={`absolute left-1/2 top-1/2 h-96 w-96 -translate-x-1/2 -translate-y-1/2 rounded-full border border-white/30 bg-white/30 blur-[120px] transition-all duration-[1200ms] ease-out ${
-            isMounted ? "opacity-60 scale-100" : "opacity-0 scale-75"
-          }`}
-        />
-      </div>
-      <Card
-        className={`relative z-10 w-full max-w-3xl border border-slate-200 bg-white shadow-[0_25px_70px_-25px_rgba(15,23,42,0.35)] transform-gpu transition-all duration-700 ease-out ${
-          isMounted
-            ? "opacity-100 translate-y-0 scale-100 blur-0"
-            : "opacity-0 translate-y-8 scale-95 blur-sm"
-        }`}
-      >
-        <CardHeader
-          className={`text-center transition-all duration-700 ease-out ${
-            isMounted ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-8"
-          }`}
-          style={{ transitionDelay: isMounted ? "160ms" : "0ms" }}
-        >
-          <CardTitle className="text-3xl font-bold">Bienvenido al Registro</CardTitle>
-          <CardDescription className="text-lg pt-2">
-            Por favor, seleccione el tipo de cuenta que desea crear.
-          </CardDescription>
-        </CardHeader>
-        <CardContent
-          className={`p-6 md:p-10 transition-all duration-700 ease-out ${
-            isMounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"
-          }`}
-          style={{ transitionDelay: isMounted ? "260ms" : "0ms" }}
-        >
-          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 md:gap-8">
-            <div
-              className={`${roleCardBase} ${roleAnimation}`}
-              style={{ transitionDelay: isMounted ? "120ms" : "0ms" }}
-              onClick={() => onSelectRol("externo")}
-            >
-              <h3 className="text-xl font-semibold text-neutral-900">Hélice Externa</h3>
-              <div className="flex w-full max-h-0 flex-col items-start gap-3 overflow-hidden text-sm leading-relaxed text-neutral-600 opacity-0 transition-all duration-300 ease-out group-hover:max-h-[320px] group-hover:opacity-100 group-hover:delay-100 group-focus-within:max-h-[320px] group-focus-within:opacity-100 md:text-justify">
-                <p className="w-full text-neutral-500">
-                  Sectores públicos, privados o sociales interesados en presentar desafíos reales.
+      <div className="w-full max-w-3xl relative z-10">
+        <div className="relative">
+          {/* Borde neón exterior */}
+          <div
+            className="absolute inset-0 rounded-2xl"
+            style={{
+              background: "linear-gradient(45deg, hsl(350 100% 50%), hsl(350 100% 40%))",
+              filter: "blur(2px)",
+              boxShadow: "var(--neon-glow-strong)",
+            }}
+          />
+
+          {/* Tarjeta con animación */}
+          <div
+            className="relative bg-white border-2 border-[#FF0033] rounded-2xl overflow-hidden"
+            style={{ boxShadow: "var(--neon-glow)" }}
+          >
+            {/* Canvas abarca toda la tarjeta */}
+            <BouncingBall />
+
+            {/* Contenido */}
+            <div className="relative z-10 bg-white/95 p-8">
+              <div className="text-center space-y-2 mb-8">
+                <h1 className="text-3xl font-bold text-gray-900">Bienvenido al Registro</h1>
+                <p className="text-lg text-gray-600">
+                  Por favor, seleccione el tipo de cuenta que desea crear.
                 </p>
-                <p className="w-full">
-                  Conecta desafíos reales de organizaciones y coordina soluciones colaborativas junto a la comunidad Hélice UNSA.
-                </p>
-                <Button
-                  className="h-12 w-full justify-center bg-slate-900 text-white opacity-0 transition-all duration-200 ease-out group-hover:-translate-y-0.5 group-hover:bg-slate-900 group-hover:opacity-100 group-hover:shadow-md group-hover:delay-200 group-focus-within:-translate-y-0.5 group-focus-within:bg-slate-900 group-focus-within:opacity-100 group-focus-within:shadow-md pointer-events-none group-hover:pointer-events-auto group-focus-within:pointer-events-auto hover:!bg-[#d80c0d]"
-                >
-                  Seleccionar
-                </Button>
               </div>
-            </div>
-            <div
-              className={`${roleCardBase} ${roleAnimation}`}
-              style={{ transitionDelay: isMounted ? "220ms" : "0ms" }}
-              onClick={() => onSelectRol("unsa")}
-            >
-              <h3 className="text-xl font-semibold text-neutral-900">Hélice UNSA</h3>
-              <div className="flex w-full max-h-0 flex-col items-start gap-3 overflow-hidden text-sm leading-relaxed text-neutral-600 opacity-0 transition-all duration-300 ease-out group-hover:max-h-[320px] group-hover:opacity-100 group-hover:delay-100 group-focus-within:max-h-[320px] group-focus-within:opacity-100 md:text-justify">
-                <p className="w-full text-neutral-500">
-                  Investigadores, docentes y personal UNSA que impulsan soluciones académicas.
-                </p>
-                <p className="w-full">
-                  Participa con equipos académicos, comparte capacidades y acompaña la resolución de desafíos con instituciones aliadas.
-                </p>
-                <Button
-                  className="h-12 w-full justify-center bg-slate-900 text-white opacity-0 transition-all duration-200 ease-out group-hover:-translate-y-0.5 group-hover:bg-slate-900 group-hover:opacity-100 group-hover:shadow-md group-hover:delay-200 group-focus-within:-translate-y-0.5 group-focus-within:bg-slate-900 group-focus-within:opacity-100 group-focus-within:shadow-md pointer-events-none group-hover:pointer-events-auto group-focus-within:pointer-events-auto hover:!bg-[#d80c0d]"
+              <div className="grid grid-cols-1 gap-6 md:grid-cols-2 md:gap-8">
+                <div
+                  className="group relative flex h-full w-full transform-gpu flex-col items-center justify-center gap-4 rounded-xl border border-gray-300 bg-gray-50 p-6 text-center shadow-sm transition-all duration-300 ease-out hover:-translate-y-1 hover:scale-[1.02] hover:border-[#FF0033] hover:bg-white hover:shadow-lg focus-within:-translate-y-1 focus-within:scale-[1.02] focus-within:border-[#FF0033] focus-within:shadow-lg cursor-pointer overflow-hidden group-hover:items-start group-hover:text-left"
+                  onClick={() => onSelectRol("externo")}
                 >
-                  Seleccionar
-                </Button>
+                  <h3 className="text-xl font-semibold text-gray-900">Hélice Externa</h3>
+                  
+                  {/* Contenido expandible */}
+                  <div className="flex w-full max-h-0 flex-col items-start gap-3 overflow-hidden text-sm leading-relaxed text-gray-600 opacity-0 transition-all duration-300 ease-out group-hover:max-h-[320px] group-hover:opacity-100 group-hover:delay-100 group-focus-within:max-h-[320px] group-focus-within:opacity-100 md:text-justify">
+                    <p className="w-full text-gray-500">
+                      Sectores públicos, privados o sociales interesados en presentar desafíos reales.
+                    </p>
+                    <p className="w-full">
+                      Conecta desafíos reales de organizaciones y coordina soluciones colaborativas junto a la comunidad Hélice UNSA.
+                    </p>
+                    <button
+                      className="w-full bg-[#FF0033] text-white font-semibold py-3 rounded-lg opacity-0 transition-all duration-200 ease-out group-hover:-translate-y-0.5 group-hover:opacity-100 group-hover:shadow-md group-hover:delay-200 group-focus-within:-translate-y-0.5 group-focus-within:opacity-100 group-focus-within:shadow-md pointer-events-none group-hover:pointer-events-auto group-focus-within:pointer-events-auto hover:!bg-[#CC0029]"
+                      style={{ boxShadow: "var(--neon-glow)" }}
+                    >
+                      Seleccionar
+                    </button>
+                  </div>
+                </div>
+
+                <div
+                  className="group relative flex h-full w-full transform-gpu flex-col items-center justify-center gap-4 rounded-xl border border-gray-300 bg-gray-50 p-6 text-center shadow-sm transition-all duration-300 ease-out hover:-translate-y-1 hover:scale-[1.02] hover:border-[#FF0033] hover:bg-white hover:shadow-lg focus-within:-translate-y-1 focus-within:scale-[1.02] focus-within:border-[#FF0033] focus-within:shadow-lg cursor-pointer overflow-hidden group-hover:items-start group-hover:text-left"
+                  onClick={() => onSelectRol("unsa")}
+                >
+                  <h3 className="text-xl font-semibold text-gray-900">Hélice UNSA</h3>
+                  
+                  {/* Contenido expandible */}
+                  <div className="flex w-full max-h-0 flex-col items-start gap-3 overflow-hidden text-sm leading-relaxed text-gray-600 opacity-0 transition-all duration-300 ease-out group-hover:max-h-[320px] group-hover:opacity-100 group-hover:delay-100 group-focus-within:max-h-[320px] group-focus-within:opacity-100 md:text-justify">
+                    <p className="w-full text-gray-500">
+                      Investigadores, docentes y personal UNSA que impulsan soluciones académicas.
+                    </p>
+                    <p className="w-full">
+                      Participa con equipos académicos, comparte capacidades y acompaña la resolución de desafíos con instituciones aliadas.
+                    </p>
+                    <button
+                      className="w-full bg-[#FF0033] text-white font-semibold py-3 rounded-lg opacity-0 transition-all duration-200 ease-out group-hover:-translate-y-0.5 group-hover:opacity-100 group-hover:shadow-md group-hover:delay-200 group-focus-within:-translate-y-0.5 group-focus-within:opacity-100 group-focus-within:shadow-md pointer-events-none group-hover:pointer-events-auto group-focus-within:pointer-events-auto hover:!bg-[#CC0029]"
+                      style={{ boxShadow: "var(--neon-glow)" }}
+                    >
+                      Seleccionar
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </div>
   );
 }

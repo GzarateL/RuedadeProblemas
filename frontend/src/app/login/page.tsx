@@ -10,6 +10,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { BouncingBall } from "@/components/BouncingBall";
+import { RainEffect } from "@/components/RainDrop";
 
 const formSchema = z.object({
   email: z.string().min(1, { message: "El correo es requerido." }),
@@ -59,8 +60,11 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-white p-4">
-      <div className="w-full max-w-md">
+    <div className="relative min-h-screen flex items-center justify-center bg-white p-4 overflow-hidden">
+      {/* Animación de gotas cayendo */}
+      <RainEffect />
+      
+      <div className="w-full max-w-md relative z-10">
         <div className="relative">
           {/* Borde neón exterior */}
           <div

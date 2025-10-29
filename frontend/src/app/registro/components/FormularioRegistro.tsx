@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
+import { BouncingBall } from "@/components/BouncingBall";
 import { RainEffect } from "@/components/RainDrop";
 
 // --- Simulación de datos ---
@@ -201,240 +202,225 @@ export function FormularioRegistro({ rol, onVolver }: Props) {
 
   // --- 7) JSX ---
   return (
-    <div className="relative flex min-h-screen items-center justify-center bg-gradient-to-br from-sky-50 to-white px-4 py-12 overflow-hidden">
+    <div className="relative min-h-screen flex items-center justify-center bg-white p-4 overflow-hidden">
       {/* Animación de gotas cayendo */}
       <RainEffect />
-      
-      <Card
-        className={`relative z-10 w-full max-w-3xl border border-slate-200 bg-white/90 shadow-2xl backdrop-blur-sm transition-all duration-500 ease-out ${
-          sectionAnimationFlag ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"
-        }`}
-      >
-        <CardHeader
-          className={`flex flex-col items-center gap-4 bg-gradient-to-r from-white via-white to-slate-50/60 px-8 pt-6 pb-8 text-center transition-all duration-700 ease-out ${
-            sectionAnimationFlag ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-6"
-          }`}
-          style={{ transitionDelay: "80ms" }}
-        >
-          <Button variant="outline" size="sm" className="self-start rounded-full border-slate-200 px-4" onClick={onVolver}>
-            Volver
-          </Button>
-          <div className="w-full space-y-9">
-            <CardTitle className="text-3xl font-semibold text-slate-900">
-              Registro: {rol === "externo" ? "Hélice Externa" : "Hélice UNSA"}
-            </CardTitle>
-            <CardDescription className="text-sm text-slate-500">
-              Complete el formulario según su rol. Los campos marcados con * son obligatorios.
-            </CardDescription>
-          </div>
-        </CardHeader>
-        <CardContent className="px-6 pt-2 pb-8">
-          <form onSubmit={handleSubmit} className="space-y-8">
-            <div
-              className={`transform transition-all duration-700 ease-out ${
-                sectionAnimationFlag ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"
-              }`}
-              style={{ transitionDelay: "120ms" }}
-            >
-              <fieldset className="rounded-2xl border border-slate-100 bg-white/90 p-6 shadow-sm">
-                <legend className="text-lg font-semibold text-slate-800">1. Datos de Cuenta</legend>
-                <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-                  <div className="space-y-2">
-                    <Label htmlFor="email" className="text-sm font-medium text-slate-700">
-                      Correo Electrónico *
-                    </Label>
-                    <Input
-                      id="email"
-                      name="email"
-                      type="email"
-                      placeholder="su.correo@dominio.com"
-                      value={formData.email}
-                      onChange={handleChange}
-                      className={inputStyles}
-                    />
-                    {errors.email && <p className="text-sm text-red-600">{errors.email}</p>}
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="password" className="text-sm font-medium text-slate-700">
-                      Contraseña *
-                    </Label>
-                    <Input
-                      id="password"
-                      name="password"
-                      type="password"
-                      placeholder="••••••••"
-                      value={formData.password}
-                      onChange={handleChange}
-                      className={inputStyles}
-                    />
-                    {errors.password && <p className="text-sm text-red-600">{errors.password}</p>}
-                  </div>
+
+      <div className="w-full max-w-3xl relative z-10">
+        <div className="relative">
+          {/* Borde neón exterior */}
+          <div
+            className="absolute inset-0 rounded-2xl"
+            style={{
+              background: "linear-gradient(45deg, hsl(350 100% 50%), hsl(350 100% 40%))",
+              filter: "blur(2px)",
+              boxShadow: "var(--neon-glow-strong)",
+            }}
+          />
+
+          {/* Tarjeta con animación */}
+          <div
+            className="relative bg-white border-2 border-[#FF0033] rounded-2xl overflow-hidden"
+            style={{ boxShadow: "var(--neon-glow)" }}
+          >
+            {/* Canvas abarca toda la tarjeta */}
+            <BouncingBall />
+
+            {/* Contenido del formulario */}
+            <div className="relative z-10 bg-white/95">
+              <div className="flex flex-col items-center gap-4 px-8 pt-6 pb-8 text-center">
+                <Button variant="outline" size="sm" className="self-start rounded-full border-gray-300 px-4" onClick={onVolver}>
+                  Volver
+                </Button>
+                <div className="w-full space-y-4">
+                  <h1 className="text-3xl font-bold text-gray-900">
+                    Registro: {rol === "externo" ? "Hélice Externa" : "Hélice UNSA"}
+                  </h1>
+                  <p className="text-sm text-gray-600">
+                    Complete el formulario según su rol. Los campos marcados con * son obligatorios.
+                  </p>
                 </div>
-              </fieldset>
-            </div>
-
-            <div
-              className={`transform transition-all duration-700 ease-out ${
-                sectionAnimationFlag ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"
-              }`}
-              style={{ transitionDelay: "240ms" }}
-            >
-              <fieldset className="rounded-2xl border border-slate-100 bg-white/90 p-6 shadow-sm">
-                <legend className="text-lg font-semibold text-slate-800">2. Datos de Perfil</legend>
-
-                <div className="space-y-2">
-                  <Label htmlFor="nombres_apellidos" className="text-sm font-medium text-slate-700">
-                    Nombres y Apellidos Completos *
-                  </Label>
-                  <Input
-                    id="nombres_apellidos"
-                    name="nombres_apellidos"
-                    placeholder="Ej: Juan Pérez"
-                    value={formData.nombres_apellidos}
-                    onChange={handleChange}
-                    className={inputStyles}
-                  />
-                  {errors.nombres_apellidos && <p className="text-sm text-red-600">{errors.nombres_apellidos}</p>}
-                </div>
-
-                <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-                  <div className="space-y-2">
-                    <Label htmlFor="cargo" className="text-sm font-medium text-slate-700">
-                      Cargo *
-                    </Label>
-                    <Input
-                      id="cargo"
-                      name="cargo"
-                      placeholder="Ej: Gerente, 'Mi Persona'"
-                      value={formData.cargo}
-                      onChange={handleChange}
-                      className={inputStyles}
-                    />
-                    {errors.cargo && <p className="text-sm text-red-600">{errors.cargo}</p>}
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="telefono" className="text-sm font-medium text-slate-700">
-                      Teléfono
-                    </Label>
-                    <Input
-                      id="telefono"
-                      name="telefono"
-                      placeholder="Ej: 987654321"
-                      value={formData.telefono || ""}
-                      onChange={handleChange}
-                      className={inputStyles}
-                    />
-                    {errors.telefono && <p className="text-sm text-red-600">{errors.telefono}</p>}
-                  </div>
-                </div>
-
-                {rol === "externo" && formData.rol === "externo" && (
-                  <div className="space-y-8">
-                    <div
-                      className={`grid grid-cols-1 gap-6 md:grid-cols-2 transform transition-all duration-700 ease-out ${
-                        externoAnimated ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"
-                      }`}
-                      style={{ transitionDelay: "320ms" }}
-                    >
+              </div>
+              <div className="px-6 pt-2 pb-8">
+                <form onSubmit={handleSubmit} className="space-y-8">
+                  <fieldset className="rounded-2xl border border-gray-200 bg-gray-50/50 p-6 shadow-sm">
+                    <legend className="text-lg font-semibold text-gray-800">1. Datos de Cuenta</legend>
+                    <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                       <div className="space-y-2">
-                        <Label htmlFor="organizacion" className="text-sm font-medium text-slate-700">
-                          Organización *
+                        <Label htmlFor="email" className="text-gray-900 font-medium">
+                          Correo Electrónico *
                         </Label>
                         <Input
-                          id="organizacion"
-                          name="organizacion"
-                          placeholder="Ej: 'Mi Vecindad', Empresa S.A.C."
-                          value={formData.organizacion}
+                          id="email"
+                          name="email"
+                          type="email"
+                          placeholder="su.correo@dominio.com"
+                          value={formData.email}
                           onChange={handleChange}
-                          className={inputStyles}
+                          className="w-full px-4 py-2 bg-gray-50 border border-gray-300 rounded-lg focus:border-[#FF0033] focus:ring-2 focus:ring-[#FF0033]/20 outline-none"
                         />
-                        {errors.organizacion && <p className="text-sm text-red-600">{errors.organizacion}</p>}
+                        {errors.email && <p className="text-sm text-red-600">{errors.email}</p>}
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="helice_id" className="text-sm font-medium text-slate-700">
-                          Hélice a la que pertenece *
+                        <Label htmlFor="password" className="text-gray-900 font-medium">
+                          Contraseña *
                         </Label>
-                        <Select value={formData.helice_id} onValueChange={handleSelectHelice}>
-                          <SelectTrigger id="helice_id" className="h-11 rounded-lg border-slate-200 bg-slate-50 text-sm transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200/90">
-                            <SelectValue placeholder="Seleccione..." />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {helices.map(h => (
-                              <SelectItem key={h.id} value={String(h.id)}>
-                                {h.nombre}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        {errors.helice_id && <p className="text-sm text-red-600">{errors.helice_id}</p>}
+                        <Input
+                          id="password"
+                          name="password"
+                          type="password"
+                          placeholder="••••••••"
+                          value={formData.password}
+                          onChange={handleChange}
+                          className="w-full px-4 py-2 bg-gray-50 border border-gray-300 rounded-lg focus:border-[#FF0033] focus:ring-2 focus:ring-[#FF0033]/20 outline-none"
+                        />
+                        {errors.password && <p className="text-sm text-red-600">{errors.password}</p>}
+                      </div>
+                    </div>
+                  </fieldset>
+
+                  <fieldset className="rounded-2xl border border-gray-200 bg-gray-50/50 p-6 shadow-sm">
+                    <legend className="text-lg font-semibold text-gray-800">2. Datos de Perfil</legend>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="nombres_apellidos" className="text-gray-900 font-medium">
+                        Nombres y Apellidos Completos *
+                      </Label>
+                      <Input
+                        id="nombres_apellidos"
+                        name="nombres_apellidos"
+                        placeholder="Ej: Juan Pérez"
+                        value={formData.nombres_apellidos}
+                        onChange={handleChange}
+                        className="w-full px-4 py-2 bg-gray-50 border border-gray-300 rounded-lg focus:border-[#FF0033] focus:ring-2 focus:ring-[#FF0033]/20 outline-none"
+                      />
+                      {errors.nombres_apellidos && <p className="text-sm text-red-600">{errors.nombres_apellidos}</p>}
+                    </div>
+
+                    <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                      <div className="space-y-2">
+                        <Label htmlFor="cargo" className="text-gray-900 font-medium">
+                          Cargo *
+                        </Label>
+                        <Input
+                          id="cargo"
+                          name="cargo"
+                          placeholder="Ej: Gerente, 'Mi Persona'"
+                          value={formData.cargo}
+                          onChange={handleChange}
+                          className="w-full px-4 py-2 bg-gray-50 border border-gray-300 rounded-lg focus:border-[#FF0033] focus:ring-2 focus:ring-[#FF0033]/20 outline-none"
+                        />
+                        {errors.cargo && <p className="text-sm text-red-600">{errors.cargo}</p>}
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="telefono" className="text-gray-900 font-medium">
+                          Teléfono
+                        </Label>
+                        <Input
+                          id="telefono"
+                          name="telefono"
+                          placeholder="Ej: 987654321"
+                          value={formData.telefono || ""}
+                          onChange={handleChange}
+                          className="w-full px-4 py-2 bg-gray-50 border border-gray-300 rounded-lg focus:border-[#FF0033] focus:ring-2 focus:ring-[#FF0033]/20 outline-none"
+                        />
+                        {errors.telefono && <p className="text-sm text-red-600">{errors.telefono}</p>}
                       </div>
                     </div>
 
-                    <div
-                      className={`space-y-3 rounded-xl border border-dashed border-slate-200 bg-white/80 p-4 transform transition-all duration-700 ease-out ${
-                        externoAnimated ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"
-                      }`}
-                      style={{ transitionDelay: "380ms" }}
-                    >
-                      <Label className="text-sm font-medium text-slate-700">Día(s) de Interés</Label>
-                      <p className="text-sm text-neutral-600">Seleccione los días que planea asistir.</p>
-                      <div className="grid gap-3 sm:grid-cols-2">
-                        {diasEvento.map(dia => (
-                          <label
-                            key={dia.id}
-                            htmlFor={`dia-${dia.id}`}
-                            className="flex cursor-pointer items-center gap-3 rounded-lg border border-transparent bg-slate-50 px-3 py-3 text-sm text-slate-700 transition hover:border-slate-200 hover:bg-white hover:shadow-sm"
-                          >
-                            <Checkbox
-                              id={`dia-${dia.id}`}
-                              checked={formData.dias_interes?.includes(dia.id)}
-                              onCheckedChange={checked => handleCheckboxChange(dia.id, checked)}
+                    {rol === "externo" && formData.rol === "externo" && (
+                      <div className="space-y-6">
+                        <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                          <div className="space-y-2">
+                            <Label htmlFor="organizacion" className="text-gray-900 font-medium">
+                              Organización *
+                            </Label>
+                            <Input
+                              id="organizacion"
+                              name="organizacion"
+                              placeholder="Ej: 'Mi Vecindad', Empresa S.A.C."
+                              value={formData.organizacion}
+                              onChange={handleChange}
+                              className="w-full px-4 py-2 bg-gray-50 border border-gray-300 rounded-lg focus:border-[#FF0033] focus:ring-2 focus:ring-[#FF0033]/20 outline-none"
                             />
-                            <span>{dia.nombre}</span>
-                          </label>
-                        ))}
+                            {errors.organizacion && <p className="text-sm text-red-600">{errors.organizacion}</p>}
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="helice_id" className="text-gray-900 font-medium">
+                              Hélice a la que pertenece *
+                            </Label>
+                            <Select value={formData.helice_id} onValueChange={handleSelectHelice}>
+                              <SelectTrigger id="helice_id" className="w-full px-4 py-2 bg-gray-50 border border-gray-300 rounded-lg focus:border-[#FF0033] focus:ring-2 focus:ring-[#FF0033]/20 outline-none">
+                                <SelectValue placeholder="Seleccione..." />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {helices.map(h => (
+                                  <SelectItem key={h.id} value={String(h.id)}>
+                                    {h.nombre}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            {errors.helice_id && <p className="text-sm text-red-600">{errors.helice_id}</p>}
+                          </div>
+                        </div>
+
+                        <div className="space-y-3 rounded-xl border border-dashed border-gray-300 bg-white/80 p-4">
+                          <Label className="text-gray-900 font-medium">Día(s) de Interés</Label>
+                          <p className="text-sm text-gray-600">Seleccione los días que planea asistir.</p>
+                          <div className="grid gap-3 sm:grid-cols-2">
+                            {diasEvento.map(dia => (
+                              <label
+                                key={dia.id}
+                                htmlFor={`dia-${dia.id}`}
+                                className="flex cursor-pointer items-center gap-3 rounded-lg border border-transparent bg-gray-50 px-3 py-3 text-sm text-gray-700 transition hover:border-gray-300 hover:bg-white hover:shadow-sm"
+                              >
+                                <Checkbox
+                                  id={`dia-${dia.id}`}
+                                  checked={formData.dias_interes?.includes(dia.id)}
+                                  onCheckedChange={checked => handleCheckboxChange(dia.id, checked)}
+                                />
+                                <span>{dia.nombre}</span>
+                              </label>
+                            ))}
+                          </div>
+                          {errors.dias_interes && <p className="text-sm text-red-600">{errors.dias_interes}</p>}
+                        </div>
                       </div>
-                      {errors.dias_interes && <p className="text-sm text-red-600">{errors.dias_interes}</p>}
-                    </div>
-                  </div>
-                )}
+                    )}
 
-                {rol === "unsa" && formData.rol === "unsa" && (
-                  <div className="space-y-2">
-                    <Label htmlFor="unidad_academica" className="text-sm font-medium text-slate-700">
-                      Unidad Académica / Investigación *
-                    </Label>
-                    <Input
-                      id="unidad_academica"
-                      name="unidad_academica"
-                      placeholder="Ej: Escuela de Ing. de Sistemas"
-                      value={formData.unidad_academica}
-                      onChange={handleChange}
-                      className={inputStyles}
-                    />
-                    {errors.unidad_academica && <p className="text-sm text-red-600">{errors.unidad_academica}</p>}
-                  </div>
-                )}
-              </fieldset>
-            </div>
+                    {rol === "unsa" && formData.rol === "unsa" && (
+                      <div className="space-y-2">
+                        <Label htmlFor="unidad_academica" className="text-gray-900 font-medium">
+                          Unidad Académica / Investigación *
+                        </Label>
+                        <Input
+                          id="unidad_academica"
+                          name="unidad_academica"
+                          placeholder="Ej: Escuela de Ing. de Sistemas"
+                          value={formData.unidad_academica}
+                          onChange={handleChange}
+                          className="w-full px-4 py-2 bg-gray-50 border border-gray-300 rounded-lg focus:border-[#FF0033] focus:ring-2 focus:ring-[#FF0033]/20 outline-none"
+                        />
+                        {errors.unidad_academica && <p className="text-sm text-red-600">{errors.unidad_academica}</p>}
+                      </div>
+                    )}
+                  </fieldset>
 
-            <div
-              className={`transform transition-all duration-700 ease-out ${
-                sectionAnimationFlag ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"
-              }`}
-              style={{ transitionDelay: "360ms" }}
-            >
-              <Button
-                type="submit"
-                className="w-full h-12 mt-4 transform transition-all duration-200 ease-out hover:-translate-y-0.5 hover:bg-[#d80c0d] hover:shadow-md active:translate-y-0"
-                disabled={isLoading}
-              >
-                {isLoading ? "Registrando..." : "Crear Cuenta"}
-              </Button>
+                  <button
+                    type="submit"
+                    className="w-full bg-[#FF0033] hover:bg-[#CC0029] text-white font-semibold py-3 rounded-lg transition-colors"
+                    style={{ boxShadow: "var(--neon-glow)" }}
+                    disabled={isLoading}
+                  >
+                    {isLoading ? "Registrando..." : "Crear Cuenta"}
+                  </button>
+                </form>
+              </div>
             </div>
-          </form>
-        </CardContent>
-      </Card>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
