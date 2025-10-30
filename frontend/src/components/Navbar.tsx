@@ -211,12 +211,12 @@ export function Navbar() {
               </>
             ) : (
               <>
-                <Button asChild variant="outline" size="sm" className="bg-white/20 text-neutral-900 border-white/30 hover:bg-electric hover:text-white hover:border-electric transition-all duration-300 backdrop-blur-sm">
+                <Button asChild size="sm" className="bg-white border-2 border-black text-black font-semibold px-4 py-2 rounded-lg transition-colors duration-300 hover:bg-electric hover:border-electric hover:text-white">
                   <Link href="/login">Iniciar Sesión</Link>
                 </Button>
-                 <Button asChild size="sm" className="bg-electric text-white hover:bg-white hover:text-electric transition-all duration-300 hover:drop-shadow-[0_0_12px_hsl(0,100%,60%)] focus:drop-shadow-[0_0_12px_hsl(0,100%,60%)]">
-                   <Link href="/registro">Registrarse</Link>
-                 </Button>
+                <Button asChild size="sm" className="bg-white border-2 border-black text-black font-semibold px-4 py-2 rounded-lg transition-colors duration-300 hover:bg-electric hover:border-electric hover:text-white">
+                  <Link href="/registro">Registrarse</Link>
+                </Button>
               </>
             )}
           </div>

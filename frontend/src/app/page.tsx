@@ -170,16 +170,7 @@ export default function HomePage() {
         default: return null;
       }
     } else {
-      return (
-        <div className="flex flex-col sm:flex-row justify-center md:justify-start items-center gap-4 mt-12 animate-fade-in animation-delay-600"> {/* Cambiado a md:justify-start */}
-          <Button asChild size="lg" className="bg-electric text-white font-semibold px-8 py-3 rounded-lg transition-all duration-300 hover:bg-white hover:text-electric focus:bg-white focus:text-electric hover:drop-shadow-[0_0_12px_hsl(0,100%,60%)] focus:drop-shadow-[0_0_12px_hsl(0,100%,60%)]">
-            <Link href="/registro">Registrarse</Link>
-          </Button>
-          <Button asChild size="lg" variant="outline" className="w-full sm:w-auto bg-white text-black font-semibold px-8 py-3 rounded-lg transition-all duration-300 hover:bg-electric hover:text-white focus:bg-electric focus:text-white hover:drop-shadow-[0_0_20px_hsl(0,100%,60%)] focus:drop-shadow-[0_0_20px_hsl(0,100%,60%)]">
-            <Link href="/login">Iniciar Sesión</Link>
-          </Button>
-        </div>
-      );
+    
     }
   };
 
