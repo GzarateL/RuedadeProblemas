@@ -2,58 +2,64 @@
 
 import { useEffect, useState } from "react";
 
-// Genera estilos aleatorios para cada gota
-const createRaindropStyle = (): React.CSSProperties => {
-  const size = Math.random() * 20 + 12; // 12-32px (gotas más grandes)
+// Genera estilos aleatorios para cada partícula
+const createParticleStyle = (): React.CSSProperties => {
+  const size = Math.random() * 12 + 6; // 6-18px (partículas pequeñas)
   const left = Math.random() * 100; // 0-100% horizontal
-  const duration = Math.random() * 4 + 3; // 3-7 segundos (más lentas)
-  const delay = Math.random() * 3; // 0-3s delay
+  const duration = Math.random() * 8 + 12; // 12-20 segundos (muy lentas)
+  const delay = Math.random() * 5; // 0-5s delay
+  const drift = (Math.random() - 0.5) * 30; // Movimiento diagonal suave (-15 a +15)
+  const startPosition = Math.random() * 20; // Empezar desde 0-20% del viewport
 
   return {
     width: `${size}px`,
     height: `${size}px`,
     left: `${left}%`,
-    top: "-20px",
-    opacity: 1, // Sin transparencia
-    animation: `fall ${duration}s linear ${delay}s infinite`,
-  };
+    bottom: `${startPosition}%`,
+    animation: `float-up ${duration}s ease-in ${delay}s infinite`,
+    '--drift': `${drift}px`,
+  } as React.CSSProperties;
 };
 
-// Componente individual de gota
-const RainDrop = ({ style }: { style: React.CSSProperties }) => {
+// Componente individual de partícula
+const Particle = ({ style }: { style: React.CSSProperties }) => {
   return (
     <div
-      className="absolute bg-red-500 rounded-full animate-fall pointer-events-none"
-      style={style}
+      className="absolute rounded-full pointer-events-none"
+      style={{
+        ...style,
+        backgroundColor: 'rgba(255, 0, 51, 0.4)',
+        filter: 'blur(3px)',
+      }}
     />
   );
 };
 
-// Componente contenedor de lluvia
+// Componente contenedor de partículas
 export function RainEffect() {
-  const [raindrops, setRaindrops] = useState<React.CSSProperties[]>([]);
+  const [particles, setParticles] = useState<React.CSSProperties[]>([]);
 
   useEffect(() => {
-    // Crear 50 gotas iniciales (más cantidad)
-    const initialDrops = Array.from({ length: 50 }, () => createRaindropStyle());
-    setRaindrops(initialDrops);
+    // Crear 20 partículas iniciales (densidad baja)
+    const initialParticles = Array.from({ length: 20 }, () => createParticleStyle());
+    setParticles(initialParticles);
 
-    // Crear nuevas gotas cada 400ms (más frecuentes)
+    // Crear nuevas partículas cada 1000ms (menos frecuentes)
     const interval = setInterval(() => {
-      setRaindrops((prev) => {
-        // Limitar a 80 gotas máximo para performance
-        const filtered = prev.length > 80 ? prev.slice(-60) : prev;
-        return [...filtered, createRaindropStyle()];
+      setParticles((prev) => {
+        // Limitar a 30 partículas máximo para mantener densidad baja
+        const filtered = prev.length > 30 ? prev.slice(-20) : prev;
+        return [...filtered, createParticleStyle()];
       });
-    }, 400);
+    }, 1000);
 
     return () => clearInterval(interval);
   }, []);
 
   return (
     <>
-      {raindrops.map((style, index) => (
-        <RainDrop key={`raindrop-${index}`} style={style} />
+      {particles.map((style, index) => (
+        <Particle key={`particle-${index}`} style={style} />
       ))}
     </>
   );
