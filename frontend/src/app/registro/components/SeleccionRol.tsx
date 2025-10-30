@@ -12,23 +12,8 @@ export function SeleccionRol({ onSelectRol }: Props) {
       {/* Animación de gotas cayendo */}
       <RainEffect />
       
-      <div className="w-full max-w-3xl relative z-10">
-        <div className="relative">
-          {/* Borde neón exterior */}
-          <div
-            className="absolute inset-0 rounded-2xl"
-            style={{
-              background: "linear-gradient(45deg, hsl(350 100% 50%), hsl(350 100% 40%))",
-              filter: "blur(2px)",
-              boxShadow: "var(--neon-glow-strong)",
-            }}
-          />
-
-          {/* Tarjeta con animación */}
-          <div
-            className="relative bg-white border-2 border-[#FF0033] rounded-2xl overflow-hidden"
-            style={{ boxShadow: "var(--neon-glow)" }}
-          >
+      <div className="w-full max-w-3xl relative z-10 animate-[fadeInScale_0.35s_ease-out_forwards] opacity-0">
+        <div className="relative bg-white border-2 border-[#FF0033] rounded-2xl overflow-hidden">
             {/* Canvas abarca toda la tarjeta */}
             <BouncingBall />
 
@@ -56,7 +41,7 @@ export function SeleccionRol({ onSelectRol }: Props) {
                       Conecta desafíos reales de organizaciones y coordina soluciones colaborativas junto a la comunidad Hélice UNSA.
                     </p>
                     <button
-                      className="w-full bg-electric text-white font-semibold py-3 rounded-lg opacity-0 transition-all duration-200 ease-out group-hover:-translate-y-0.5 group-hover:opacity-100 group-hover:delay-200 group-focus-within:-translate-y-0.5 group-focus-within:opacity-100 pointer-events-none group-hover:pointer-events-auto group-focus-within:pointer-events-auto hover:bg-white hover:text-electric focus:bg-white focus:text-electric hover:drop-shadow-[0_0_12px_hsl(0,100%,60%)] focus:drop-shadow-[0_0_12px_hsl(0,100%,60%)]"
+                      className="w-full bg-white border-2 border-black text-black font-semibold py-3 rounded-lg opacity-0 transition-all duration-200 ease-out group-hover:-translate-y-0.5 group-hover:opacity-100 group-hover:delay-200 group-focus-within:-translate-y-0.5 group-focus-within:opacity-100 pointer-events-none group-hover:pointer-events-auto group-focus-within:pointer-events-auto hover:bg-electric hover:border-electric hover:text-white"
                     >
                       Seleccionar
                     </button>
@@ -78,7 +63,7 @@ export function SeleccionRol({ onSelectRol }: Props) {
                       Participa con equipos académicos, comparte capacidades y acompaña la resolución de desafíos con instituciones aliadas.
                     </p>
                     <button
-                      className="w-full bg-electric text-white font-semibold py-3 rounded-lg opacity-0 transition-all duration-200 ease-out group-hover:-translate-y-0.5 group-hover:opacity-100 group-hover:delay-200 group-focus-within:-translate-y-0.5 group-focus-within:opacity-100 pointer-events-none group-hover:pointer-events-auto group-focus-within:pointer-events-auto hover:bg-white hover:text-electric focus:bg-white focus:text-electric hover:drop-shadow-[0_0_12px_hsl(0,100%,60%)] focus:drop-shadow-[0_0_12px_hsl(0,100%,60%)]"
+                      className="w-full bg-white border-2 border-black text-black font-semibold py-3 rounded-lg opacity-0 transition-all duration-200 ease-out group-hover:-translate-y-0.5 group-hover:opacity-100 group-hover:delay-200 group-focus-within:-translate-y-0.5 group-focus-within:opacity-100 pointer-events-none group-hover:pointer-events-auto group-focus-within:pointer-events-auto hover:bg-electric hover:border-electric hover:text-white"
                     >
                       Seleccionar
                     </button>
@@ -89,6 +74,5 @@ export function SeleccionRol({ onSelectRol }: Props) {
           </div>
         </div>
       </div>
-    </div>
   );
 }

@@ -4,18 +4,17 @@ import { useEffect, useState } from "react";
 
 // Genera estilos aleatorios para cada gota
 const createRaindropStyle = (): React.CSSProperties => {
-  const size = Math.random() * 8 + 3; // 3-11px (más pequeñas)
+  const size = Math.random() * 20 + 12; // 12-32px (gotas más grandes)
   const left = Math.random() * 100; // 0-100% horizontal
   const duration = Math.random() * 4 + 3; // 3-7 segundos (más lentas)
   const delay = Math.random() * 3; // 0-3s delay
-  const opacity = Math.random() * 0.15 + 0.05; // 0.05-0.2 opacidad (más sutiles)
 
   return {
     width: `${size}px`,
     height: `${size}px`,
     left: `${left}%`,
     top: "-20px",
-    opacity,
+    opacity: 1, // Sin transparencia
     animation: `fall ${duration}s linear ${delay}s infinite`,
   };
 };
@@ -24,7 +23,7 @@ const createRaindropStyle = (): React.CSSProperties => {
 const RainDrop = ({ style }: { style: React.CSSProperties }) => {
   return (
     <div
-      className="absolute bg-red-500/40 rounded-full animate-fall pointer-events-none"
+      className="absolute bg-red-500 rounded-full animate-fall pointer-events-none"
       style={style}
     />
   );
@@ -35,18 +34,18 @@ export function RainEffect() {
   const [raindrops, setRaindrops] = useState<React.CSSProperties[]>([]);
 
   useEffect(() => {
-    // Crear 20 gotas iniciales (menos cantidad)
-    const initialDrops = Array.from({ length: 20 }, () => createRaindropStyle());
+    // Crear 50 gotas iniciales (más cantidad)
+    const initialDrops = Array.from({ length: 50 }, () => createRaindropStyle());
     setRaindrops(initialDrops);
 
-    // Crear nuevas gotas cada 800ms (menos frecuentes)
+    // Crear nuevas gotas cada 400ms (más frecuentes)
     const interval = setInterval(() => {
       setRaindrops((prev) => {
-        // Limitar a 40 gotas máximo para performance
-        const filtered = prev.length > 40 ? prev.slice(-30) : prev;
+        // Limitar a 80 gotas máximo para performance
+        const filtered = prev.length > 80 ? prev.slice(-60) : prev;
         return [...filtered, createRaindropStyle()];
       });
-    }, 800);
+    }, 400);
 
     return () => clearInterval(interval);
   }, []);

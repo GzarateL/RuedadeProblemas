@@ -170,7 +170,7 @@ export default function HomePage() {
         default: return null;
       }
     } else {
-    
+
     }
   };
 
