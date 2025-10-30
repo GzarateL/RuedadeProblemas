@@ -1,5 +1,6 @@
 @import "tailwindcss";
-@import "tw-animate-css"; /* Opcional si lo usas */
+@import "tw-animate-css";
+/* Opcional si lo usas */
 
 @custom-variant dark (&:is(.dark *));
 
@@ -9,6 +10,7 @@
     transform: translateY(0) rotate(0deg);
     opacity: 0.7;
   }
+
   100% {
     transform: translateY(100vh) rotate(360deg);
     opacity: 0;
@@ -97,7 +99,7 @@
   --sidebar-ring: oklch(0.704 0.04 256.788);
   --background: oklch(1 0 0);
   --foreground: oklch(0.129 0.042 264.695);
-  
+
   /* Variables de neón para BouncingBall */
   --neon-glow: 0 0 20px hsl(350 100% 50% / 0.5), 0 0 40px hsl(350 100% 50% / 0.3);
   --neon-glow-strong: 0 0 10px hsl(350 100% 50%), 0 0 20px hsl(350 100% 50% / 0.8), 0 0 30px hsl(350 100% 50% / 0.6);
@@ -142,6 +144,7 @@
   * {
     @apply border-border outline-ring/50;
   }
+
   body {
     @apply bg-background text-foreground;
   }
@@ -152,16 +155,31 @@
   .animation-delay-custom {
     animation-delay: calc(var(--stagger, 0) * 150ms + 200ms);
   }
-  .animation-delay-200 { animation-delay: 200ms; }
-  .animation-delay-400 { animation-delay: 400ms; }
-  .animation-delay-600 { animation-delay: 600ms; }
+
+  .animation-delay-200 {
+    animation-delay: 200ms;
+  }
+
+  .animation-delay-400 {
+    animation-delay: 400ms;
+  }
+
+  .animation-delay-600 {
+    animation-delay: 600ms;
+  }
 }
 
 /* Fade In */
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
 }
+
 .animate-fade-in {
   opacity: 0;
   animation: fadeIn 0.8s ease-out forwards;
@@ -169,9 +187,17 @@
 
 /* Fade In Up */
 @keyframes fadeInUp {
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
+
 .animate-fade-in-up {
   opacity: 0;
   animation: fadeInUp 0.8s ease-out forwards;
@@ -179,18 +205,31 @@
 
 /* Fondo Rojo Degradado Suave */
 @keyframes softRedGradientShift {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
+  0% {
+    background-position: 0% 50%;
+  }
+
+  50% {
+    background-position: 100% 50%;
+  }
+
+  100% {
+    background-position: 0% 50%;
+  }
 }
 
 .animate-soft-red-gradient {
   /* Fondo con gradiente lineal que incluye tu rojo y tonos cercanos */
-  background: linear-gradient(-45deg, #d80c0d, #c00a0b, #a00809, #d80c0d); /* Ajusta los tonos si quieres */
-  background-size: 400% 400%; /* Tamaño grande para que el movimiento sea suave */
-  animation: softRedGradientShift 20s ease-in-out infinite; /* Animación lenta y suave */
-  position: relative; /* Para el z-index del contenido */
-  overflow: hidden; /* Para contener la animación */
+  background: linear-gradient(-45deg, #d80c0d, #c00a0b, #a00809, #d80c0d);
+  /* Ajusta los tonos si quieres */
+  background-size: 400% 400%;
+  /* Tamaño grande para que el movimiento sea suave */
+  animation: softRedGradientShift 20s ease-in-out infinite;
+  /* Animación lenta y suave */
+  position: relative;
+  /* Para el z-index del contenido */
+  overflow: hidden;
+  /* Para contener la animación */
 }
 
 /* Pseudo-elemento opcional si prefieres separar gradiente de color base */
@@ -208,9 +247,12 @@
 
 /* Glow Pulse Animation */
 @keyframes glow-pulse {
-  0%, 100% {
+
+  0%,
+  100% {
     text-shadow: 0 0 20px hsl(0 100% 50%), 0 0 30px hsl(0 100% 60%);
   }
+
   50% {
     text-shadow: 0 0 30px hsl(0 100% 50%), 0 0 50px hsl(0 100% 60%);
   }
@@ -223,8 +265,163 @@
 /* Patrón cuadriculado para el fondo del Home */
 .bg-grid-pattern {
   background-color: #ffffff;
-  background-image: 
+  background-image:
     linear-gradient(rgba(0, 0, 0, 0.05) 1px, transparent 1px),
     linear-gradient(90deg, rgba(0, 0, 0, 0.05) 1px, transparent 1px);
   background-size: 50px 50px;
+}
+
+/* --- Texto base dentro de tarjetas --- */
+.text-electric {
+  color: #111;
+  /* Negro normal */
+  transition: color 0.35s ease, text-shadow 0.35s ease;
+}
+
+.text-electric-glow {
+  color: #444;
+  transition: color 0.35s ease, text-shadow 0.35s ease;
+}
+
+/* --- Pulso suave en títulos --- */
+.animate-glow-pulse {
+  animation: glowPulse 2.6s infinite ease-in-out;
+}
+
+@keyframes glowPulse {
+
+  0%,
+  100% {
+    text-shadow: none;
+  }
+
+  50% {
+    text-shadow: 0 0 12px rgba(255, 255, 255, 0.9);
+  }
+}
+
+/* --- Card eléctrico --- */
+.card-electric {
+  background: white;
+  border: 2px solid #ddd;
+  border-radius: 1rem;
+  transition: background 0.35s ease, border-color 0.35s ease,
+    box-shadow 0.35s ease, color 0.35s ease;
+  position: relative;
+  overflow: hidden;
+  /* importante para que el brillo no salga */
+}
+
+/* Efecto de barrido (luz diagonal) */
+.card-electric::after {
+  content: "";
+  position: absolute;
+  top: -100%;
+  left: -150%;
+  width: 200%;
+  height: 300%;
+  background: linear-gradient(120deg,
+      transparent 0%,
+      rgba(255, 255, 255, 0.35) 45%,
+      rgba(255, 255, 255, 0.55) 50%,
+      rgba(255, 255, 255, 0.35) 55%,
+      transparent 100%);
+  transform: translateX(-100%) rotate(25deg);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+
+/* --- HOVER: cambiar tarjeta a rojo y texto blanco --- */
+.card-electric:hover {
+  background: #FF0033;
+  /* rojo eléctrico */
+  border-color: #FF0033;
+  box-shadow:
+    0 0 20px rgba(255, 0, 51, 0.6),
+    0 0 40px rgba(255, 0, 51, 0.4);
+}
+
+/* Activar barrido al hacer hover */
+.card-electric:hover::after {
+  opacity: 1;
+  animation: sweep-glow 1.2s ease-out forwards;
+}
+
+/* Activar también cuando está seleccionada */
+.card-electric.selected::after {
+  opacity: 1;
+  animation: sweep-glow 1.2s ease-out forwards;
+}
+
+/* Keyframes del barrido */
+@keyframes sweep-glow {
+  0% {
+    transform: translateX(-120%) rotate(25deg);
+  }
+
+  100% {
+    transform: translateX(120%) rotate(25deg);
+  }
+}
+
+/* --- Al hacer hover, cambiar texto a blanco con halo --- */
+.card-electric:hover .text-electric,
+.card-electric:hover .text-electric-glow,
+.card-electric:hover h1,
+.card-electric:hover h2,
+.card-electric:hover h3,
+.card-electric:hover p,
+.card-electric:hover span {
+  color: #fff !important;
+  text-shadow:
+    0 0 6px rgba(255, 255, 255, 0.9),
+    0 0 16px rgba(255, 255, 255, 0.7);
+}
+
+/*
+ --- Card con Relleno Eléctrico --- */
+.card-electric-fill {
+  position: relative;
+  overflow: hidden;
+  background: white;
+  color: black;
+  transition: color 0.35s ease;
+}
+
+.card-electric-fill::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: hsl(350 100% 50%);
+  /* Rojo eléctrico */
+  transform: translateX(-100%);
+  transition: transform 0.45s cubic-bezier(0.55, 0.06, 0.68, 0.19);
+  z-index: 0;
+}
+
+/* Contenido encima del barrido */
+.card-electric-fill>* {
+  position: relative;
+  z-index: 1;
+}
+
+/* HOVER = empieza barrido */
+.card-electric-fill:hover::before {
+  transform: translateX(0);
+}
+
+/* HOVER = texto se vuelve blanco */
+.card-electric-fill:hover {
+  color: white;
+}
+
+/* SELECCIONADO: barrido se queda aplicado */
+.card-electric-fill.selected::before {
+  transform: translateX(0) !important;
+}
+
+/* SELECCIONADO: texto blanco permanente */
+.card-electric-fill.selected {
+  color: white !important;
 }

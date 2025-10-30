@@ -1,12 +1,11 @@
 // /frontend/src/app/registro/components/FormularioRegistro.tsx
 "use client";
 
-import { useEffect, useMemo, useState, ChangeEvent, FormEvent } from "react";
+import { useEffect, useState, ChangeEvent, FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import * as z from "zod";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -93,34 +92,12 @@ type FieldErrors = { [key: string]: string | undefined };
 export function FormularioRegistro({ rol, onVolver }: Props) {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
-  const [isMounted, setIsMounted] = useState(false);
-  const [externoAnimated, setExternoAnimated] = useState(false);
 
   // Estado tipado con la unión y valor inicial según rol
   const [formData, setFormData] = useState<FormValues>(() => getInitialValues(rol));
   const [errors, setErrors] = useState<FieldErrors>({});
 
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
 
-  useEffect(() => {
-    if (rol === "externo") {
-      setExternoAnimated(false);
-      const frame = requestAnimationFrame(() => setExternoAnimated(true));
-      return () => cancelAnimationFrame(frame);
-    }
-    setExternoAnimated(false);
-    return undefined;
-  }, [rol]);
-
-  const inputStyles = useMemo(
-    () =>
-      "h-11 rounded-lg border-slate-200 bg-slate-50 text-sm transform transition-all duration-200 ease-out hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-sm focus:-translate-y-0.5 focus:border-emerald-500 focus:bg-white focus:shadow-md focus:outline-none focus:ring-2 focus:ring-emerald-200/90",
-    []
-  );
-
-  const sectionAnimationFlag = rol === "externo" ? externoAnimated : isMounted;
 
   // --- 4) Handlers genéricos para inputs comunes ---
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
