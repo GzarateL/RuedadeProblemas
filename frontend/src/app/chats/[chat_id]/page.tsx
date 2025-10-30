@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Cookies from 'js-cookie';
 import { toast } from 'sonner';
@@ -15,32 +15,21 @@ export default function ChatDetailPage() {
   const params = useParams();
   const router = useRouter();
   const chatId = params.chat_id as string;
-  
+
   const [mensajes, setMensajes] = useState<Mensaje[]>([]);
   const [nuevoMensaje, setNuevoMensaje] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [enviando, setEnviando] = useState(false);
-  const [tituloChat, setTituloChat] = useState('');
   const [otroUsuario, setOtroUsuario] = useState('');
   const [miTipo, setMiTipo] = useState<'unsa' | 'externo' | null>(null);
   const [miId, setMiId] = useState<number | null>(null);
-  
-  const mensajesEndRef = useRef<HTMLDivElement>(null);
-
-  const scrollToBottom = () => {
-    mensajesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  };
-
-  useEffect(() => {
-    scrollToBottom();
-  }, [mensajes]);
 
   useEffect(() => {
     fetchMensajes();
-    
+
     // Actualizar cada 3 segundos
     const interval = setInterval(fetchMensajes, 3000);
-    
+
     return () => clearInterval(interval);
   }, [chatId]);
 
@@ -63,24 +52,26 @@ export default function ChatDetailPage() {
 
       const data = await res.json();
       setMensajes(data.mensajes || []);
-      
+
       // Obtener info del chat si es la primera carga
       if (isLoading && data.mensajes.length > 0) {
         const primerMensaje = data.mensajes[0];
         setOtroUsuario(primerMensaje.remitente_nombre || 'Usuario');
       }
-      
+
       // Obtener info del usuario actual
       const resMe = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/me`, {
         headers: { "Authorization": `Bearer ${token}` }
       });
-      
+
       if (resMe.ok) {
         const userData = await resMe.json();
-        setMiTipo(userData.rol === 'unsa' ? 'unsa' : 'externo');
-        setMiId(userData.rol === 'unsa' ? userData.investigador_id : userData.participante_id);
+        const tipo = userData.rol === 'unsa' ? 'unsa' : 'externo';
+        const id = userData.rol === 'unsa' ? userData.investigador_id : userData.participante_id;
+        setMiTipo(tipo);
+        setMiId(id);
       }
-      
+
     } catch (err: any) {
       console.error("Error fetching mensajes:", err);
       if (isLoading) {
@@ -93,9 +84,9 @@ export default function ChatDetailPage() {
 
   const enviarMensaje = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!nuevoMensaje.trim()) return;
-    
+
     const token = Cookies.get('token');
     if (!token) {
       toast.error("No autenticado");
@@ -141,14 +132,15 @@ export default function ChatDetailPage() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto p-6 h-[calc(100vh-100px)] flex flex-col">
+    <div className="min-h-screen bg-[linear-gradient(#0001_1px,transparent_1px),linear-gradient(90deg,#0001_1px,transparent_1px)] bg-[size:22px_22px]">
+      <div className="max-w-4xl mx-auto p-6 h-[calc(100vh-100px)] flex flex-col">
       {/* Header */}
       <div className="mb-4">
         <Link href="/chats" className="flex items-center gap-2 text-blue-600 hover:underline mb-4">
           <ArrowLeft className="w-4 h-4" />
           Volver a conversaciones
         </Link>
-        
+
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -160,7 +152,7 @@ export default function ChatDetailPage() {
       </div>
 
       {/* Mensajes */}
-      <Card className="flex-1 flex flex-col overflow-hidden">
+      <Card className="flex-1 flex flex-col overflow-hidden bg-white">
         <CardContent className="flex-1 overflow-y-auto p-4 space-y-3">
           {mensajes.length === 0 ? (
             <div className="text-center text-neutral-500 py-12">
@@ -168,19 +160,19 @@ export default function ChatDetailPage() {
             </div>
           ) : (
             mensajes.map((mensaje) => {
-              const esMio = esMiMensaje(mensaje);
-              
+              // Solo comparar si tenemos la info del usuario
+              const esMio = miTipo && miId ? esMiMensaje(mensaje) : false;
+
               return (
                 <div
                   key={mensaje.mensaje_id}
-                  className={`flex ${esMio ? 'justify-end' : 'justify-start'}`}
+                  className={`flex w-full ${esMio ? 'justify-end' : 'justify-start'}`}
                 >
                   <div
-                    className={`max-w-[70%] rounded-lg px-4 py-2 ${
-                      esMio
-                        ? 'bg-blue-600 text-white'
-                        : 'bg-gray-100 text-gray-900'
-                    }`}
+                    className={`max-w-[70%] rounded-lg px-4 py-2 ${esMio
+                        ? 'bg-red-600 text-white'
+                        : 'bg-white text-black border border-gray-300'
+                      }`}
                   >
                     {!esMio && (
                       <p className="text-xs font-semibold mb-1 opacity-70">
@@ -190,7 +182,7 @@ export default function ChatDetailPage() {
                     <p className="text-sm whitespace-pre-wrap break-words">
                       {mensaje.contenido}
                     </p>
-                    <p className={`text-xs mt-1 ${esMio ? 'text-blue-100' : 'text-gray-500'}`}>
+                    <p className={`text-xs mt-1 ${esMio ? 'text-red-100' : 'text-gray-500'}`}>
                       {new Date(mensaje.fecha_envio).toLocaleTimeString('es-ES', {
                         hour: '2-digit',
                         minute: '2-digit'
@@ -201,7 +193,6 @@ export default function ChatDetailPage() {
               );
             })
           )}
-          <div ref={mensajesEndRef} />
         </CardContent>
 
         {/* Input de mensaje */}
@@ -224,6 +215,7 @@ export default function ChatDetailPage() {
           </form>
         </div>
       </Card>
+      </div>
     </div>
   );
 }

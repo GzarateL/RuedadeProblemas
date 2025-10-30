@@ -200,7 +200,34 @@ export const verify = async (token: string) => {
     if (users.length === 0) {
       throw new Error('El usuario del token ya no existe.');
     }
-    return users[0];
+    
+    const user = users[0];
+    
+    // Obtener el ID del perfil según el rol
+    let profileId = null;
+    if (user.rol === 'externo') {
+      const [profiles] = await dbPool.execute<RowDataPacket[]>(
+        'SELECT participante_id FROM Participantes_Externos WHERE usuario_id = ?',
+        [user.usuario_id]
+      );
+      if (profiles.length > 0) {
+        profileId = profiles[0].participante_id;
+      }
+    } else if (user.rol === 'unsa') {
+      const [profiles] = await dbPool.execute<RowDataPacket[]>(
+        'SELECT investigador_id FROM Investigadores_UNSA WHERE usuario_id = ?',
+        [user.usuario_id]
+      );
+      if (profiles.length > 0) {
+        profileId = profiles[0].investigador_id;
+      }
+    }
+    
+    return {
+      ...user,
+      investigador_id: user.rol === 'unsa' ? profileId : undefined,
+      participante_id: user.rol === 'externo' ? profileId : undefined,
+    };
   } catch (error) {
     throw new Error('Token inválido o expirado.');
   }

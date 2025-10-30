@@ -3,13 +3,15 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { CapacidadAdmin } from '@/types/capacidad'; // Importa el tipo que acabamos de crear
+import { Pencil } from 'lucide-react';
 
 interface CapacidadCardProps {
   capacidad: CapacidadAdmin;
   onViewDetails: () => void; // Función para abrir el modal
+  onEdit?: () => void; // Función para editar la capacidad
 }
 
-export default function CapacidadCard({ capacidad, onViewDetails }: CapacidadCardProps) {
+export default function CapacidadCard({ capacidad, onViewDetails, onEdit }: CapacidadCardProps) {
   // Procesa las palabras clave
   const keywords = capacidad.palabras_clave
     ? capacidad.palabras_clave.split(',').map(kw => kw.trim()).filter(kw => kw)
@@ -23,8 +25,21 @@ export default function CapacidadCard({ capacidad, onViewDetails }: CapacidadCar
   const needsSeeMore = capacidad.descripcion_capacidad.length > maxDescLength;
 
   return (
-    <Card className="flex flex-col h-full overflow-hidden border border-gray-300 rounded-xl shadow-sm hover:shadow-md transition-shadow duration-200">
+    <Card className="flex flex-col h-full overflow-hidden border border-gray-300 rounded-xl shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300 ease-out relative group">
       <CardHeader className="pb-2 px-5 pt-5">
+        {/* Botón de edición en la esquina superior derecha */}
+        {onEdit && (
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onEdit();
+            }}
+            className="absolute top-3 right-3 p-2 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-600 hover:text-gray-900 opacity-0 group-hover:opacity-100 transition-all duration-200 z-10"
+            aria-label="Editar capacidad"
+          >
+            <Pencil className="w-4 h-4" />
+          </button>
+        )}
         {/* Título: Usaremos la descripción truncada como título principal de la tarjeta */}
         <CardTitle className="text-base font-semibold line-clamp-3 h-[72px]"> {/* Permite hasta 3 líneas */}
           {truncatedDesc}

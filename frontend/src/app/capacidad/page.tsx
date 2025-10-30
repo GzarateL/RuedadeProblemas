@@ -5,9 +5,8 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import Cookies from 'js-cookie';
 import { toast } from 'sonner';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Loader2, Plus } from 'lucide-react';
 import Link from 'next/link';
 
@@ -47,6 +46,7 @@ export default function MisCapacidadesPage() {
         if (!res.ok) throw new Error('Error al cargar capacidades');
 
         const data = await res.json();
+        console.log("Capacidades recibidas:", data);
         setCapacidades(data);
       } catch (err: any) {
         console.error("Error fetching capacidades:", err);
@@ -111,30 +111,48 @@ export default function MisCapacidadesPage() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {capacidades.map((capacidad) => (
-            <Card key={capacidad.capacidad_id} className="hover:shadow-lg transition-shadow">
-              <CardHeader>
-                <CardTitle className="text-lg line-clamp-2">
+            <div 
+              key={capacidad.capacidad_id} 
+              className="card-electric-fill p-6 rounded-xl border-2 border-neutral-200 cursor-pointer transition-all relative"
+            >
+              <div className="mb-3">
+                <h3 className="text-lg font-semibold line-clamp-2 mb-2">
                   {capacidad.descripcion_capacidad}
-                </CardTitle>
-                <CardDescription>
-                  Registrada el {new Date(capacidad.fecha_creacion).toLocaleDateString()}
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                {capacidad.palabras_clave && (
-                  <div>
-                    <p className="text-xs font-medium text-neutral-700 mb-1">Palabras clave:</p>
-                    <div className="flex flex-wrap gap-1">
-                      {capacidad.palabras_clave.split(',').map((palabra, idx) => (
-                        <Badge key={idx} variant="outline" className="text-xs">
-                          {palabra.trim()}
-                        </Badge>
-                      ))}
-                    </div>
+                </h3>
+                <p className="text-sm opacity-80">
+                  {(() => {
+                    if (!capacidad.fecha_creacion) return 'Fecha no disponible';
+                    try {
+                      const fecha = new Date(capacidad.fecha_creacion);
+                      if (isNaN(fecha.getTime())) return 'Fecha no disponible';
+                      return `Registrada el ${fecha.toLocaleDateString('es-ES', {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric'
+                      })}`;
+                    } catch {
+                      return 'Fecha no disponible';
+                    }
+                  })()}
+                </p>
+              </div>
+              
+              {capacidad.palabras_clave && (
+                <div>
+                  <p className="text-xs font-medium opacity-70 mb-2">Palabras clave:</p>
+                  <div className="flex flex-wrap gap-1">
+                    {capacidad.palabras_clave.split(',').map((palabra, idx) => (
+                      <span 
+                        key={idx} 
+                        className="text-xs px-2.5 py-0.5 rounded-full border border-current opacity-80"
+                      >
+                        {palabra.trim()}
+                      </span>
+                    ))}
                   </div>
-                )}
-              </CardContent>
-            </Card>
+                </div>
+              )}
+            </div>
           ))}
         </div>
       )}

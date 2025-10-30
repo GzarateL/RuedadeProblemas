@@ -77,6 +77,15 @@ export default function AdminCapacidadesPage() {
     setSelectedCapacidad(null);
   };
 
+  // Handler para editar capacidad
+  const handleEdit = (capacidad: CapacidadAdmin) => {
+    // TODO: Implementar lógica de edición
+    toast.info("Editar capacidad", { 
+      description: `Editando: ${capacidad.descripcion_capacidad.substring(0, 50)}...` 
+    });
+    console.log("Editar capacidad:", capacidad);
+  };
+
   // --- Renderizado ---
 
   if (isLoading) return <p className="p-6 text-center text-neutral-600 animate-pulse">Cargando capacidades...</p>;
@@ -104,6 +113,7 @@ export default function AdminCapacidadesPage() {
               key={capacidad.capacidad_id}
               capacidad={capacidad}
               onViewDetails={() => handleViewDetails(capacidad)} // Pasa la función para abrir modal
+              onEdit={() => handleEdit(capacidad)} // Pasa la función para editar
             />
           ))}
         </div>
