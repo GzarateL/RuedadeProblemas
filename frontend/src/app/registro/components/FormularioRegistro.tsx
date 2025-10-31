@@ -184,7 +184,7 @@ export function FormularioRegistro({ rol, onVolver }: Props) {
       <RainEffect />
 
       <div className="w-full max-w-3xl relative z-10 animate-[fadeInScale_0.35s_ease-out_forwards] opacity-0">
-        <div className="relative bg-white border-2 border-[#FF0033] rounded-2xl overflow-hidden">
+        <div className="relative bg-white border-2 border-black rounded-2xl overflow-hidden transition-[border-color] duration-300 group">
           {/* Canvas abarca toda la tarjeta */}
           <BouncingBall />
 
@@ -373,6 +373,14 @@ export function FormularioRegistro({ rol, onVolver }: Props) {
                   type="submit"
                   className="w-full bg-white border-2 border-black text-black font-semibold py-3 rounded-lg transition-colors duration-300 hover:bg-electric hover:border-electric hover:text-white"
                   disabled={isLoading}
+                  onMouseEnter={(e) => {
+                    const card = e.currentTarget.closest('.group');
+                    if (card) card.classList.add('!border-[#FF0000]');
+                  }}
+                  onMouseLeave={(e) => {
+                    const card = e.currentTarget.closest('.group');
+                    if (card) card.classList.remove('!border-[#FF0000]');
+                  }}
                 >
                   {isLoading ? "Registrando..." : "Crear Cuenta"}
                 </button>

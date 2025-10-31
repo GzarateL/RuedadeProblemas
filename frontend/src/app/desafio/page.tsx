@@ -80,12 +80,6 @@ export default function MisDesafiosPage() {
           </p>
         </div>
         <div className="flex gap-2">
-          <Link href="/desafio/mis-matches">
-            <Button variant="outline" className="flex items-center gap-2">
-              <Sparkles className="w-4 h-4" />
-              Ver Matches
-            </Button>
-          </Link>
           <Link href="/desafio/registrar">
             <Button className="flex items-center gap-2">
               <Plus className="w-4 h-4" />

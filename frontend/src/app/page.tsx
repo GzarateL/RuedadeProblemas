@@ -146,7 +146,7 @@ export default function HomePage() {
         case 'externo':
           return (
             <div className="flex flex-col sm:flex-row justify-center md:justify-start items-center gap-4 mt-12 animate-fade-in animation-delay-600"> {/* Cambiado a md:justify-start */}
-              <Button asChild size="lg" className="bg-electric text-white font-semibold px-8 py-3 rounded-lg transition-all duration-300 hover:bg-white hover:text-electric focus:bg-white focus:text-electric hover:drop-shadow-[0_0_12px_hsl(0,100%,60%)] focus:drop-shadow-[0_0_12px_hsl(0,100%,60%)]">
+              <Button asChild size="lg" className="bg-white border-2 border-black text-black font-semibold px-8 py-3 rounded-lg transition-all duration-250 ease-in-out hover:bg-[#FF0000] hover:border-[#FF0000] hover:text-white">
                 <Link href="/desafio/registrar">Registrar mi Desafío</Link>
               </Button>
             </div>
@@ -154,7 +154,7 @@ export default function HomePage() {
         case 'unsa':
           return (
             <div className="flex flex-col sm:flex-row justify-center md:justify-start items-center gap-4 mt-12 animate-fade-in animation-delay-600"> {/* Cambiado a md:justify-start */}
-              <Button asChild size="lg" className="bg-electric text-white font-semibold px-8 py-3 rounded-lg transition-all duration-300 hover:bg-white hover:text-electric focus:bg-white focus:text-electric hover:drop-shadow-[0_0_12px_hsl(0,100%,60%)] focus:drop-shadow-[0_0_12px_hsl(0,100%,60%)]">
+              <Button asChild size="lg" className="bg-white border-2 border-black text-black font-semibold px-8 py-3 rounded-lg transition-all duration-250 ease-in-out hover:bg-[#FF0000] hover:border-[#FF0000] hover:text-white">
                 <Link href="/capacidad/registrar">Registrar Capacidad</Link>
               </Button>
             </div>

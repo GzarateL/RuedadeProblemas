@@ -74,7 +74,7 @@ export default function ChatsPage() {
         <div className="space-y-3">
           {chats.map((chat) => (
             <Link key={chat.chat_id} href={`/chats/${chat.chat_id}`}>
-              <div className="card-electric-fill p-6 rounded-xl border-2 border-neutral-200 cursor-pointer transition-all">
+              <div className="card-electric-fill p-6 rounded-xl border-2 border-black cursor-pointer transition-all">
                 <h3 className="font-bold text-xl flex items-center gap-2 mb-3">
                   {chat.titulo_chat}
                   {(chat.mensajes_no_leidos ?? 0) > 0 && (

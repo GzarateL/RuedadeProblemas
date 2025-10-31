@@ -79,11 +79,6 @@ export default function MisCapacidadesPage() {
           </p>
         </div>
         <div className="flex gap-2">
-          <Link href="/capacidad/mis-matches">
-            <Button variant="outline">
-              Ver Matches
-            </Button>
-          </Link>
           <Link href="/capacidad/registrar">
             <Button className="flex items-center gap-2">
               <Plus className="w-4 h-4" />
@@ -111,9 +106,9 @@ export default function MisCapacidadesPage() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {capacidades.map((capacidad) => (
-            <div 
-              key={capacidad.capacidad_id} 
-              className="card-electric-fill p-6 rounded-xl border-2 border-neutral-200 cursor-pointer transition-all relative"
+            <div
+              key={capacidad.capacidad_id}
+              className="card-electric-fill p-6 rounded-xl border-2 border-black cursor-pointer transition-all relative"
             >
               <div className="mb-3">
                 <h3 className="text-lg font-semibold line-clamp-2 mb-2">
@@ -136,14 +131,14 @@ export default function MisCapacidadesPage() {
                   })()}
                 </p>
               </div>
-              
+
               {capacidad.palabras_clave && (
                 <div>
                   <p className="text-xs font-medium opacity-70 mb-2">Palabras clave:</p>
                   <div className="flex flex-wrap gap-1">
                     {capacidad.palabras_clave.split(',').map((palabra, idx) => (
-                      <span 
-                        key={idx} 
+                      <span
+                        key={idx}
                         className="text-xs px-2.5 py-0.5 rounded-full border border-current opacity-80"
                       >
                         {palabra.trim()}
