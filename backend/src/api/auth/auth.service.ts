@@ -6,29 +6,60 @@ import { env } from '../../config/env';
 import { PoolConnection, OkPacket, RowDataPacket } from 'mysql2/promise'; // <-- Importar tipos de MySQL
 
 // --- 1. DEFINICIÓN DE TIPOS PARA EL REGISTRO ---
-// (Esto reemplaza el 'any')
 interface BaseUserData {
   email: string;
   password: string;
   nombres_apellidos: string;
-  cargo: string;
+  cargo?: string;
   telefono?: string;
 }
 
+// Tipos específicos para cada formulario
+interface AcademiaUserData extends BaseUserData {
+  institucion: string;
+  programa_estudio?: string;
+  tipo_participacion: 'Presencial' | 'Virtual';
+  dias_interes: number[];
+}
+
+interface GobiernoUserData extends BaseUserData {
+  institucion: string;
+  tipo_gobierno: 'CENTRAL' | 'REGIONAL' | 'PROVINCIAL' | 'DISTRITAL';
+  tipo_participacion: 'Presencial' | 'Virtual';
+  dias_interes: number[];
+}
+
+interface EmpresaUserData extends BaseUserData {
+  nombre_empresa: string;
+  tipo_empresa: 'Natural' | 'Jurídica';
+  tamaño_empresa?: string;
+  clasificacion: 'Micro' | 'MYPE' | 'Mediana' | 'Grande';
+  tipo_participacion: 'Presencial' | 'Virtual';
+  dias_interes: number[];
+}
+
+interface SociedadCivilUserData extends BaseUserData {
+  organizacion_representada?: string;
+  tipo_organizacion_civil: string;
+  tamaño_organizacion?: string;
+  tipo_participacion: 'Presencial' | 'Virtual';
+  dias_interes: number[];
+}
+
+interface UnsaUserData extends BaseUserData {
+  unidad_academica: string;
+}
+
+// Tipos legacy para compatibilidad
 interface ExternoUserData extends BaseUserData {
   rol: "externo";
-  helice_id: number; // El frontend lo envía como número (después de parseInt)
+  helice_id: number;
   organizacion: string;
   dias_interes?: number[];
 }
 
-interface UnsaUserData extends BaseUserData {
-  rol: "unsa";
-  unidad_academica: string;
-}
-
 // Tipo de Unión Discriminada
-type UserData = ExternoUserData | UnsaUserData;
+type UserData = ExternoUserData | UnsaUserData | AcademiaUserData | GobiernoUserData | EmpresaUserData | SociedadCivilUserData;
 
 // --- HELPERS ---
 const hashPassword = async (password: string) => {
@@ -42,18 +73,12 @@ const rollback = async (connection: PoolConnection, message: string) => {
   throw new Error(message);
 };
 
-// --- SERVICIO DE REGISTRO (CON TRANSACCIÓN) ---
-// --- 2. USAR EL TIPO 'UserData' ESPECÍFICO ---
+// --- SERVICIO DE REGISTRO LEGACY (MANTENER COMPATIBILIDAD) ---
 export const createUser = async (userData: UserData) => {
-  
-  // (Ya no necesitamos desestructurar 'rol' primero,
-  // TypeScript lo manejará en los 'if')
-
   const connection = await dbPool.getConnection();
   await connection.beginTransaction();
 
   try {
-    // --- 3. ESPECIFICAR EL TIPO DE RETORNO DE LA BD ---
     const [existingUsers] = await connection.execute<RowDataPacket[]>(
       'SELECT * FROM Usuarios WHERE email = ?', [userData.email]
     );
@@ -62,20 +87,19 @@ export const createUser = async (userData: UserData) => {
     }
 
     const passwordHash = await hashPassword(userData.password);
+    let newUserId: number = 0;
     
-    // --- 4. ESPECIFICAR EL TIPO DE RETORNO DE LA BD ---
-    const [userResult] = await connection.execute<OkPacket>(
-      'INSERT INTO Usuarios (email, password_hash, rol) VALUES (?, ?, ?)',
-      [userData.email, passwordHash, userData.rol]
-    );
-    const newUserId = userResult.insertId;
-    if (!newUserId) {
-      await rollback(connection, 'Error al crear el usuario base.');
-    }
+    // Para compatibilidad con el sistema legacy
+    if ('rol' in userData && userData.rol === 'externo') {
+      const [userResult] = await connection.execute<OkPacket>(
+        'INSERT INTO Usuarios (email, password_hash, rol) VALUES (?, ?, ?)',
+        [userData.email, passwordHash, 'externo']
+      );
+      newUserId = userResult.insertId;
+      if (!newUserId) {
+        await rollback(connection, 'Error al crear el usuario base.');
+      }
 
-    // --- 5. TypeScript ahora entiende los 'if' ---
-    if (userData.rol === 'externo') {
-      // (TypeScript sabe que userData.helice_id y userData.organizacion existen aquí)
       const dias = userData.dias_interes && Array.isArray(userData.dias_interes) ? userData.dias_interes : [];
       
       const [participanteResult] = await connection.execute<OkPacket>(
@@ -97,17 +121,285 @@ export const createUser = async (userData: UserData) => {
         );
       }
 
-    } else if (userData.rol === 'unsa') {
-      // (TypeScript sabe que userData.unidad_academica existe aquí)
+    } else if ('unidad_academica' in userData) {
+      const [userResult] = await connection.execute<OkPacket>(
+        'INSERT INTO Usuarios (email, password_hash, rol) VALUES (?, ?, ?)',
+        [userData.email, passwordHash, 'unsa']
+      );
+      newUserId = userResult.insertId;
+      if (!newUserId) {
+        await rollback(connection, 'Error al crear el usuario base.');
+      }
+
       await connection.execute(
         `INSERT INTO Investigadores_UNSA 
          (usuario_id, nombres_apellidos, cargo, telefono, unidad_academica) 
          VALUES (?, ?, ?, ?, ?)`,
         [newUserId, userData.nombres_apellidos, userData.cargo, userData.telefono || null, userData.unidad_academica]
       );
-    } 
-    // (El 'else' que tenías para 'Rol no válido' ya no es necesario,
-    // porque el tipo 'UserData' solo permite 'externo' o 'unsa')
+    }
+
+    await connection.commit();
+    connection.release();
+    return { insertId: newUserId };
+
+  } catch (error: any) {
+    await connection.rollback();
+    connection.release();
+    throw new Error(error.message || 'Error interno del servidor durante el registro.');
+  }
+};
+
+// --- NUEVOS SERVICIOS DE REGISTRO ESPECÍFICOS ---
+export const createAcademiaUser = async (userData: AcademiaUserData) => {
+  const connection = await dbPool.getConnection();
+  await connection.beginTransaction();
+
+  try {
+    const [existingUsers] = await connection.execute<RowDataPacket[]>(
+      'SELECT * FROM Usuarios WHERE email = ?', [userData.email]
+    );
+    if (existingUsers.length > 0) {
+      await rollback(connection, 'El correo electrónico ya está registrado.');
+    }
+
+    const passwordHash = await hashPassword(userData.password);
+    
+    const [userResult] = await connection.execute<OkPacket>(
+      'INSERT INTO Usuarios (email, password_hash, rol) VALUES (?, ?, ?)',
+      [userData.email, passwordHash, 'academia']
+    );
+    const newUserId = userResult.insertId;
+    if (!newUserId) {
+      await rollback(connection, 'Error al crear el usuario base.');
+    }
+
+    const [participanteResult] = await connection.execute<OkPacket>(
+      `INSERT INTO Participantes_Academia 
+       (usuario_id, institucion, nombres_apellidos, cargo, programa_estudio, email, telefono, tipo_participacion) 
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+      [newUserId, userData.institucion, userData.nombres_apellidos, userData.cargo || null, 
+       userData.programa_estudio || null, userData.email, userData.telefono || null, userData.tipo_participacion]
+    );
+    
+    const newParticipanteId = participanteResult.insertId;
+    if (!newParticipanteId) {
+      await rollback(connection, 'Error al crear el perfil de academia.');
+    }
+
+    if (userData.dias_interes && userData.dias_interes.length > 0) {
+      const diasValues = userData.dias_interes.map((dia_id: number) => [newParticipanteId, dia_id]);
+      await connection.query(
+        'INSERT INTO Academia_Interes_Dias (participante_id, dia_id) VALUES ?',
+        [diasValues]
+      );
+    }
+
+    await connection.commit();
+    connection.release();
+    return { insertId: newUserId };
+
+  } catch (error: any) {
+    await connection.rollback();
+    connection.release();
+    throw new Error(error.message || 'Error interno del servidor durante el registro.');
+  }
+};
+
+export const createGobiernoUser = async (userData: GobiernoUserData) => {
+  const connection = await dbPool.getConnection();
+  await connection.beginTransaction();
+
+  try {
+    const [existingUsers] = await connection.execute<RowDataPacket[]>(
+      'SELECT * FROM Usuarios WHERE email = ?', [userData.email]
+    );
+    if (existingUsers.length > 0) {
+      await rollback(connection, 'El correo electrónico ya está registrado.');
+    }
+
+    const passwordHash = await hashPassword(userData.password);
+    
+    const [userResult] = await connection.execute<OkPacket>(
+      'INSERT INTO Usuarios (email, password_hash, rol) VALUES (?, ?, ?)',
+      [userData.email, passwordHash, 'gobierno']
+    );
+    const newUserId = userResult.insertId;
+    if (!newUserId) {
+      await rollback(connection, 'Error al crear el usuario base.');
+    }
+
+    const [participanteResult] = await connection.execute<OkPacket>(
+      `INSERT INTO Participantes_Gobierno 
+       (usuario_id, institucion, nombres_apellidos, cargo, tipo_gobierno, email, telefono, tipo_participacion) 
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+      [newUserId, userData.institucion, userData.nombres_apellidos, userData.cargo || null, 
+       userData.tipo_gobierno, userData.email, userData.telefono || null, userData.tipo_participacion]
+    );
+    
+    const newParticipanteId = participanteResult.insertId;
+    if (!newParticipanteId) {
+      await rollback(connection, 'Error al crear el perfil de gobierno.');
+    }
+
+    if (userData.dias_interes && userData.dias_interes.length > 0) {
+      const diasValues = userData.dias_interes.map((dia_id: number) => [newParticipanteId, dia_id]);
+      await connection.query(
+        'INSERT INTO Gobierno_Interes_Dias (participante_id, dia_id) VALUES ?',
+        [diasValues]
+      );
+    }
+
+    await connection.commit();
+    connection.release();
+    return { insertId: newUserId };
+
+  } catch (error: any) {
+    await connection.rollback();
+    connection.release();
+    throw new Error(error.message || 'Error interno del servidor durante el registro.');
+  }
+};
+
+export const createEmpresaUser = async (userData: EmpresaUserData) => {
+  const connection = await dbPool.getConnection();
+  await connection.beginTransaction();
+
+  try {
+    const [existingUsers] = await connection.execute<RowDataPacket[]>(
+      'SELECT * FROM Usuarios WHERE email = ?', [userData.email]
+    );
+    if (existingUsers.length > 0) {
+      await rollback(connection, 'El correo electrónico ya está registrado.');
+    }
+
+    const passwordHash = await hashPassword(userData.password);
+    
+    const [userResult] = await connection.execute<OkPacket>(
+      'INSERT INTO Usuarios (email, password_hash, rol) VALUES (?, ?, ?)',
+      [userData.email, passwordHash, 'empresa']
+    );
+    const newUserId = userResult.insertId;
+    if (!newUserId) {
+      await rollback(connection, 'Error al crear el usuario base.');
+    }
+
+    const [participanteResult] = await connection.execute<OkPacket>(
+      `INSERT INTO Participantes_Empresa 
+       (usuario_id, nombre_empresa, nombres_apellidos, cargo, tipo_empresa, tamaño_empresa, clasificacion, email, telefono, tipo_participacion) 
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [newUserId, userData.nombre_empresa, userData.nombres_apellidos, userData.cargo || null, 
+       userData.tipo_empresa, userData.tamaño_empresa || null, userData.clasificacion, userData.email, userData.telefono || null, userData.tipo_participacion]
+    );
+    
+    const newParticipanteId = participanteResult.insertId;
+    if (!newParticipanteId) {
+      await rollback(connection, 'Error al crear el perfil de empresa.');
+    }
+
+    if (userData.dias_interes && userData.dias_interes.length > 0) {
+      const diasValues = userData.dias_interes.map((dia_id: number) => [newParticipanteId, dia_id]);
+      await connection.query(
+        'INSERT INTO Empresa_Interes_Dias (participante_id, dia_id) VALUES ?',
+        [diasValues]
+      );
+    }
+
+    await connection.commit();
+    connection.release();
+    return { insertId: newUserId };
+
+  } catch (error: any) {
+    await connection.rollback();
+    connection.release();
+    throw new Error(error.message || 'Error interno del servidor durante el registro.');
+  }
+};
+
+export const createSociedadCivilUser = async (userData: SociedadCivilUserData) => {
+  const connection = await dbPool.getConnection();
+  await connection.beginTransaction();
+
+  try {
+    const [existingUsers] = await connection.execute<RowDataPacket[]>(
+      'SELECT * FROM Usuarios WHERE email = ?', [userData.email]
+    );
+    if (existingUsers.length > 0) {
+      await rollback(connection, 'El correo electrónico ya está registrado.');
+    }
+
+    const passwordHash = await hashPassword(userData.password);
+    
+    const [userResult] = await connection.execute<OkPacket>(
+      'INSERT INTO Usuarios (email, password_hash, rol) VALUES (?, ?, ?)',
+      [userData.email, passwordHash, 'sociedad_civil']
+    );
+    const newUserId = userResult.insertId;
+    if (!newUserId) {
+      await rollback(connection, 'Error al crear el usuario base.');
+    }
+
+    const [participanteResult] = await connection.execute<OkPacket>(
+      `INSERT INTO Participantes_Sociedad_Civil 
+       (usuario_id, organizacion_representada, nombres_apellidos, cargo, tipo_organizacion_civil, tamaño_organizacion, email, telefono, tipo_participacion) 
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [newUserId, userData.organizacion_representada || null, userData.nombres_apellidos, userData.cargo || null, 
+       userData.tipo_organizacion_civil, userData.tamaño_organizacion || null, userData.email, userData.telefono || null, userData.tipo_participacion]
+    );
+    
+    const newParticipanteId = participanteResult.insertId;
+    if (!newParticipanteId) {
+      await rollback(connection, 'Error al crear el perfil de sociedad civil.');
+    }
+
+    if (userData.dias_interes && userData.dias_interes.length > 0) {
+      const diasValues = userData.dias_interes.map((dia_id: number) => [newParticipanteId, dia_id]);
+      await connection.query(
+        'INSERT INTO Sociedad_Civil_Interes_Dias (participante_id, dia_id) VALUES ?',
+        [diasValues]
+      );
+    }
+
+    await connection.commit();
+    connection.release();
+    return { insertId: newUserId };
+
+  } catch (error: any) {
+    await connection.rollback();
+    connection.release();
+    throw new Error(error.message || 'Error interno del servidor durante el registro.');
+  }
+};
+
+export const createUnsaUser = async (userData: UnsaUserData) => {
+  const connection = await dbPool.getConnection();
+  await connection.beginTransaction();
+
+  try {
+    const [existingUsers] = await connection.execute<RowDataPacket[]>(
+      'SELECT * FROM Usuarios WHERE email = ?', [userData.email]
+    );
+    if (existingUsers.length > 0) {
+      await rollback(connection, 'El correo electrónico ya está registrado.');
+    }
+
+    const passwordHash = await hashPassword(userData.password);
+    
+    const [userResult] = await connection.execute<OkPacket>(
+      'INSERT INTO Usuarios (email, password_hash, rol) VALUES (?, ?, ?)',
+      [userData.email, passwordHash, 'unsa']
+    );
+    const newUserId = userResult.insertId;
+    if (!newUserId) {
+      await rollback(connection, 'Error al crear el usuario base.');
+    }
+
+    await connection.execute(
+      `INSERT INTO Investigadores_UNSA 
+       (usuario_id, nombres_apellidos, cargo, telefono, unidad_academica) 
+       VALUES (?, ?, ?, ?, ?)`,
+      [newUserId, userData.nombres_apellidos, userData.cargo, userData.telefono || null, userData.unidad_academica]
+    );
 
     await connection.commit();
     connection.release();
@@ -161,9 +453,33 @@ export const login = async (email: string, password: string) => {
       [user.usuario_id]
     );
     if (profiles.length > 0) userProfile = profiles[0];
+  } else if (user.rol === 'academia') {
+    const [profiles] = await dbPool.execute<RowDataPacket[]>(
+      'SELECT nombres_apellidos FROM Participantes_Academia WHERE usuario_id = ?',
+      [user.usuario_id]
+    );
+    if (profiles.length > 0) userProfile = profiles[0];
+  } else if (user.rol === 'gobierno') {
+    const [profiles] = await dbPool.execute<RowDataPacket[]>(
+      'SELECT nombres_apellidos FROM Participantes_Gobierno WHERE usuario_id = ?',
+      [user.usuario_id]
+    );
+    if (profiles.length > 0) userProfile = profiles[0];
+  } else if (user.rol === 'empresa') {
+    const [profiles] = await dbPool.execute<RowDataPacket[]>(
+      'SELECT nombres_apellidos FROM Participantes_Empresa WHERE usuario_id = ?',
+      [user.usuario_id]
+    );
+    if (profiles.length > 0) userProfile = profiles[0];
+  } else if (user.rol === 'sociedad_civil') {
+    const [profiles] = await dbPool.execute<RowDataPacket[]>(
+      'SELECT nombres_apellidos FROM Participantes_Sociedad_Civil WHERE usuario_id = ?',
+      [user.usuario_id]
+    );
+    if (profiles.length > 0) userProfile = profiles[0];
   } else if (user.rol === 'admin') {
-     // El admin no tiene perfil separado, podemos usar un nombre genérico o el email
-     let userProfile: RowDataPacket | { nombres_apellidos: string } | null = null;
+    // El admin no tiene perfil separado, podemos usar un nombre genérico o el email
+    userProfile = { nombres_apellidos: 'Administrador' } as RowDataPacket;
   }
 
 
@@ -221,6 +537,38 @@ export const verify = async (token: string) => {
       if (profiles.length > 0) {
         profileId = profiles[0].investigador_id;
       }
+    } else if (user.rol === 'academia') {
+      const [profiles] = await dbPool.execute<RowDataPacket[]>(
+        'SELECT participante_id FROM Participantes_Academia WHERE usuario_id = ?',
+        [user.usuario_id]
+      );
+      if (profiles.length > 0) {
+        profileId = profiles[0].participante_id;
+      }
+    } else if (user.rol === 'gobierno') {
+      const [profiles] = await dbPool.execute<RowDataPacket[]>(
+        'SELECT participante_id FROM Participantes_Gobierno WHERE usuario_id = ?',
+        [user.usuario_id]
+      );
+      if (profiles.length > 0) {
+        profileId = profiles[0].participante_id;
+      }
+    } else if (user.rol === 'empresa') {
+      const [profiles] = await dbPool.execute<RowDataPacket[]>(
+        'SELECT participante_id FROM Participantes_Empresa WHERE usuario_id = ?',
+        [user.usuario_id]
+      );
+      if (profiles.length > 0) {
+        profileId = profiles[0].participante_id;
+      }
+    } else if (user.rol === 'sociedad_civil') {
+      const [profiles] = await dbPool.execute<RowDataPacket[]>(
+        'SELECT participante_id FROM Participantes_Sociedad_Civil WHERE usuario_id = ?',
+        [user.usuario_id]
+      );
+      if (profiles.length > 0) {
+        profileId = profiles[0].participante_id;
+      }
     }
     
     return {
@@ -231,4 +579,12 @@ export const verify = async (token: string) => {
   } catch (error) {
     throw new Error('Token inválido o expirado.');
   }
+};
+
+// --- OBTENER DÍAS DISPONIBLES (TEMPORAL) ---
+export const getDias = async () => {
+  const [dias] = await dbPool.execute<RowDataPacket[]>(
+    'SELECT * FROM Dias_Evento ORDER BY dia_numero'
+  );
+  return dias;
 };

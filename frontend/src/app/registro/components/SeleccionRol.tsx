@@ -4,9 +4,10 @@ import { RainEffect } from "@/components/RainDrop";
 
 interface Props {
   onSelectRol: (rol: "externo" | "unsa") => void;
+  onSelectTipoExterno?: (tipo: "academia" | "gobierno" | "empresa" | "sociedad_civil") => void;
 }
 
-export function SeleccionRol({ onSelectRol }: Props) {
+export function SeleccionRol({ onSelectRol, onSelectTipoExterno }: Props) {
   return (
     <div className="relative min-h-screen flex items-center justify-center bg-white p-4 overflow-hidden">
       {/* Animación de gotas cayendo */}
@@ -64,7 +65,7 @@ export function SeleccionRol({ onSelectRol }: Props) {
                   className="group relative flex h-full w-full transform-gpu flex-col items-center justify-center gap-4 rounded-xl border-2 border-black bg-gray-50 p-6 text-center shadow-sm transition-all duration-300 ease-out hover:-translate-y-1 hover:scale-[1.02] hover:bg-white hover:shadow-lg focus-within:-translate-y-1 focus-within:scale-[1.02] focus-within:shadow-lg cursor-pointer overflow-hidden group-hover:items-start group-hover:text-left"
                   onClick={() => onSelectRol("unsa")}
                 >
-                  <h3 className="text-xl font-semibold text-gray-900">Hélice UNSA</h3>
+                  <h3 className="text-xl font-semibold text-gray-900">Hélice Universitaria</h3>
                   
                   {/* Contenido expandible */}
                   <div className="flex w-full max-h-0 flex-col items-start gap-3 overflow-hidden text-sm leading-relaxed text-gray-600 opacity-0 transition-all duration-300 ease-out group-hover:max-h-[320px] group-hover:opacity-100 group-hover:delay-100 group-focus-within:max-h-[320px] group-focus-within:opacity-100 md:text-justify">
