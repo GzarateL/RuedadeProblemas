@@ -128,7 +128,7 @@ export default function FormularioDesafioExterno() {
   };
 
   return (
-     <Card className="w-full max-w-2xl mx-auto my-12 border-2 border-black bg-white">
+     <Card className="form-card w-full max-w-2xl mx-auto my-12 border-2 border-gray-300 bg-white transition-all duration-300">
        <CardHeader>
            <CardTitle className="text-2xl font-bold text-black">Registrar Desafío Externo</CardTitle>
            <CardDescription className="text-neutral-700">Describe el problema o necesidad que buscas resolver.</CardDescription>
@@ -189,7 +189,7 @@ export default function FormularioDesafioExterno() {
 
                <Button 
                  type="submit" 
-                 className="w-full bg-white border-2 border-black text-black hover:bg-[#FF0000] hover:border-[#FF0000] hover:text-white transition-all duration-250" 
+                 className="btn-register w-full bg-white border-2 border-black text-black transition-all duration-300" 
                  disabled={isLoading}
                >
                    {isLoading ? "Registrando..." : "Registrar Desafío"}
@@ -198,4 +198,24 @@ export default function FormularioDesafioExterno() {
        </CardContent>
      </Card>
   );
+}
+
+// Estilos CSS para el efecto hover
+const styles = `
+  .btn-register:hover {
+    background-color: #C62828 !important;
+    border-color: #C62828 !important;
+    color: white !important;
+  }
+  
+  .form-card:has(.btn-register:hover) {
+    border-color: #C62828 !important;
+  }
+`;
+
+// Inyectar estilos en el head
+if (typeof document !== 'undefined') {
+  const styleSheet = document.createElement("style");
+  styleSheet.innerText = styles;
+  document.head.appendChild(styleSheet);
 }

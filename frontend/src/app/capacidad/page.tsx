@@ -114,22 +114,6 @@ export default function MisCapacidadesPage() {
                 <h3 className="text-lg font-semibold line-clamp-2 mb-2">
                   {capacidad.descripcion_capacidad}
                 </h3>
-                <p className="text-sm opacity-80">
-                  {(() => {
-                    if (!capacidad.fecha_creacion) return 'Fecha no disponible';
-                    try {
-                      const fecha = new Date(capacidad.fecha_creacion);
-                      if (isNaN(fecha.getTime())) return 'Fecha no disponible';
-                      return `Registrada el ${fecha.toLocaleDateString('es-ES', {
-                        year: 'numeric',
-                        month: 'long',
-                        day: 'numeric'
-                      })}`;
-                    } catch {
-                      return 'Fecha no disponible';
-                    }
-                  })()}
-                </p>
               </div>
 
               {capacidad.palabras_clave && (

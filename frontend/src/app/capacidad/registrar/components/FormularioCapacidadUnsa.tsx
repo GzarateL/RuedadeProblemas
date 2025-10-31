@@ -104,7 +104,7 @@ export default function FormularioCapacidadUnsa() {
   };
 
   return (
-     <Card className="w-full max-w-2xl mx-auto my-12 border-2 border-black bg-white">
+     <Card className="form-card w-full max-w-2xl mx-auto my-12 border-2 border-gray-300 bg-white transition-all duration-300">
         <CardHeader>
            <CardTitle className="text-2xl font-bold text-black">Registrar Capacidad UNSA</CardTitle>
            <CardDescription className="text-neutral-700">Describe tus capacidades de investigación e innovación.</CardDescription>
@@ -196,7 +196,7 @@ export default function FormularioCapacidadUnsa() {
 
                 <Button 
                   type="submit" 
-                  className="w-full bg-white border-2 border-black text-black hover:bg-[#FF0000] hover:border-[#FF0000] hover:text-white transition-all duration-250" 
+                  className="btn-register w-full bg-white border-2 border-black text-black transition-all duration-300" 
                   disabled={isLoading}
                 >
                     {isLoading ? "Registrando..." : "Registrar Capacidad"}
@@ -207,28 +207,22 @@ export default function FormularioCapacidadUnsa() {
   );
 }
 
-// BORRA TODO DESDE AQUÍ HACIA ABAJO EN TU ARCHIVO
-// Necesitarás crear este componente básico (o usar uno de shadcn si lo instalas)
-// /frontend/src/components/ui/textarea.tsx
-/* BORRA ESTO -> 
-import * as React from "react"
-import { cn } from "@/lib/utils"
-
-const Textarea = React.forwardRef<HTMLTextAreaElement, React.TextareaHTMLAttributes<HTMLTextAreaElement>>(
-  ({ className, ...props }, ref) => {
-    return (
-      <textarea
-        className={cn(
-          "flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50",
-          className
-        )}
-        ref={ref}
-        {...props}
-      />
-    )
+// Estilos CSS para el efecto hover
+const styles = `
+  .btn-register:hover {
+    background-color: #C62828 !important;
+    border-color: #C62828 !important;
+    color: white !important;
   }
-)
-Textarea.displayName = "Textarea"
+  
+  .form-card:has(.btn-register:hover) {
+    border-color: #C62828 !important;
+  }
+`;
 
-export { Textarea }
-*/ // <- HASTA AQUÍ
+// Inyectar estilos en el head
+if (typeof document !== 'undefined') {
+  const styleSheet = document.createElement("style");
+  styleSheet.innerText = styles;
+  document.head.appendChild(styleSheet);
+}
