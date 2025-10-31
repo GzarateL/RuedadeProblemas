@@ -7,7 +7,7 @@ import { toast } from 'sonner';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Loader2, Send, ArrowLeft, User } from 'lucide-react';
+import { Loader2, ArrowLeft, User } from 'lucide-react';
 import Link from 'next/link';
 import { Mensaje } from '@/types/chat';
 
@@ -141,7 +141,7 @@ export default function ChatDetailPage() {
           Volver a conversaciones
         </Link>
 
-        <Card>
+        <Card className="border-2 border-black">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <User className="w-5 h-5" />
@@ -152,7 +152,7 @@ export default function ChatDetailPage() {
       </div>
 
       {/* Mensajes */}
-      <Card className="flex-1 flex flex-col overflow-hidden bg-white">
+      <Card className="flex-1 flex flex-col overflow-hidden bg-white border-2 border-black">
         <CardContent className="flex-1 overflow-y-auto p-4 space-y-3">
           {mensajes.length === 0 ? (
             <div className="text-center text-neutral-500 py-12">
@@ -203,13 +203,17 @@ export default function ChatDetailPage() {
               onChange={(e) => setNuevoMensaje(e.target.value)}
               placeholder="Escribe un mensaje..."
               disabled={enviando}
-              className="flex-1"
+              className="flex-1 border-2 border-black"
             />
-            <Button type="submit" disabled={enviando || !nuevoMensaje.trim()}>
+            <Button 
+              type="submit" 
+              disabled={enviando || !nuevoMensaje.trim()}
+              className="bg-black text-white border-2 border-black hover:bg-[#FF0000] hover:border-[#FF0000] transition-all duration-250"
+            >
               {enviando ? (
                 <Loader2 className="w-4 h-4 animate-spin" />
               ) : (
-                <Send className="w-4 h-4" />
+                "Enviar"
               )}
             </Button>
           </form>

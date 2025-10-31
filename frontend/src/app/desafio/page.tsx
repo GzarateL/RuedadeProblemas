@@ -8,7 +8,7 @@ import { toast } from 'sonner';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, Plus, Sparkles } from 'lucide-react';
+import { Loader2, Plus } from 'lucide-react';
 import Link from 'next/link';
 
 interface Desafio {
@@ -107,33 +107,49 @@ export default function MisDesafiosPage() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {desafios.map((desafio) => (
-            <Card key={desafio.desafio_id} className="hover:shadow-lg transition-shadow">
-              <CardHeader>
-                <CardTitle className="text-lg">{desafio.titulo}</CardTitle>
-                <CardDescription>
+            <div
+              key={desafio.desafio_id}
+              className="card-electric-fill p-6 rounded-xl border-2 border-black transition-all duration-350 ease-in-out relative"
+            >
+              <div className="mb-3">
+                <h3 className="text-lg font-semibold mb-2">{desafio.titulo}</h3>
+                <p className="text-sm opacity-80">
                   Registrado el {new Date(desafio.fecha_creacion).toLocaleDateString()}
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                {desafio.descripcion && (
-                  <p className="text-sm text-neutral-600 mb-3 line-clamp-3">
-                    {desafio.descripcion}
-                  </p>
-                )}
-                {desafio.palabras_clave && (
-                  <div>
-                    <p className="text-xs font-medium text-neutral-700 mb-1">Palabras clave:</p>
-                    <div className="flex flex-wrap gap-1">
-                      {desafio.palabras_clave.split(',').map((palabra, idx) => (
-                        <Badge key={idx} variant="outline" className="text-xs">
-                          {palabra.trim()}
-                        </Badge>
-                      ))}
-                    </div>
+                </p>
+              </div>
+
+              {desafio.descripcion && (
+                <p className="text-sm mb-3 line-clamp-3 opacity-90">
+                  {desafio.descripcion}
+                </p>
+              )}
+
+              {desafio.palabras_clave && (
+                <div className="mb-3">
+                  <p className="text-xs font-medium opacity-70 mb-1">Palabras clave:</p>
+                  <div className="flex flex-wrap gap-1">
+                    {desafio.palabras_clave.split(',').map((palabra, idx) => (
+                      <span
+                        key={idx}
+                        className="text-xs px-2.5 py-0.5 rounded-full border border-current opacity-80"
+                      >
+                        {palabra.trim()}
+                      </span>
+                    ))}
                   </div>
-                )}
-              </CardContent>
-            </Card>
+                </div>
+              )}
+
+              <Link href={`/desafio/editar/${desafio.desafio_id}`}>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="mt-2 bg-white border-2 border-black text-black hover:bg-[#FF0000] hover:border-[#FF0000] hover:text-white transition-all duration-250"
+                >
+                  Editar
+                </Button>
+              </Link>
+            </div>
           ))}
         </div>
       )}

@@ -133,7 +133,7 @@ export default function MisCapacidadesPage() {
               </div>
 
               {capacidad.palabras_clave && (
-                <div>
+                <div className="mb-3">
                   <p className="text-xs font-medium opacity-70 mb-2">Palabras clave:</p>
                   <div className="flex flex-wrap gap-1">
                     {capacidad.palabras_clave.split(',').map((palabra, idx) => (
@@ -147,6 +147,16 @@ export default function MisCapacidadesPage() {
                   </div>
                 </div>
               )}
+              
+              <Link href={`/capacidad/editar/${capacidad.capacidad_id}`}>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  className="mt-2 bg-white border-2 border-black text-black hover:bg-[#FF0000] hover:border-[#FF0000] hover:text-white transition-all duration-250"
+                >
+                  Editar
+                </Button>
+              </Link>
             </div>
           ))}
         </div>

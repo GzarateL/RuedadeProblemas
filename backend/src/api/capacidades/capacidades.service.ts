@@ -174,3 +174,79 @@ export const getAllCapacidades = async () => {
         throw new Error('Error al obtener todas las capacidades.');
     }
 }
+
+export const getCapacidadById = async (capacidadId: number) => {
+    try {
+        const [rows] = await dbPool.execute<RowDataPacket[]>(
+            `SELECT c.*, GROUP_CONCAT(pc.palabra ORDER BY pc.palabra SEPARATOR ', ') AS palabras_clave
+             FROM Capacidades_UNSA c
+             LEFT JOIN Capacidades_PalabrasClave cpc ON c.capacidad_id = cpc.capacidad_id
+             LEFT JOIN PalabrasClave pc ON cpc.palabra_clave_id = pc.palabra_clave_id
+             WHERE c.capacidad_id = ?
+             GROUP BY c.capacidad_id`,
+            [capacidadId]
+        );
+        return rows.length > 0 ? rows[0] : null;
+    } catch (error: any) {
+        console.error(`Error al obtener capacidad ${capacidadId}:`, error);
+        throw new Error('Error al obtener la capacidad.');
+    }
+};
+
+export const updateCapacidad = async (capacidadId: number, data: Partial<CapacidadData>) => {
+    const connection = await dbPool.getConnection();
+    await connection.beginTransaction();
+
+    try {
+        // Actualizar datos básicos de la capacidad
+        await connection.execute(
+            `UPDATE Capacidades_UNSA 
+             SET descripcion_capacidad = ?, problemas_que_resuelven = ?, tipos_proyectos = ?, 
+                 equipamiento = ?, clave_interna = ?
+             WHERE capacidad_id = ?`,
+            [
+                data.descripcion_capacidad,
+                data.problemas_que_resuelven || null,
+                data.tipos_proyectos || null,
+                data.equipamiento || null,
+                data.clave_interna || null,
+                capacidadId
+            ]
+        );
+
+        // Si hay palabras clave, actualizar
+        if (data.palabrasClave !== undefined) {
+            // Eliminar palabras clave existentes
+            await connection.execute(
+                'DELETE FROM Capacidades_PalabrasClave WHERE capacidad_id = ?',
+                [capacidadId]
+            );
+
+            // Agregar nuevas palabras clave
+            if (data.palabrasClave) {
+                await handleKeywordsAndTransaction(
+                    connection,
+                    capacidadId,
+                    data.palabrasClave,
+                    'Capacidades_PalabrasClave',
+                    'capacidad_id',
+                    false
+                );
+            }
+        }
+
+        await connection.commit();
+        connection.release();
+    } catch (error: any) {
+        if (connection) {
+            try {
+                await connection.rollback();
+                connection.release();
+            } catch (rollbackError) {
+                console.error("Error durante el rollback:", rollbackError);
+            }
+        }
+        console.error("Error al actualizar capacidad:", error);
+        throw new Error('Error al actualizar la capacidad.');
+    }
+};

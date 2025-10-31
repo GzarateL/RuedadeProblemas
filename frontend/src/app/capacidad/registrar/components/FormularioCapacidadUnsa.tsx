@@ -104,10 +104,10 @@ export default function FormularioCapacidadUnsa() {
   };
 
   return (
-     <Card className="w-full max-w-2xl mx-auto my-12">
+     <Card className="w-full max-w-2xl mx-auto my-12 border-2 border-black bg-white">
         <CardHeader>
-           <CardTitle className="text-2xl font-bold">Registrar Capacidad UNSA</CardTitle>
-           <CardDescription>Describe tus capacidades de investigación e innovación.</CardDescription>
+           <CardTitle className="text-2xl font-bold text-black">Registrar Capacidad UNSA</CardTitle>
+           <CardDescription className="text-neutral-700">Describe tus capacidades de investigación e innovación.</CardDescription>
         </CardHeader>
         <CardContent>
            <form onSubmit={handleSubmit} className="space-y-6">
@@ -194,7 +194,11 @@ export default function FormularioCapacidadUnsa() {
                      {errors.clave_interna && <p className="text-sm text-red-600">{errors.clave_interna}</p>}
                  </div>
 
-                <Button type="submit" className="w-full" disabled={isLoading}>
+                <Button 
+                  type="submit" 
+                  className="w-full bg-white border-2 border-black text-black hover:bg-[#FF0000] hover:border-[#FF0000] hover:text-white transition-all duration-250" 
+                  disabled={isLoading}
+                >
                     {isLoading ? "Registrando..." : "Registrar Capacidad"}
                 </Button>
            </form>

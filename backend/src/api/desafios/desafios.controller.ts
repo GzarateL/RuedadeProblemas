@@ -89,3 +89,76 @@ export const getAllDesafiosController = async (req: Request, res: Response) => {
         res.status(500).json({ message: error.message || 'Error al obtener todos los desafíos' });
     }
 }
+
+export const getDesafioByIdController = async (req: Request, res: Response) => {
+    try {
+        const desafioId = parseInt(req.params.id);
+        
+        if (isNaN(desafioId)) {
+            return res.status(400).json({ message: 'ID de desafío inválido' });
+        }
+
+        const desafio = await desafioService.getDesafioById(desafioId);
+        
+        if (!desafio) {
+            return res.status(404).json({ message: 'Desafío no encontrado' });
+        }
+
+        // Verificar que el usuario sea el dueño o admin
+        if (req.user?.rol !== 'admin' && desafio.participante_id !== req.profileId) {
+            return res.status(403).json({ message: 'No tienes permiso para ver este desafío' });
+        }
+
+        res.status(200).json(desafio);
+    } catch (error: any) {
+        console.error("Error en getDesafioByIdController:", error);
+        res.status(500).json({ message: error.message || 'Error al obtener el desafío' });
+    }
+}
+
+export const updateDesafioController = async (req: Request, res: Response) => {
+    try {
+        if (!req.user || req.user.rol !== 'externo' || !req.profileId) {
+            return res.status(403).json({ message: 'Acción no permitida' });
+        }
+
+        const desafioId = parseInt(req.params.id);
+        
+        if (isNaN(desafioId)) {
+            return res.status(400).json({ message: 'ID de desafío inválido' });
+        }
+
+        // Verificar que el desafío existe y pertenece al usuario
+        const desafioExistente = await desafioService.getDesafioById(desafioId);
+        
+        if (!desafioExistente) {
+            return res.status(404).json({ message: 'Desafío no encontrado' });
+        }
+
+        if (desafioExistente.participante_id !== req.profileId) {
+            return res.status(403).json({ message: 'No tienes permiso para editar este desafío' });
+        }
+
+        const { titulo, descripcion, impacto, intentos_previos, solucion_imaginada, palabrasClave } = req.body;
+
+        if (!titulo || typeof titulo !== 'string' || titulo.trim() === '') {
+            return res.status(400).json({ message: 'El título del desafío es obligatorio.' });
+        }
+
+        const desafioData = {
+            titulo: titulo.trim(),
+            descripcion: descripcion || null,
+            impacto: impacto || null,
+            intentos_previos: intentos_previos || null,
+            solucion_imaginada: solucion_imaginada || null,
+            palabrasClave: palabrasClave || null,
+        };
+
+        await desafioService.updateDesafio(desafioId, desafioData);
+
+        res.status(200).json({ message: 'Desafío actualizado exitosamente' });
+    } catch (error: any) {
+        console.error("Error en updateDesafioController:", error);
+        res.status(500).json({ message: error.message || 'Error al actualizar el desafío' });
+    }
+}

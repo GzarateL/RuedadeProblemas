@@ -128,10 +128,10 @@ export default function FormularioDesafioExterno() {
   };
 
   return (
-     <Card className="w-full max-w-2xl mx-auto my-12">
+     <Card className="w-full max-w-2xl mx-auto my-12 border-2 border-black bg-white">
        <CardHeader>
-           <CardTitle className="text-2xl font-bold">Registrar Desafío Externo</CardTitle>
-           <CardDescription>Describe el problema o necesidad que buscas resolver.</CardDescription>
+           <CardTitle className="text-2xl font-bold text-black">Registrar Desafío Externo</CardTitle>
+           <CardDescription className="text-neutral-700">Describe el problema o necesidad que buscas resolver.</CardDescription>
        </CardHeader>
        <CardContent>
            <form onSubmit={handleSubmit} className="space-y-6">
@@ -187,7 +187,11 @@ export default function FormularioDesafioExterno() {
                 </div>
 
 
-               <Button type="submit" className="w-full" disabled={isLoading}>
+               <Button 
+                 type="submit" 
+                 className="w-full bg-white border-2 border-black text-black hover:bg-[#FF0000] hover:border-[#FF0000] hover:text-white transition-all duration-250" 
+                 disabled={isLoading}
+               >
                    {isLoading ? "Registrando..." : "Registrar Desafío"}
                </Button>
            </form>

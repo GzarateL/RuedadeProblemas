@@ -31,5 +31,19 @@ router.get(
     desafioController.getAllDesafiosController
 );
 
+// Obtener un desafío por ID (solo el dueño o admin)
+router.get(
+    '/:id',
+    authenticateToken,
+    desafioController.getDesafioByIdController
+);
+
+// Actualizar un desafío (solo el dueño)
+router.put(
+    '/:id',
+    authenticateToken,
+    authorizeRole(['externo']),
+    desafioController.updateDesafioController
+);
 
 export default router;

@@ -162,3 +162,78 @@ export const getAllDesafios = async () => {
         throw new Error('Error al obtener todos los desafíos.');
     }
 };
+
+export const getDesafioById = async (desafioId: number) => {
+    try {
+        const [rows] = await dbPool.execute<RowDataPacket[]>(
+            `SELECT d.*, GROUP_CONCAT(pc.palabra ORDER BY pc.palabra SEPARATOR ', ') AS palabras_clave
+             FROM Desafios d
+             LEFT JOIN Desafios_PalabrasClave dpc ON d.desafio_id = dpc.desafio_id
+             LEFT JOIN PalabrasClave pc ON dpc.palabra_clave_id = pc.palabra_clave_id
+             WHERE d.desafio_id = ?
+             GROUP BY d.desafio_id`,
+            [desafioId]
+        );
+        return rows.length > 0 ? rows[0] : null;
+    } catch (error: any) {
+        console.error(`Error al obtener desafío ${desafioId}:`, error);
+        throw new Error('Error al obtener el desafío.');
+    }
+};
+
+export const updateDesafio = async (desafioId: number, data: Partial<DesafioData>) => {
+    const connection = await dbPool.getConnection();
+    await connection.beginTransaction();
+
+    try {
+        // Actualizar datos básicos del desafío
+        await connection.execute(
+            `UPDATE Desafios 
+             SET titulo = ?, descripcion = ?, impacto = ?, intentos_previos = ?, solucion_imaginada = ?
+             WHERE desafio_id = ?`,
+            [
+                data.titulo,
+                data.descripcion || null,
+                data.impacto || null,
+                data.intentos_previos || null,
+                data.solucion_imaginada || null,
+                desafioId
+            ]
+        );
+
+        // Si hay palabras clave, actualizar
+        if (data.palabrasClave !== undefined) {
+            // Eliminar palabras clave existentes
+            await connection.execute(
+                'DELETE FROM Desafios_PalabrasClave WHERE desafio_id = ?',
+                [desafioId]
+            );
+
+            // Agregar nuevas palabras clave
+            if (data.palabrasClave) {
+                await handleKeywordsAndTransaction(
+                    connection,
+                    desafioId,
+                    data.palabrasClave,
+                    'Desafios_PalabrasClave',
+                    'desafio_id',
+                    false // No incrementar contador en actualización
+                );
+            }
+        }
+
+        await connection.commit();
+        connection.release();
+    } catch (error: any) {
+        if (connection) {
+            try {
+                await connection.rollback();
+                connection.release();
+            } catch (rollbackError) {
+                console.error("Error durante el rollback:", rollbackError);
+            }
+        }
+        console.error("Error al actualizar desafío:", error);
+        throw new Error('Error al actualizar el desafío.');
+    }
+};

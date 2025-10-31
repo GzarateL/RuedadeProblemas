@@ -29,5 +29,19 @@ router.get(
     capacidadController.getAllCapacidadesController
 );
 
+// Obtener una capacidad por ID (solo el dueño o admin)
+router.get(
+    '/:id',
+    authenticateToken,
+    capacidadController.getCapacidadByIdController
+);
+
+// Actualizar una capacidad (solo el dueño)
+router.put(
+    '/:id',
+    authenticateToken,
+    authorizeRole(['unsa']),
+    capacidadController.updateCapacidadController
+);
 
 export default router;
