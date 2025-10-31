@@ -237,3 +237,36 @@ export const updateDesafio = async (desafioId: number, data: Partial<DesafioData
         throw new Error('Error al actualizar el desafío.');
     }
 };
+
+export const deleteDesafio = async (desafioId: number) => {
+    const connection = await dbPool.getConnection();
+    await connection.beginTransaction();
+
+    try {
+        // Eliminar relaciones con palabras clave
+        await connection.execute(
+            'DELETE FROM Desafios_PalabrasClave WHERE desafio_id = ?',
+            [desafioId]
+        );
+
+        // Eliminar el desafío
+        await connection.execute(
+            'DELETE FROM Desafios WHERE desafio_id = ?',
+            [desafioId]
+        );
+
+        await connection.commit();
+        connection.release();
+    } catch (error: any) {
+        if (connection) {
+            try {
+                await connection.rollback();
+                connection.release();
+            } catch (rollbackError) {
+                console.error("Error durante el rollback:", rollbackError);
+            }
+        }
+        console.error("Error al eliminar desafío:", error);
+        throw new Error('Error al eliminar el desafío.');
+    }
+};

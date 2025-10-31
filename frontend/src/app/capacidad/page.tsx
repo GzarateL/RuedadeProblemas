@@ -148,15 +148,47 @@ export default function MisCapacidadesPage() {
                 </div>
               )}
               
-              <Link href={`/capacidad/editar/${capacidad.capacidad_id}`}>
-                <Button 
-                  variant="outline" 
+              <div className="flex gap-2 mt-2">
+                <Link href={`/capacidad/editar/${capacidad.capacidad_id}`}>
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    className="bg-white border-2 border-black text-black hover:bg-[#FF0000] hover:border-[#FF0000] hover:text-white transition-all duration-250"
+                  >
+                    Editar
+                  </Button>
+                </Link>
+                <Button
+                  variant="outline"
                   size="sm"
-                  className="mt-2 bg-white border-2 border-black text-black hover:bg-[#FF0000] hover:border-[#FF0000] hover:text-white transition-all duration-250"
+                  className="bg-white border-2 border-black text-black hover:bg-[#FF0000] hover:border-[#FF0000] hover:text-white transition-all duration-250"
+                  onClick={async () => {
+                    if (!confirm('¿Estás seguro de que deseas eliminar esta capacidad?')) return;
+                    
+                    const token = Cookies.get('token');
+                    if (!token) {
+                      toast.error("No autenticado");
+                      return;
+                    }
+
+                    try {
+                      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/capacidades/${capacidad.capacidad_id}`, {
+                        method: 'DELETE',
+                        headers: { "Authorization": `Bearer ${token}` }
+                      });
+
+                      if (!res.ok) throw new Error('Error al eliminar capacidad');
+
+                      toast.success("Capacidad eliminada exitosamente");
+                      setCapacidades(prev => prev.filter(c => c.capacidad_id !== capacidad.capacidad_id));
+                    } catch (err: any) {
+                      toast.error("Error", { description: err.message });
+                    }
+                  }}
                 >
-                  Editar
+                  Eliminar
                 </Button>
-              </Link>
+              </div>
             </div>
           ))}
         </div>

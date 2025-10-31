@@ -162,3 +162,35 @@ export const updateDesafioController = async (req: Request, res: Response) => {
         res.status(500).json({ message: error.message || 'Error al actualizar el desafío' });
     }
 }
+
+export const deleteDesafioController = async (req: Request, res: Response) => {
+    try {
+        if (!req.user || req.user.rol !== 'externo' || !req.profileId) {
+            return res.status(403).json({ message: 'Acción no permitida' });
+        }
+
+        const desafioId = parseInt(req.params.id);
+        
+        if (isNaN(desafioId)) {
+            return res.status(400).json({ message: 'ID de desafío inválido' });
+        }
+
+        // Verificar que el desafío existe y pertenece al usuario
+        const desafioExistente = await desafioService.getDesafioById(desafioId);
+        
+        if (!desafioExistente) {
+            return res.status(404).json({ message: 'Desafío no encontrado' });
+        }
+
+        if (desafioExistente.participante_id !== req.profileId) {
+            return res.status(403).json({ message: 'No tienes permiso para eliminar este desafío' });
+        }
+
+        await desafioService.deleteDesafio(desafioId);
+
+        res.status(200).json({ message: 'Desafío eliminado exitosamente' });
+    } catch (error: any) {
+        console.error("Error en deleteDesafioController:", error);
+        res.status(500).json({ message: error.message || 'Error al eliminar el desafío' });
+    }
+}

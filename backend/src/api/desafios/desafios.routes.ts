@@ -46,4 +46,12 @@ router.put(
     desafioController.updateDesafioController
 );
 
+// Eliminar un desafío (solo el dueño)
+router.delete(
+    '/:id',
+    authenticateToken,
+    authorizeRole(['externo']),
+    desafioController.deleteDesafioController
+);
+
 export default router;

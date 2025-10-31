@@ -115,3 +115,35 @@ export const updateCapacidadController = async (req: Request, res: Response) => 
         res.status(500).json({ message: error.message || 'Error al actualizar la capacidad' });
     }
 }
+
+export const deleteCapacidadController = async (req: Request, res: Response) => {
+    try {
+        if (!req.user || req.user.rol !== 'unsa' || !req.profileId) {
+            return res.status(403).json({ message: 'Acción no permitida' });
+        }
+
+        const capacidadId = parseInt(req.params.id);
+        
+        if (isNaN(capacidadId)) {
+            return res.status(400).json({ message: 'ID de capacidad inválido' });
+        }
+
+        // Verificar que la capacidad existe y pertenece al usuario
+        const capacidadExistente = await capacidadService.getCapacidadById(capacidadId);
+        
+        if (!capacidadExistente) {
+            return res.status(404).json({ message: 'Capacidad no encontrada' });
+        }
+
+        if (capacidadExistente.investigador_id !== req.profileId) {
+            return res.status(403).json({ message: 'No tienes permiso para eliminar esta capacidad' });
+        }
+
+        await capacidadService.deleteCapacidad(capacidadId);
+
+        res.status(200).json({ message: 'Capacidad eliminada exitosamente' });
+    } catch (error: any) {
+        console.error("Error en deleteCapacidadController:", error);
+        res.status(500).json({ message: error.message || 'Error al eliminar la capacidad' });
+    }
+}

@@ -149,7 +149,7 @@ export default function FormularioEditarCapacidad({ capacidadId }: Props) {
   }
 
   return (
-    <Card className="w-full max-w-2xl mx-auto my-12 border-2 border-black bg-white">
+    <Card className="w-full max-w-2xl mx-auto my-12 border-2 border-black bg-white transition-[border-color] duration-300 group">
       <CardHeader>
         <CardTitle className="text-2xl font-bold text-black">Editar Capacidad</CardTitle>
         <CardDescription className="text-neutral-700">Modifica los datos de tu capacidad.</CardDescription>
@@ -237,7 +237,7 @@ export default function FormularioEditarCapacidad({ capacidadId }: Props) {
             <Button
               type="button"
               variant="outline"
-              className="flex-1"
+              className="flex-1 bg-white border-2 border-black text-black hover:bg-[#333] hover:border-[#333] hover:text-white transition-all duration-250"
               onClick={() => router.push('/capacidad')}
             >
               Cancelar
@@ -246,6 +246,14 @@ export default function FormularioEditarCapacidad({ capacidadId }: Props) {
               type="submit"
               className="flex-1 bg-white border-2 border-black text-black hover:bg-[#FF0000] hover:border-[#FF0000] hover:text-white transition-all duration-250"
               disabled={isLoading}
+              onMouseEnter={(e) => {
+                const card = e.currentTarget.closest('.group');
+                if (card) card.classList.add('!border-[#FF0000]');
+              }}
+              onMouseLeave={(e) => {
+                const card = e.currentTarget.closest('.group');
+                if (card) card.classList.remove('!border-[#FF0000]');
+              }}
             >
               {isLoading ? "Guardando..." : "Guardar Cambios"}
             </Button>

@@ -44,4 +44,12 @@ router.put(
     capacidadController.updateCapacidadController
 );
 
+// Eliminar una capacidad (solo el dueño)
+router.delete(
+    '/:id',
+    authenticateToken,
+    authorizeRole(['unsa']),
+    capacidadController.deleteCapacidadController
+);
+
 export default router;

@@ -250,3 +250,36 @@ export const updateCapacidad = async (capacidadId: number, data: Partial<Capacid
         throw new Error('Error al actualizar la capacidad.');
     }
 };
+
+export const deleteCapacidad = async (capacidadId: number) => {
+    const connection = await dbPool.getConnection();
+    await connection.beginTransaction();
+
+    try {
+        // Eliminar relaciones con palabras clave
+        await connection.execute(
+            'DELETE FROM Capacidades_PalabrasClave WHERE capacidad_id = ?',
+            [capacidadId]
+        );
+
+        // Eliminar la capacidad
+        await connection.execute(
+            'DELETE FROM Capacidades_UNSA WHERE capacidad_id = ?',
+            [capacidadId]
+        );
+
+        await connection.commit();
+        connection.release();
+    } catch (error: any) {
+        if (connection) {
+            try {
+                await connection.rollback();
+                connection.release();
+            } catch (rollbackError) {
+                console.error("Error durante el rollback:", rollbackError);
+            }
+        }
+        console.error("Error al eliminar capacidad:", error);
+        throw new Error('Error al eliminar la capacidad.');
+    }
+};
