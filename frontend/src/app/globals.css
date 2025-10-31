@@ -159,6 +159,20 @@
   body {
     @apply bg-background text-foreground;
   }
+
+  /* Estilos globales para botones nativos */
+  button:not([class*="ghost"]):not([class*="link"]):not([class*="outline"]):not([class*="secondary"]):not([class*="destructive"]) {
+    background-color: white;
+    color: black;
+    border: 2px solid black;
+    transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+  }
+
+  button:not([class*="ghost"]):not([class*="link"]):not([class*="outline"]):not([class*="secondary"]):not([class*="destructive"]):hover:not(:disabled) {
+    background-color: hsl(350 100% 50%);
+    color: white;
+    border-color: hsl(350 100% 50%);
+  }
 }
 
 /* --- Keyframes y Clases para Animaciones --- */

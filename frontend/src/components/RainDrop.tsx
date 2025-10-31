@@ -28,7 +28,7 @@ const Particle = ({ style }: { style: React.CSSProperties }) => {
       className="absolute rounded-full pointer-events-none"
       style={{
         ...style,
-        backgroundColor: 'rgba(255, 0, 51, 0.4)',
+        backgroundColor: 'rgba(0, 0, 0, 0.4)',
         filter: 'blur(3px)',
       }}
     />

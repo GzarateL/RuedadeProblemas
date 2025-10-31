@@ -116,16 +116,6 @@ export function Navbar() {
                      Mis Desafíos
                    </Link>
                    <Link 
-                     href="/desafio/mis-matches" 
-                     className={`text-sm transition-all duration-300 ${
-                       pathname === '/desafio/mis-matches' 
-                         ? 'text-electric underline underline-offset-4' 
-                         : 'text-neutral-900 hover:text-electric'
-                     }`}
-                   >
-                     Matches
-                   </Link>
-                   <Link 
                      href="/chats" 
                      className={`text-sm transition-all duration-300 ${
                        pathname === '/chats' 
@@ -148,16 +138,6 @@ export function Navbar() {
                      }`}
                    >
                      Mis Capacidades
-                   </Link>
-                   <Link 
-                     href="/capacidad/mis-matches" 
-                     className={`text-sm transition-all duration-300 ${
-                       pathname === '/capacidad/mis-matches' 
-                         ? 'text-electric underline underline-offset-4' 
-                         : 'text-neutral-900 hover:text-electric'
-                     }`}
-                   >
-                     Matches
                    </Link>
                    <Link 
                      href="/chats" 

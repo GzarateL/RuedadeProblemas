@@ -48,7 +48,7 @@ export default async function AgendaPage() {
     const schedule = await getScheduleData();
 
     return (
-        <div className="min-h-screen bg-[linear-gradient(#0001_1px,transparent_1px),linear-gradient(90deg,#0001_1px,transparent_1px)] bg-[size:24px_24px] p-8">
+        <div className="min-h-screen bg-[linear-gradient(#0001_1px,transparent_1px),linear-gradient(90deg,#0001_1px,transparent_1px)] bg-[size:48px_48px] p-8">
             <div className="max-w-7xl mx-auto">
                 <h1 className="text-4xl font-bold text-center mb-4 text-gray-900">Agenda del Evento</h1>
                 <p className="text-xl text-gray-600 text-center mb-12">Rueda de Problemas 2025</p>
