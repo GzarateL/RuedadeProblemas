@@ -9,8 +9,8 @@ import { RowDataPacket } from 'mysql2';
 declare global {
   namespace Express {
     interface Request {
-      user?: { 
-        userId: number; 
+      user?: {
+        userId: number;
         rol: string;
         investigador_id?: number;
         participante_id?: number;
@@ -62,8 +62,8 @@ export const authenticateToken = async (req: Request, res: Response, next: NextF
           console.log(`✅ Perfil creado automáticamente: participante_id=${result.insertId}`);
         } catch (createError) {
           console.error('❌ Error al crear perfil automático:', createError);
-          return res.status(500).json({ 
-            message: 'Error al crear perfil de usuario. Contacte al administrador.' 
+          return res.status(500).json({
+            message: 'Error al crear perfil de usuario. Contacte al administrador.'
           });
         }
       }
@@ -72,7 +72,7 @@ export const authenticateToken = async (req: Request, res: Response, next: NextF
         'SELECT investigador_id FROM Investigadores_UNSA WHERE usuario_id = ?',
         [req.user.userId]
       );
-       if (profileIdResult.length > 0) {
+      if (profileIdResult.length > 0) {
         req.profileId = profileIdResult[0].investigador_id;
         req.user.investigador_id = profileIdResult[0].investigador_id;
       } else {
@@ -90,8 +90,8 @@ export const authenticateToken = async (req: Request, res: Response, next: NextF
           console.log(`✅ Perfil creado automáticamente: investigador_id=${result.insertId}`);
         } catch (createError) {
           console.error('❌ Error al crear perfil automático:', createError);
-          return res.status(500).json({ 
-            message: 'Error al crear perfil de usuario. Contacte al administrador.' 
+          return res.status(500).json({
+            message: 'Error al crear perfil de usuario. Contacte al administrador.'
           });
         }
       }
@@ -106,11 +106,11 @@ export const authenticateToken = async (req: Request, res: Response, next: NextF
 
 // Middleware específico para roles (opcional pero útil)
 export const authorizeRole = (allowedRoles: string[]) => {
-   return (req: Request, res: Response, next: NextFunction) => {
-       if (!req.user || !allowedRoles.includes(req.user.rol)) {
-           return res.status(403).json({ message: 'Acceso denegado para este rol.' });
-       }
-       next();
-   };
+  return (req: Request, res: Response, next: NextFunction) => {
+    if (!req.user || !allowedRoles.includes(req.user.rol)) {
+      return res.status(403).json({ message: 'Acceso denegado para este rol.' });
+    }
+    next();
+  };
 };
 
