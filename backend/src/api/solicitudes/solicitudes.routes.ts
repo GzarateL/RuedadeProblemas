@@ -5,9 +5,9 @@ import { authenticateToken, authorizeRole } from '../../middleware/authMiddlewar
 
 const router = Router();
 
-// Todas las rutas requieren autenticación y son para usuarios unsa/externo
+// Todas las rutas requieren autenticación y son para usuarios interno/externo
 router.use(authenticateToken);
-router.use(authorizeRole(['unsa', 'externo']));
+router.use(authorizeRole(['interno', 'externo']));
 
 // Crear una nueva solicitud
 router.post('/', solicitudesController.crearSolicitudController);

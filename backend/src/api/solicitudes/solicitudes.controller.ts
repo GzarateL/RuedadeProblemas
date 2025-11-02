@@ -33,7 +33,7 @@ export const crearSolicitudController = async (req: Request, res: Response) => {
     }
     
     // Evitar auto-solicitudes
-    const remitenteTipo = user.rol === 'unsa' ? 'unsa' : 'externo';
+    const remitenteTipo = user.rol === 'interno' ? 'unsa' : 'externo';
     if (remitenteTipo === destinatario_tipo && profileId === destinatario_id) {
       return res.status(400).json({ message: 'No puedes enviarte una solicitud a ti mismo.' });
     }
@@ -89,7 +89,7 @@ export const getSolicitudesEnviadasController = async (req: Request, res: Respon
       return res.status(401).json({ message: 'Usuario no autenticado.' });
     }
     
-    const tipo = user.rol === 'unsa' ? 'unsa' : 'externo';
+    const tipo = user.rol === 'interno' ? 'unsa' : 'externo';
     const solicitudes = await solicitudesService.getSolicitudesEnviadas(tipo, profileId);
     
     res.status(200).json({ solicitudes });
@@ -112,7 +112,7 @@ export const getSolicitudesRecibidasController = async (req: Request, res: Respo
       return res.status(401).json({ message: 'Usuario no autenticado.' });
     }
     
-    const tipo = user.rol === 'unsa' ? 'unsa' : 'externo';
+    const tipo = user.rol === 'interno' ? 'unsa' : 'externo';
     const solicitudes = await solicitudesService.getSolicitudesRecibidas(tipo, profileId);
     
     res.status(200).json({ solicitudes });
@@ -142,7 +142,7 @@ export const responderSolicitudController = async (req: Request, res: Response) 
       return res.status(400).json({ message: 'Estado debe ser "aceptada" o "rechazada"' });
     }
     
-    const tipo = user.rol === 'unsa' ? 'unsa' : 'externo';
+    const tipo = user.rol === 'interno' ? 'unsa' : 'externo';
     
     await solicitudesService.actualizarEstadoSolicitud(
       parseInt(solicitud_id),
@@ -188,7 +188,7 @@ export const getConteoSolicitudesPendientesController = async (req: Request, res
       return res.status(401).json({ message: 'Usuario no autenticado.' });
     }
     
-    const tipo = user.rol === 'unsa' ? 'unsa' : 'externo';
+    const tipo = user.rol === 'interno' ? 'unsa' : 'externo';
     const total = await solicitudesService.getConteoSolicitudesPendientes(tipo, profileId);
     
     res.status(200).json({ total });
@@ -219,7 +219,7 @@ export const getEstadoSolicitudParaMatchController = async (req: Request, res: R
       });
     }
     
-    const miTipo = user.rol === 'unsa' ? 'unsa' : 'externo';
+    const miTipo = user.rol === 'interno' ? 'unsa' : 'externo';
     
     const estado = await solicitudesService.getEstadoSolicitudParaMatch(
       miTipo,

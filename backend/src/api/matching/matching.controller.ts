@@ -106,8 +106,8 @@ export const getMyMatchesController = async (req: Request, res: Response) => {
 
     let matches;
     
-    if (user.rol === 'unsa') {
-      // Para usuarios UNSA, buscar desafíos que coincidan con sus capacidades
+    if (user.rol === 'interno') {
+      // Para usuarios internos (UNSA), buscar desafíos que coincidan con sus capacidades
       const investigadorId = user.investigador_id || profileId;
       console.log('Buscando matches para investigador:', investigadorId);
       

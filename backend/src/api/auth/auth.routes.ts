@@ -18,8 +18,8 @@ router.post('/register/empresa', authController.registerEmpresaUser);
 // POST /api/auth/register/sociedad-civil
 router.post('/register/sociedad-civil', authController.registerSociedadCivilUser);
 
-// POST /api/auth/register/unsa
-router.post('/register/unsa', authController.registerUnsaUser);
+// POST /api/auth/register/interno
+router.post('/register/interno', authController.registerInternoUser);
 
 // POST /api/auth/login
 router.post('/login', authController.loginUser);

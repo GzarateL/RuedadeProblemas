@@ -141,7 +141,7 @@ export const createUser = async (userData: UserData | any) => {
     } else if ('unidad_academica' in userData) {
       const [userResult] = await connection.execute<OkPacket>(
         'INSERT INTO Usuarios (email, password_hash, rol) VALUES (?, ?, ?)',
-        [userData.email, passwordHash, 'unsa']
+        [userData.email, passwordHash, 'interno']
       );
       newUserId = userResult.insertId;
       if (!newUserId) {
@@ -388,7 +388,7 @@ export const createSociedadCivilUser = async (userData: SociedadCivilUserData) =
   }
 };
 
-export const createUnsaUser = async (userData: UnsaUserData) => {
+export const createInternoUser = async (userData: UnsaUserData) => {
   const connection = await dbPool.getConnection();
   await connection.beginTransaction();
 
@@ -404,7 +404,7 @@ export const createUnsaUser = async (userData: UnsaUserData) => {
     
     const [userResult] = await connection.execute<OkPacket>(
       'INSERT INTO Usuarios (email, password_hash, rol) VALUES (?, ?, ?)',
-      [userData.email, passwordHash, 'unsa']
+      [userData.email, passwordHash, 'interno']
     );
     const newUserId = userResult.insertId;
     if (!newUserId) {
@@ -468,52 +468,32 @@ export const login = async (email: string, password: string) => {
     throw new Error('Credenciales inválidas.');
   }
 
-  // --- 3. Busca el Nombre Completo según el ROL (opcional, puede no existir aún) ---
+  // --- 3. Buscar nombre en registro de hélice interna si existe ---
   let userProfile: RowDataPacket | null = null;
   try {
-    if (user.rol === 'externo') {
-      const [profiles] = await dbPool.execute<RowDataPacket[]>(
-        'SELECT nombres_apellidos FROM Participantes_Externos WHERE usuario_id = ?',
-        [user.usuario_id]
-      );
-      if (profiles.length > 0) userProfile = profiles[0];
-    } else if (user.rol === 'unsa') {
-      const [profiles] = await dbPool.execute<RowDataPacket[]>(
-        'SELECT nombres_apellidos FROM Investigadores_UNSA WHERE usuario_id = ?',
-        [user.usuario_id]
-      );
-      if (profiles.length > 0) userProfile = profiles[0];
-    } else if (user.rol === 'academia') {
-      const [profiles] = await dbPool.execute<RowDataPacket[]>(
-        'SELECT nombres_apellidos FROM Participantes_Academia WHERE usuario_id = ?',
-        [user.usuario_id]
-      );
-      if (profiles.length > 0) userProfile = profiles[0];
-    } else if (user.rol === 'gobierno') {
-      const [profiles] = await dbPool.execute<RowDataPacket[]>(
-        'SELECT nombres_apellidos FROM Participantes_Gobierno WHERE usuario_id = ?',
-        [user.usuario_id]
-      );
-      if (profiles.length > 0) userProfile = profiles[0];
-    } else if (user.rol === 'empresa') {
-      const [profiles] = await dbPool.execute<RowDataPacket[]>(
-        'SELECT nombres_apellidos FROM Participantes_Empresa WHERE usuario_id = ?',
-        [user.usuario_id]
-      );
-      if (profiles.length > 0) userProfile = profiles[0];
-    } else if (user.rol === 'sociedad_civil') {
-      const [profiles] = await dbPool.execute<RowDataPacket[]>(
-        'SELECT nombres_apellidos FROM Participantes_Sociedad_Civil WHERE usuario_id = ?',
-        [user.usuario_id]
-      );
-      if (profiles.length > 0) userProfile = profiles[0];
-    } else if (user.rol === 'admin') {
-      // El admin no tiene perfil separado, podemos usar un nombre genérico o el email
-      userProfile = { nombres_apellidos: 'Administrador' } as RowDataPacket;
+    // Intentar buscar en registros de hélice interna
+    const [heliceRecords] = await dbPool.execute<RowDataPacket[]>(
+      'SELECT nombre_completo, nombre_entidad FROM registros_helice_interna WHERE usuario_id = ? LIMIT 1',
+      [user.usuario_id]
+    );
+    if (heliceRecords.length > 0) {
+      const record = heliceRecords[0];
+      userProfile = { 
+        nombres_apellidos: record.nombre_completo || record.nombre_entidad || user.email 
+      } as RowDataPacket;
     }
   } catch (error) {
     // Si la tabla no existe o hay error, continuar sin el perfil
-    console.log('No se pudo obtener el perfil del usuario, continuando sin él');
+    console.log('No se pudo obtener el perfil del usuario desde hélice interna');
+  }
+
+  // Si no hay perfil, usar el email como nombre
+  if (!userProfile) {
+    if (user.rol === 'admin') {
+      userProfile = { nombres_apellidos: 'Administrador' } as RowDataPacket;
+    } else {
+      userProfile = { nombres_apellidos: user.email } as RowDataPacket;
+    }
   }
 
 
@@ -553,61 +533,24 @@ export const verify = async (token: string) => {
     
     const user = users[0];
     
-    // Obtener el ID del perfil según el rol
+    // Intentar obtener el ID del perfil desde registros_helice_interna
     let profileId = null;
-    if (user.rol === 'externo') {
-      const [profiles] = await dbPool.execute<RowDataPacket[]>(
-        'SELECT participante_id FROM Participantes_Externos WHERE usuario_id = ?',
+    try {
+      const [heliceRecords] = await dbPool.execute<RowDataPacket[]>(
+        'SELECT id FROM registros_helice_interna WHERE usuario_id = ? LIMIT 1',
         [user.usuario_id]
       );
-      if (profiles.length > 0) {
-        profileId = profiles[0].participante_id;
+      if (heliceRecords.length > 0) {
+        profileId = heliceRecords[0].id;
       }
-    } else if (user.rol === 'unsa') {
-      const [profiles] = await dbPool.execute<RowDataPacket[]>(
-        'SELECT investigador_id FROM Investigadores_UNSA WHERE usuario_id = ?',
-        [user.usuario_id]
-      );
-      if (profiles.length > 0) {
-        profileId = profiles[0].investigador_id;
-      }
-    } else if (user.rol === 'academia') {
-      const [profiles] = await dbPool.execute<RowDataPacket[]>(
-        'SELECT participante_id FROM Participantes_Academia WHERE usuario_id = ?',
-        [user.usuario_id]
-      );
-      if (profiles.length > 0) {
-        profileId = profiles[0].participante_id;
-      }
-    } else if (user.rol === 'gobierno') {
-      const [profiles] = await dbPool.execute<RowDataPacket[]>(
-        'SELECT participante_id FROM Participantes_Gobierno WHERE usuario_id = ?',
-        [user.usuario_id]
-      );
-      if (profiles.length > 0) {
-        profileId = profiles[0].participante_id;
-      }
-    } else if (user.rol === 'empresa') {
-      const [profiles] = await dbPool.execute<RowDataPacket[]>(
-        'SELECT participante_id FROM Participantes_Empresa WHERE usuario_id = ?',
-        [user.usuario_id]
-      );
-      if (profiles.length > 0) {
-        profileId = profiles[0].participante_id;
-      }
-    } else if (user.rol === 'sociedad_civil') {
-      const [profiles] = await dbPool.execute<RowDataPacket[]>(
-        'SELECT participante_id FROM Participantes_Sociedad_Civil WHERE usuario_id = ?',
-        [user.usuario_id]
-      );
-      if (profiles.length > 0) {
-        profileId = profiles[0].participante_id;
-      }
+    } catch (error) {
+      // Si la tabla no existe, continuar sin perfil
+      console.log('No se pudo obtener el perfil desde hélice interna');
     }
     
     return {
       ...user,
-      investigador_id: user.rol === 'unsa' ? profileId : undefined,
+      investigador_id: user.rol === 'interno' ? profileId : undefined,
       participante_id: user.rol === 'externo' ? profileId : undefined,
     };
   } catch (error) {

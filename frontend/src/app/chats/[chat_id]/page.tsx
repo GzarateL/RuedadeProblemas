@@ -66,8 +66,8 @@ export default function ChatDetailPage() {
 
       if (resMe.ok) {
         const userData = await resMe.json();
-        const tipo = userData.rol === 'unsa' ? 'unsa' : 'externo';
-        const id = userData.rol === 'unsa' ? userData.investigador_id : userData.participante_id;
+        const tipo = userData.rol === 'interno' ? 'unsa' : 'externo';
+        const id = userData.rol === 'interno' ? userData.investigador_id : userData.participante_id;
         setMiTipo(tipo);
         setMiId(id);
       }

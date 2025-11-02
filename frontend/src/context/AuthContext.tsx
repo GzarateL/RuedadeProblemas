@@ -8,7 +8,7 @@ import Cookies from 'js-cookie';
 interface User {
   id: number;
   email: string;
-  rol: 'admin' | 'externo' | 'unsa';
+  rol: 'admin' | 'externo' | 'interno';
   nombres_apellidos: string; // <-- AÑADIDO
 }
 

@@ -3,7 +3,7 @@ import { Request, Response } from 'express';
 import { listUsers, Rol } from './users.service';
 
 function parseRole(roleParam?: string): Rol | undefined {
-  if (roleParam === 'admin' || roleParam === 'externo' || roleParam === 'unsa') return roleParam;
+  if (roleParam === 'admin' || roleParam === 'externo' || roleParam === 'interno') return roleParam;
   return undefined;
 }
 

@@ -156,6 +156,9 @@ export class HeliceInternaService {
         await this.guardarSoluciones(connection, registroId, datos.soluciones);
       }
 
+      // El usuario ya tiene rol 'interno' desde el registro inicial
+      // No es necesario actualizar el rol
+
       await connection.commit();
 
       // Obtener el registro completo
@@ -301,18 +304,37 @@ export class HeliceInternaService {
   }
 
   async completarRegistro(registroId: number, usuarioId: number): Promise<RegistroHeliceInterna | null> {
-    const [result] = await db.execute<ResultSetHeader>(
-      `UPDATE registros_helice_interna 
-       SET estado = 'aprobado', fecha_completado = CURRENT_TIMESTAMP, fecha_aprobacion = CURRENT_TIMESTAMP
-       WHERE id = ? AND usuario_id = ? AND estado = 'borrador'`,
-      [registroId, usuarioId]
-    );
+    const connection = await db.getConnection();
+    
+    try {
+      await connection.beginTransaction();
 
-    if (result.affectedRows === 0) {
-      return null;
+      // Actualizar el registro de hélice interna
+      const [result] = await connection.execute<ResultSetHeader>(
+        `UPDATE registros_helice_interna 
+         SET estado = 'aprobado', fecha_completado = CURRENT_TIMESTAMP, fecha_aprobacion = CURRENT_TIMESTAMP
+         WHERE id = ? AND usuario_id = ? AND estado = 'borrador'`,
+        [registroId, usuarioId]
+      );
+
+      if (result.affectedRows === 0) {
+        await connection.rollback();
+        connection.release();
+        return null;
+      }
+
+      // El usuario ya tiene rol 'interno' desde el registro inicial
+      // No es necesario actualizar el rol
+
+      await connection.commit();
+      connection.release();
+
+      return await this.getRegistroById(registroId, usuarioId);
+    } catch (error) {
+      await connection.rollback();
+      connection.release();
+      throw error;
     }
-
-    return await this.getRegistroById(registroId, usuarioId);
   }
 
   // Métodos para obtener datos OCDE y ODS

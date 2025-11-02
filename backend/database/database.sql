@@ -4,9 +4,12 @@ CREATE TABLE Usuarios (
     usuario_id INT PRIMARY KEY AUTO_INCREMENT,
     email VARCHAR(255) NOT NULL UNIQUE,
     password_hash VARCHAR(255) NOT NULL,
-    rol ENUM('admin', 'externo', 'unsa') NOT NULL,
+    rol ENUM('admin', 'externo', 'interno') NOT NULL,
     fecha_registro TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+ALTER TABLE Usuarios 
+MODIFY COLUMN rol ENUM('admin', 'interno', 'externo') NOT NULL;
 
 -- TABLA PARA EL MATCHEO
 

@@ -120,7 +120,7 @@ export default function HomePage() {
       number: "02",
       title: "Conecta Capacidades",
       description:
-        "Investigadores y grupos de la UNSA registran sus capacidades, líneas de investigación y expertise disponibles para abordar dichos desafíos.",
+        "Investigadores y grupos registran sus capacidades, líneas de investigación y expertise disponibles para abordar dichos desafíos.",
     },
     {
       number: "03",
@@ -151,7 +151,7 @@ export default function HomePage() {
               </Button>
             </div>
           );
-        case 'unsa':
+        case 'interno':
           return (
             <div className="flex flex-col sm:flex-row justify-center md:justify-start items-center gap-4 mt-12 animate-fade-in animation-delay-600"> {/* Cambiado a md:justify-start */}
               <Button asChild size="lg" className="bg-white border-2 border-black text-black font-semibold px-8 py-3 rounded-lg transition-all duration-250 ease-in-out hover:bg-[#FF0000] hover:border-[#FF0000] hover:text-white">
@@ -204,7 +204,7 @@ export default function HomePage() {
             <main>
               {/* --- Párrafo justificado --- */}
               <p className="text-lg text-neutral-600 leading-relaxed animate-fade-in animation-delay-400 text-justify">
-                La plataforma insignia de la UNSA para la asignación estratégica de sus
+                La plataforma para la asignación estratégica de sus
                 fondos de canon. Presente sus desafíos y conéctelos con nuestra
                 capacidad de investigación e innovación.
               </p>

@@ -2,7 +2,7 @@
 import dbPool from '../../config/db';
 import { RowDataPacket } from 'mysql2/promise';
 
-export type Rol = 'admin' | 'externo' | 'unsa';
+export type Rol = 'admin' | 'externo' | 'interno';
 
 export interface UserRow {
   usuario_id: number;

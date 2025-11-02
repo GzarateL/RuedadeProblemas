@@ -70,12 +70,12 @@ export const registerSociedadCivilUser = async (req: Request, res: Response) => 
     }
 };
 
-export const registerUnsaUser = async (req: Request, res: Response) => {
+export const registerInternoUser = async (req: Request, res: Response) => {
     try {
         const userData = req.body;
-        const newUser = await authService.createUnsaUser(userData);
+        const newUser = await authService.createInternoUser(userData);
         res.status(201).json({
-            message: 'Usuario UNSA registrado exitosamente',
+            message: 'Usuario interno registrado exitosamente',
             userId: newUser.insertId
         });
     } catch (error: any) {

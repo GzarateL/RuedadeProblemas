@@ -25,28 +25,28 @@ export default function RegistroHeliceInternaPage() {
       id: 'docente_investigador',
       titulo: 'Docente - Investigador',
       descripcion: 'Registro individual para docentes e investigadores de la UNSA',
-      icono: '👨‍🏫',
+   
       disponible: true
     },
     {
       id: 'grupo_centro_instituto',
       titulo: 'Grupos, Centros e Institutos',
       descripcion: 'Registro para grupos de investigación, centros e institutos',
-      icono: '🏛️',
+     
       disponible: true
     },
     {
       id: 'laboratorio',
       titulo: 'Laboratorios',
       descripcion: 'Registro para laboratorios de investigación',
-      icono: '🔬',
+     
       disponible: true
     },
     {
       id: 'centro_produccion',
       titulo: 'Centros o Unidades de Producción',
       descripcion: 'Registro para centros y unidades de producción',
-      icono: '🏭',
+     
       disponible: true
     }
   ];
@@ -58,7 +58,7 @@ export default function RegistroHeliceInternaPage() {
         // Guardar el tipo seleccionado para continuar después del login
         localStorage.setItem('registro_helice_tipo', selectedType);
         router.push('/login?redirect=/registro-helice-interna&message=Debe iniciar sesión para continuar con el registro');
-      } else if (user.rol !== 'unsa') {
+      } else if (user.rol !== 'interno') {
         alert('Solo los miembros de la UNSA pueden registrarse en la hélice interna');
       } else {
         router.push(`/registro-helice-interna/${selectedType}`);
@@ -76,11 +76,11 @@ export default function RegistroHeliceInternaPage() {
           <p className="text-xl text-gray-600 max-w-2xl mx-auto">
             Seleccione el tipo de registro que desea realizar para formar parte de la hélice interna de la UNSA
           </p>
-          
+
           {!user && (
             <div className="mt-6 max-w-2xl mx-auto p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
               <p className="text-yellow-800 text-sm">
-                <strong>⚠️ Importante:</strong> Necesita tener una cuenta e iniciar sesión para completar el registro.
+                <strong>IMPORTANTE:</strong> Necesita tener una cuenta e iniciar sesión para completar el registro.
                 Si no tiene cuenta, será redirigido para crear una.
               </p>
             </div>
@@ -98,7 +98,6 @@ export default function RegistroHeliceInternaPage() {
               onClick={() => tipo.disponible && setSelectedType(tipo.id)}
             >
               <CardHeader className="text-center">
-                <div className="text-4xl mb-2">{tipo.icono}</div>
                 <CardTitle className="text-xl">{tipo.titulo}</CardTitle>
                 <CardDescription className="text-sm">
                   {tipo.descripcion}

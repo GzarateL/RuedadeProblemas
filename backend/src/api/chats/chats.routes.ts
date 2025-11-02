@@ -7,7 +7,7 @@ const router = Router();
 
 // Todas las rutas requieren autenticación
 router.use(authenticateToken);
-router.use(authorizeRole(['unsa', 'externo']));
+router.use(authorizeRole(['interno', 'externo']));
 
 // Obtener todos los chats del usuario
 router.get('/', chatsController.getChatsController);

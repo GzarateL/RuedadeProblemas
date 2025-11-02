@@ -26,14 +26,14 @@ export default function MisCapacidadesPage() {
   useEffect(() => {
     if (!authLoading && !user) {
       router.push("/login?error=unauthorized");
-    } else if (!authLoading && user && user.rol !== 'unsa') {
+    } else if (!authLoading && user && user.rol !== 'interno') {
       router.push("/");
     }
   }, [user, authLoading, router]);
 
   useEffect(() => {
     const fetchCapacidades = async () => {
-      if (!user || user.rol !== 'unsa') return;
+      if (!user || user.rol !== 'interno') return;
 
       const token = Cookies.get('token');
       if (!token) return;
@@ -56,12 +56,12 @@ export default function MisCapacidadesPage() {
       }
     };
 
-    if (user && user.rol === 'unsa') {
+    if (user && user.rol === 'interno') {
       fetchCapacidades();
     }
   }, [user]);
 
-  if (authLoading || !user || user.rol !== 'unsa') {
+  if (authLoading || !user || user.rol !== 'interno') {
     return (
       <div className="flex justify-center items-center min-h-[calc(100vh-theme(space.16))]">
         <Loader2 className="w-8 h-8 animate-spin" />

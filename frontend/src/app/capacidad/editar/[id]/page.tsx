@@ -14,12 +14,12 @@ export default function EditarCapacidadPage() {
   useEffect(() => {
     if (!isLoading && !user) {
       router.push("/login?error=unauthorized");
-    } else if (!isLoading && user && user.rol !== 'unsa') {
+    } else if (!isLoading && user && user.rol !== 'interno') {
       router.push("/");
     }
   }, [user, isLoading, router]);
 
-  if (isLoading || !user || user.rol !== 'unsa') {
+  if (isLoading || !user || user.rol !== 'interno') {
     return (
       <div className="flex justify-center items-center min-h-[calc(100vh-theme(space.16))]">
         <p>Cargando...</p>

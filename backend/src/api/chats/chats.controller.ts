@@ -14,7 +14,7 @@ export const getChatsController = async (req: Request, res: Response) => {
       return res.status(401).json({ message: 'Usuario no autenticado.' });
     }
     
-    const tipo = user.rol === 'unsa' ? 'unsa' : 'externo';
+    const tipo = user.rol === 'interno' ? 'unsa' : 'externo';
     const chats = await chatsService.getChatsDeUsuario(tipo, profileId);
     
     res.status(200).json({ chats });
@@ -37,7 +37,7 @@ export const getMensajesController = async (req: Request, res: Response) => {
       return res.status(401).json({ message: 'Usuario no autenticado.' });
     }
     
-    const tipo = user.rol === 'unsa' ? 'unsa' : 'externo';
+    const tipo = user.rol === 'interno' ? 'unsa' : 'externo';
     const mensajes = await chatsService.getMensajesDeChat(
       parseInt(chat_id),
       tipo,
@@ -72,7 +72,7 @@ export const enviarMensajeController = async (req: Request, res: Response) => {
       return res.status(400).json({ message: 'El contenido del mensaje es requerido.' });
     }
     
-    const tipo = user.rol === 'unsa' ? 'unsa' : 'externo';
+    const tipo = user.rol === 'interno' ? 'unsa' : 'externo';
     const mensajeId = await chatsService.enviarMensaje(
       parseInt(chat_id),
       tipo,
@@ -102,7 +102,7 @@ export const getConteoMensajesNoLeidosController = async (req: Request, res: Res
       return res.status(401).json({ message: 'Usuario no autenticado.' });
     }
     
-    const tipo = user.rol === 'unsa' ? 'unsa' : 'externo';
+    const tipo = user.rol === 'interno' ? 'unsa' : 'externo';
     const total = await chatsService.getConteoMensajesNoLeidos(tipo, profileId);
     
     res.status(200).json({ total });

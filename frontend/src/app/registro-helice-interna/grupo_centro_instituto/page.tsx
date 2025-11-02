@@ -122,8 +122,14 @@ export default function RegistroGrupoCentroInstituto() {
     if (!isLoading && !user) {
       localStorage.setItem('registro_helice_tipo', 'grupo_centro_instituto');
       router.push('/login?redirect=/registro-helice-interna&message=Debe iniciar sesión para continuar con el registro');
-    } else if (!isLoading && user && user.rol !== 'unsa') {
+    } else if (!isLoading && user && user.rol !== 'interno') {
       router.push('/?error=Solo los miembros de la UNSA pueden registrarse en la hélice interna');
+    } else if (!isLoading && user) {
+      // Auto-rellenar datos del usuario
+      setFormData(prev => ({
+        ...prev,
+        emailCorporativo: user.email || ''
+      }));
     }
   }, [user, isLoading, router]);
 
@@ -135,7 +141,7 @@ export default function RegistroGrupoCentroInstituto() {
     );
   }
 
-  if (!user || user.rol !== 'unsa') {
+  if (!user || user.rol !== 'interno') {
     return null;
   }
 

@@ -85,7 +85,7 @@ export async function middleware(request: NextRequest) {
 
         if (user.rol === 'admin') {
           return NextResponse.redirect(new URL('/admin/dashboard', request.url));
-        } else if (user.rol === 'unsa') {
+        } else if (user.rol === 'interno') {
           return NextResponse.redirect(new URL('/capacidad', request.url));
         } else if (user.rol === 'externo') {
           return NextResponse.redirect(new URL('/desafio', request.url));

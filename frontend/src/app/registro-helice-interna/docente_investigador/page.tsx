@@ -121,8 +121,15 @@ export default function RegistroDocenteInvestigador() {
       // Guardar el tipo de registro para continuar después del login
       localStorage.setItem('registro_helice_tipo', 'docente_investigador');
       router.push('/login?redirect=/registro-helice-interna&message=Debe iniciar sesión para continuar con el registro');
-    } else if (!isLoading && user && user.rol !== 'unsa') {
+    } else if (!isLoading && user && user.rol !== 'interno') {
       router.push('/?error=Solo los miembros de la UNSA pueden registrarse en la hélice interna');
+    } else if (!isLoading && user) {
+      // Auto-rellenar datos del usuario
+      setFormData(prev => ({
+        ...prev,
+        nombreCompleto: user.nombres_apellidos || '',
+        emailCorporativo: user.email || ''
+      }));
     }
   }, [user, isLoading, router]);
 
@@ -134,7 +141,7 @@ export default function RegistroDocenteInvestigador() {
     );
   }
 
-  if (!user || user.rol !== 'unsa') {
+  if (!user || user.rol !== 'interno') {
     return null;
   }
 

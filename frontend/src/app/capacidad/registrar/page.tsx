@@ -11,15 +11,15 @@
    useEffect(() => {
      if (!isLoading && !user) {
        router.push("/login?error=unauthorized");
-     } else if (!isLoading && user && user.rol !== 'unsa') {
-       // Si no es UNSA, redirigir o mostrar mensaje
-       console.warn("Acceso denegado: Usuario no es de UNSA");
+     } else if (!isLoading && user && user.rol !== 'interno') {
+       // Si no es interno, redirigir o mostrar mensaje
+       console.warn("Acceso denegado: Usuario no es interno");
        router.push("/"); // O a una página específica de error/acceso denegado
      }
    }, [user, isLoading, router]);
 
    // Muestra carga o nada mientras se verifica
-   if (isLoading || !user || user.rol !== 'unsa') {
+   if (isLoading || !user || user.rol !== 'interno') {
      return (
         <div className="flex justify-center items-center min-h-[calc(100vh-theme(space.16))]">
             <p>Cargando...</p> {/* O un spinner */}

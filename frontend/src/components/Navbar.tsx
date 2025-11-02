@@ -124,31 +124,13 @@ export function Navbar() {
                     </Link>
                   </>
                 )}
-                {user.rol === 'unsa' && (
+                {user.rol === 'interno' && (
                   <>
-                    <Link
-                      href="/capacidad"
-                      className={`text-sm transition-all duration-300 ${pathname === '/capacidad'
-                          ? 'text-electric underline underline-offset-4'
-                          : 'text-neutral-900 hover:text-electric'
-                        }`}
-                    >
-                      Mis Capacidades
-                    </Link>
-                    <Link
-                      href="/chats"
-                      className={`text-sm transition-all duration-300 ${pathname === '/chats'
-                          ? 'text-electric underline underline-offset-4'
-                          : 'text-neutral-900 hover:text-electric'
-                        }`}
-                    >
-                      Chats
-                    </Link>
                   </>
                 )}
 
                 {/* Botón de registro según el rol del usuario */}
-                {user.rol === 'unsa' && (
+                {user.rol === 'interno' && (
                   <Link
                     href="/registro-helice-interna"
                     className={`text-sm transition-all duration-300 ${pathname.startsWith('/registro-helice-interna')

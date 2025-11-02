@@ -46,7 +46,7 @@ export default function LoginPage() {
 
       // Verificar si hay un tipo de registro de hélice interna pendiente
       const tipoRegistroPendiente = localStorage.getItem('registro_helice_tipo');
-      if (tipoRegistroPendiente && data.user.rol === 'unsa') {
+      if (tipoRegistroPendiente && data.user.rol === 'interno') {
         localStorage.removeItem('registro_helice_tipo');
         router.push(`/registro-helice-interna/${tipoRegistroPendiente}`);
         return;
@@ -63,7 +63,7 @@ export default function LoginPage() {
       if (data.user.rol === 'admin') {
         router.push("/admin/dashboard");
       } else {
-        // (Aquí irán los dashboards de 'externo' y 'unsa')
+        // (Aquí irán los dashboards de 'externo' e 'interno')
         router.push("/"); // Por ahora al inicio
       }
     } catch (error: unknown) {
