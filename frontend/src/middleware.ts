@@ -5,19 +5,19 @@ export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // 1. Definir rutas públicas (no requieren token)
-  const publicPaths = ['/login', '/registro', '/', '/agenda'];
-  
+  const publicPaths = ['/login', '/registro', '/registro-helice-interna', '/', '/agenda'];
+
   // Rutas que requieren autenticación pero no verificación de rol
   const protectedPaths = ['/capacidad', '/desafio', '/chats', '/solicitudes'];
 
   // 2. Si es una ruta pública, dejar pasar sin verificar token
-  if (publicPaths.includes(pathname)) {
+  if (publicPaths.includes(pathname) || pathname.startsWith('/registro-helice-interna')) {
     return NextResponse.next();
   }
-  
+
   // 3. Si es una ruta protegida o admin, verificar token
   const needsAuth = protectedPaths.some(path => pathname.startsWith(path)) || pathname.startsWith('/admin');
-  
+
   // 4. Obtener token
   const token = request.cookies.get('token')?.value;
 
@@ -55,7 +55,7 @@ export async function middleware(request: NextRequest) {
           return NextResponse.redirect(loginUrl);
         }
       }
-      
+
       // 8. Para otras rutas protegidas, solo verificar que esté autenticado
       return NextResponse.next();
 
@@ -63,7 +63,7 @@ export async function middleware(request: NextRequest) {
       // 9. El token es inválido o expiró
       const loginUrl = new URL('/login', request.url);
       loginUrl.searchParams.set('error', 'session_expired');
-      
+
       // Borrar la cookie inválida
       const response = NextResponse.redirect(loginUrl);
       response.cookies.delete('token');
@@ -71,18 +71,18 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  // 10. Si el usuario está logueado e intenta ir a /login o /registro, redirigir
-  if (token && publicPaths.includes(pathname) && pathname !== '/' && pathname !== '/agenda') {
+  // 10. Si el usuario está logueado e intenta ir a /login, redirigir (pero permitir /registro)
+  if (token && pathname === '/login') {
     try {
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
       const res = await fetch(`${apiUrl}/api/auth/verify`, {
         headers: { 'Authorization': `Bearer ${token}` },
       });
-      
+
       if (res.ok) {
         const data = await res.json();
         const user = data.user;
-        
+
         if (user.rol === 'admin') {
           return NextResponse.redirect(new URL('/admin/dashboard', request.url));
         } else if (user.rol === 'unsa') {

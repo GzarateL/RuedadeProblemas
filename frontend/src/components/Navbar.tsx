@@ -22,25 +22,25 @@ export function Navbar() {
   useEffect(() => {
     const handleScroll = () => {
       const currentScrollY = window.scrollY;
-      
+
       // Si estamos en la parte superior, siempre mostrar
       if (currentScrollY < 10) {
         setIsVisible(true);
-      } 
+      }
       // Si scrolleamos hacia abajo, ocultar
       else if (currentScrollY > lastScrollY && currentScrollY > 80) {
         setIsVisible(false);
-      } 
+      }
       // Si scrolleamos hacia arriba, mostrar
       else if (currentScrollY < lastScrollY) {
         setIsVisible(true);
       }
-      
+
       setLastScrollY(currentScrollY);
     };
 
     window.addEventListener('scroll', handleScroll, { passive: true });
-    
+
     return () => {
       window.removeEventListener('scroll', handleScroll);
     };
@@ -69,7 +69,7 @@ export function Navbar() {
     <nav className={`fixed top-0 left-0 right-0 w-full bg-white/25 backdrop-blur-lg border border-white/30 shadow-lg z-50 transition-transform duration-300 ${isVisible ? 'translate-y-0' : '-translate-y-full'}`} suppressHydrationWarning>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16" suppressHydrationWarning>
-          
+
           <div className="flex-shrink-0 flex items-center overflow-hidden h-12">
             <Link href="/" className="flex items-center justify-center">
               <Image
@@ -86,15 +86,14 @@ export function Navbar() {
           <div className="flex items-center gap-4">
             <SolicitudesNotification />  {/* 👈 Aquí aparecerá la campana */}
           </div>
-          
+
           <div className="hidden md:flex items-center space-x-6">
-            <Link 
-              href="/agenda" 
-              className={`text-sm transition-all duration-300 ${
-                pathname === '/agenda' 
-                  ? 'text-electric underline underline-offset-4' 
+            <Link
+              href="/agenda"
+              className={`text-sm transition-all duration-300 ${pathname === '/agenda'
+                  ? 'text-electric underline underline-offset-4'
                   : 'text-neutral-900 hover:text-electric'
-              }`}
+                }`}
             >
               Agenda
             </Link>
@@ -103,66 +102,85 @@ export function Navbar() {
               <div className="h-8 w-24 bg-white/20 animate-pulse rounded-md"></div>
             ) : user ? (
               <>
-               {user.rol === 'externo' && (
-                 <>
-                   <Link 
-                     href="/desafio" 
-                     className={`text-sm transition-all duration-300 ${
-                       pathname === '/desafio' 
-                         ? 'text-electric underline underline-offset-4' 
-                         : 'text-neutral-900 hover:text-electric'
-                     }`}
-                   >
-                     Mis Desafíos
-                   </Link>
-                   <Link 
-                     href="/chats" 
-                     className={`text-sm transition-all duration-300 ${
-                       pathname === '/chats' 
-                         ? 'text-electric underline underline-offset-4' 
-                         : 'text-neutral-900 hover:text-electric'
-                     }`}
-                   >
-                     Chats
-                   </Link>
-                 </>
-               )}
-               {user.rol === 'unsa' && (
-                 <>
-                   <Link 
-                     href="/capacidad" 
-                     className={`text-sm transition-all duration-300 ${
-                       pathname === '/capacidad' 
-                         ? 'text-electric underline underline-offset-4' 
-                         : 'text-neutral-900 hover:text-electric'
-                     }`}
-                   >
-                     Mis Capacidades
-                   </Link>
-                   <Link 
-                     href="/chats" 
-                     className={`text-sm transition-all duration-300 ${
-                       pathname === '/chats' 
-                         ? 'text-electric underline underline-offset-4' 
-                         : 'text-neutral-900 hover:text-electric'
-                     }`}
-                   >
-                     Chats
-                   </Link>
-                 </>
-               )}
-               {user.rol === 'admin' && (
-                 <Link 
-                   href="/admin/dashboard" 
-                   className={`text-sm transition-all duration-300 ${
-                     pathname === '/admin/dashboard' 
-                       ? 'text-electric underline underline-offset-4' 
-                       : 'text-neutral-900 hover:text-electric'
-                   }`}
-                 >
-                   Dashboard Admin
-                 </Link>
-               )}
+                {user.rol === 'externo' && (
+                  <>
+                    <Link
+                      href="/desafio"
+                      className={`text-sm transition-all duration-300 ${pathname === '/desafio'
+                          ? 'text-electric underline underline-offset-4'
+                          : 'text-neutral-900 hover:text-electric'
+                        }`}
+                    >
+                      Mis Desafíos
+                    </Link>
+                    <Link
+                      href="/chats"
+                      className={`text-sm transition-all duration-300 ${pathname === '/chats'
+                          ? 'text-electric underline underline-offset-4'
+                          : 'text-neutral-900 hover:text-electric'
+                        }`}
+                    >
+                      Chats
+                    </Link>
+                  </>
+                )}
+                {user.rol === 'unsa' && (
+                  <>
+                    <Link
+                      href="/capacidad"
+                      className={`text-sm transition-all duration-300 ${pathname === '/capacidad'
+                          ? 'text-electric underline underline-offset-4'
+                          : 'text-neutral-900 hover:text-electric'
+                        }`}
+                    >
+                      Mis Capacidades
+                    </Link>
+                    <Link
+                      href="/chats"
+                      className={`text-sm transition-all duration-300 ${pathname === '/chats'
+                          ? 'text-electric underline underline-offset-4'
+                          : 'text-neutral-900 hover:text-electric'
+                        }`}
+                    >
+                      Chats
+                    </Link>
+                  </>
+                )}
+
+                {/* Botón de registro según el rol del usuario */}
+                {user.rol === 'unsa' && (
+                  <Link
+                    href="/registro-helice-interna"
+                    className={`text-sm transition-all duration-300 ${pathname.startsWith('/registro-helice-interna')
+                        ? 'text-electric underline underline-offset-4'
+                        : 'text-neutral-900 hover:text-electric'
+                      }`}
+                  >
+                    Registrar rol en Hélice Interna
+                  </Link>
+                )}
+                {user.rol === 'externo' && (
+                  <Link
+                    href="/desafio/registrar"
+                    className={`text-sm transition-all duration-300 ${pathname.startsWith('/desafio/registrar')
+                        ? 'text-electric underline underline-offset-4'
+                        : 'text-neutral-900 hover:text-electric'
+                      }`}
+                  >
+                    Registrar rol en Hélice Externa
+                  </Link>
+                )}
+                {user.rol === 'admin' && (
+                  <Link
+                    href="/admin/dashboard"
+                    className={`text-sm transition-all duration-300 ${pathname === '/admin/dashboard'
+                        ? 'text-electric underline underline-offset-4'
+                        : 'text-neutral-900 hover:text-electric'
+                      }`}
+                  >
+                    Dashboard Admin
+                  </Link>
+                )}
 
                 <div className="relative" ref={dropdownRef}>
                   <button
@@ -175,7 +193,7 @@ export function Navbar() {
                     </span>
                     <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${dropdownOpen ? 'rotate-180' : ''}`} />
                   </button>
-                  
+
                   {dropdownOpen && (
                     <div className="absolute right-0 mt-2 w-48 bg-black/90 backdrop-blur-md text-white border border-white/20 rounded-md shadow-lg z-50">
                       <button
@@ -195,7 +213,7 @@ export function Navbar() {
                   <Link href="/login">Iniciar Sesión</Link>
                 </Button>
                 <Button asChild size="sm" className="bg-white border-2 border-black text-black font-semibold px-4 py-2 rounded-lg transition-colors duration-300 hover:bg-electric hover:border-electric hover:text-white">
-                  <Link href="/registro">Registrarse</Link>
+                  <Link href="/registro-usuario">Registrarse</Link>
                 </Button>
               </>
             )}

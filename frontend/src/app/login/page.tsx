@@ -44,6 +44,21 @@ export default function LoginPage() {
       login(data.user, data.token);
       toast.success("¡Bienvenido!", { description: "Has iniciado sesión correctamente." });
 
+      // Verificar si hay un tipo de registro de hélice interna pendiente
+      const tipoRegistroPendiente = localStorage.getItem('registro_helice_tipo');
+      if (tipoRegistroPendiente && data.user.rol === 'unsa') {
+        localStorage.removeItem('registro_helice_tipo');
+        router.push(`/registro-helice-interna/${tipoRegistroPendiente}`);
+        return;
+      }
+
+      // Verificar si hay una redirección pendiente
+      const redirect = searchParams.get('redirect');
+      if (redirect) {
+        router.push(redirect);
+        return;
+      }
+
       // Redirigir según el rol
       if (data.user.rol === 'admin') {
         router.push("/admin/dashboard");
@@ -76,6 +91,14 @@ export default function LoginPage() {
                 <AlertDescription>
                   {error === "unauthorized" && "No tiene permisos para acceder a esa página."}
                   {error === "session_expired" && "Tu sesión ha expirado. Por favor, inicia sesión de nuevo."}
+                </AlertDescription>
+              </Alert>
+            )}
+            
+            {searchParams.get('message') && (
+              <Alert className="mb-6 bg-blue-50 border-blue-200">
+                <AlertDescription className="text-blue-800">
+                  {searchParams.get('message')}
                 </AlertDescription>
               </Alert>
             )}
@@ -143,13 +166,22 @@ export default function LoginPage() {
               </form>
             </Form>
 
-            <div className="text-center">
+            <div className="text-center space-y-2">
               <a
                 href="#"
-                className="text-sm text-[#FF0033] hover:text-[#FF3366] transition-colors"
+                className="text-sm text-[#FF0033] hover:text-[#FF3366] transition-colors block"
               >
                 ¿Olvidaste tu contraseña?
               </a>
+              <p className="text-sm text-gray-600">
+                ¿No tienes cuenta?{' '}
+                <a
+                  href="/registro-usuario"
+                  className="text-[#FF0033] hover:text-[#FF3366] font-medium transition-colors"
+                >
+                  Regístrate aquí
+                </a>
+              </p>
             </div>
           </div>
         </div>

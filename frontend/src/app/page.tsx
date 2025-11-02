@@ -155,7 +155,7 @@ export default function HomePage() {
           return (
             <div className="flex flex-col sm:flex-row justify-center md:justify-start items-center gap-4 mt-12 animate-fade-in animation-delay-600"> {/* Cambiado a md:justify-start */}
               <Button asChild size="lg" className="bg-white border-2 border-black text-black font-semibold px-8 py-3 rounded-lg transition-all duration-250 ease-in-out hover:bg-[#FF0000] hover:border-[#FF0000] hover:text-white">
-                <Link href="/capacidad/registrar">Registrar Capacidad</Link>
+                <Link href="/registro-usuario">Registrarse</Link>
               </Button>
             </div>
           );

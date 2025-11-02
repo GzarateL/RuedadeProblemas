@@ -4,19 +4,18 @@ import cors from 'cors';
 import path from 'path'; // <--- FALTA ESTA LÍNEA (Importa el módulo path)
 
 import authRoutes from './api/auth/auth.routes';
-import desafioRoutes from './api/desafios/desafios.routes';
-import capacidadRoutes from './api/capacidades/capacidades.routes';
-import keywordRoutes from './api/palabras-clave/palabras-clave.routes';
 import cronogramaRoutes from './api/cronograma/cronograma.routes'; // <-- NUEVO
 import usersRoutes from './api/users/users.routes';
 import matchingRoutes from './api/matching/matching.routes';
 import solicitudesRoutes from './api/solicitudes/solicitudes.routes';
 import chatsRoutes from './api/chats/chats.routes';
+import { heliceInternaRoutes } from './api/helice-interna/helice-interna.routes';
 
 const app = express();
 
 app.use(cors({
-  origin: 'http://localhost:3000' // Asegúrate que sea la URL correcta de tu frontend
+  origin: ['http://localhost:3000', 'http://localhost:3001', 'http://localhost:5173', 'https://ruedadeproblemas-backend.onrender.com'],
+  credentials: true
 }));
 app.use(express.json());
 
@@ -31,13 +30,11 @@ app.use('/uploads', express.static(uploadsPath));
 // --- RUTAS DE API ---
 // (Tus rutas existentes están bien)
 app.use('/api/auth', authRoutes);
-app.use('/api/desafios', desafioRoutes);
-app.use('/api/capacidades', capacidadRoutes);
-app.use('/api/palabras-clave', keywordRoutes);
 app.use('/api/cronograma', cronogramaRoutes);
 app.use('/api/users', usersRoutes); // <-- NUEVO
 app.use('/api/matches', matchingRoutes);
 app.use('/api/solicitudes', solicitudesRoutes);
 app.use('/api/chats', chatsRoutes);
+app.use('/api/helice-interna', heliceInternaRoutes);
 
 export default app;
