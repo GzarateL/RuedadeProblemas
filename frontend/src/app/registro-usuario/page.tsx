@@ -161,8 +161,8 @@ export default function RegistroUsuarioPage() {
                   <SelectValue placeholder="Seleccione su tipo de usuario" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="unsa">Miembro UNSA (Docente/Investigador)</SelectItem>
-                  <SelectItem value="externo">Actor Externo (Empresa/Gobierno/Sociedad Civil)</SelectItem>
+                  <SelectItem value="unsa">Helice Interna (Docente/Investigador)</SelectItem>
+                  <SelectItem value="externo">Helice Exterior (Empresa/Gobierno/Sociedad Civil)</SelectItem>
                 </SelectContent>
               </Select>
               {errors.rol && (
