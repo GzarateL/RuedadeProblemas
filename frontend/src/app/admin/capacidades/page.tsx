@@ -89,45 +89,212 @@ export default function AdminCapacidadesPage() {
     console.log("Editar capacidad:", capacidad);
   };
 
+  // Handler para aprobar capacidad
+  const handleAprobar = async (capacidad: CapacidadAdmin) => {
+    const token = Cookies.get('token');
+    if (!token) {
+      toast.error("No autenticado");
+      return;
+    }
+
+    const nombre = capacidad.tipo_registro === 'docente_investigador' 
+      ? capacidad.nombre_completo 
+      : capacidad.nombre;
+
+    try {
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/helice-interna/admin/registros/${capacidad.registro_id}/aprobar-rechazar`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({
+            tipo: capacidad.tipo_registro,
+            estado: 'aprobado'
+          })
+        }
+      );
+
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.error || 'Error al aprobar la capacidad');
+      }
+
+      toast.success("Capacidad aprobada", { 
+        description: `${nombre} ha sido aprobada exitosamente` 
+      });
+
+      // Actualizar el estado local
+      setCapacidades(prev => 
+        prev.map(cap => 
+          cap.registro_id === capacidad.registro_id && cap.tipo_registro === capacidad.tipo_registro
+            ? { ...cap, estado: 'aprobado' }
+            : cap
+        )
+      );
+    } catch (err: any) {
+      console.error("Error al aprobar:", err);
+      toast.error("Error al aprobar", { description: err.message });
+    }
+  };
+
+  // Handler para rechazar capacidad
+  const handleRechazar = async (capacidad: CapacidadAdmin) => {
+    const token = Cookies.get('token');
+    if (!token) {
+      toast.error("No autenticado");
+      return;
+    }
+
+    const nombre = capacidad.tipo_registro === 'docente_investigador' 
+      ? capacidad.nombre_completo 
+      : capacidad.nombre;
+
+    const observaciones = prompt("Ingrese el motivo del rechazo (opcional):");
+    if (observaciones === null) {
+      // Usuario canceló el prompt
+      return;
+    }
+
+    try {
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/helice-interna/admin/registros/${capacidad.registro_id}/aprobar-rechazar`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({
+            tipo: capacidad.tipo_registro,
+            estado: 'rechazado',
+            observaciones: observaciones || undefined
+          })
+        }
+      );
+
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.error || 'Error al rechazar la capacidad');
+      }
+
+      toast.success("Capacidad rechazada", { 
+        description: `${nombre} ha sido rechazada` 
+      });
+
+      // Actualizar el estado local
+      setCapacidades(prev => 
+        prev.map(cap => 
+          cap.registro_id === capacidad.registro_id && cap.tipo_registro === capacidad.tipo_registro
+            ? { ...cap, estado: 'rechazado' }
+            : cap
+        )
+      );
+    } catch (err: any) {
+      console.error("Error al rechazar:", err);
+      toast.error("Error al rechazar", { description: err.message });
+    }
+  };
+
+  // Separar capacidades por estado
+  const capacidadesPendientes = capacidades.filter(
+    cap => cap.estado === 'completado' || cap.estado === 'borrador' || cap.estado === 'en_revision'
+  );
+  const capacidadesAprobadas = capacidades.filter(
+    cap => cap.estado === 'aprobado'
+  );
+
   // --- Renderizado ---
 
   if (isLoading) return <p className="p-6 text-center text-neutral-600 animate-pulse">Cargando capacidades...</p>;
   if (error) return <p className="p-6 text-center text-red-600">⚠️ Error al cargar: {error}</p>;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       {/* Cabecera */}
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold text-neutral-900">Capacidades UNSA Registradas</h1>
-        {/* Espacio para futuros filtros */}
       </div>
 
-      {/* Grid o Mensaje de "vacío" */}
+      {/* Mensaje si no hay capacidades */}
       {capacidades.length === 0 ? (
         <div className="border rounded-lg p-10 text-center bg-gray-50 mt-4">
-            <p className="text-neutral-500">Aún no se han registrado capacidades.</p>
+          <p className="text-neutral-500">Aún no se han registrado capacidades.</p>
         </div>
       ) : (
-        // Grid responsivo
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
-          {/* Mapea cada capacidad a su tarjeta */}
-          {capacidades.map((capacidad) => (
-            <CapacidadCard
-              key={capacidad.registro_id}
-              capacidad={capacidad}
-              onViewDetails={() => handleViewDetails(capacidad)} // Pasa la función para abrir modal
-              onEdit={() => handleEdit(capacidad)} // Pasa la función para editar
-            />
-          ))}
-        </div>
+        <>
+          {/* SECCIÓN 1: CAPACIDADES PENDIENTES DE APROBACIÓN */}
+          <div className="space-y-4">
+            <div className="flex items-center gap-3">
+              <h2 className="text-xl font-semibold text-neutral-800">
+                Pendientes de Aprobación
+              </h2>
+              <span className="bg-yellow-100 text-yellow-800 text-sm font-medium px-3 py-1 rounded-full">
+                {capacidadesPendientes.length}
+              </span>
+            </div>
+
+            {capacidadesPendientes.length === 0 ? (
+              <div className="border border-dashed rounded-lg p-8 text-center bg-gray-50">
+                <p className="text-neutral-500">No hay capacidades pendientes de aprobación.</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
+                {capacidadesPendientes.map((capacidad) => (
+                  <CapacidadCard
+                    key={`${capacidad.tipo_registro}-${capacidad.registro_id}`}
+                    capacidad={capacidad}
+                    onViewDetails={() => handleViewDetails(capacidad)}
+                    onEdit={() => handleEdit(capacidad)}
+                    onAprobar={() => handleAprobar(capacidad)}
+                    onRechazar={() => handleRechazar(capacidad)}
+                    showApprovalButtons={true}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* SECCIÓN 2: CAPACIDADES APROBADAS */}
+          <div className="space-y-4">
+            <div className="flex items-center gap-3">
+              <h2 className="text-xl font-semibold text-neutral-800">
+                Capacidades Aprobadas
+              </h2>
+              <span className="bg-green-100 text-green-800 text-sm font-medium px-3 py-1 rounded-full">
+                {capacidadesAprobadas.length}
+              </span>
+            </div>
+
+            {capacidadesAprobadas.length === 0 ? (
+              <div className="border border-dashed rounded-lg p-8 text-center bg-gray-50">
+                <p className="text-neutral-500">No hay capacidades aprobadas aún.</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
+                {capacidadesAprobadas.map((capacidad) => (
+                  <CapacidadCard
+                    key={`${capacidad.tipo_registro}-${capacidad.registro_id}`}
+                    capacidad={capacidad}
+                    onViewDetails={() => handleViewDetails(capacidad)}
+                    onEdit={() => handleEdit(capacidad)}
+                    showApprovalButtons={false}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
+        </>
       )}
 
       {/* El Modal (solo se renderiza si hay una capacidad seleccionada) */}
       {selectedCapacidad && (
         <CapacidadDetailModal
           isOpen={isModalOpen}
-          onClose={handleCloseModal} // Pasa la función para cerrar
-          capacidad={selectedCapacidad} // Pasa los datos
+          onClose={handleCloseModal}
+          capacidad={selectedCapacidad}
         />
       )}
 

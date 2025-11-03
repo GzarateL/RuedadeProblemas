@@ -9,9 +9,19 @@ interface CapacidadCardProps {
   capacidad: CapacidadAdmin;
   onViewDetails: () => void; // Función para abrir el modal
   onEdit?: () => void; // Función para editar la capacidad
+  onAprobar?: () => void; // Función para aprobar la capacidad
+  onRechazar?: () => void; // Función para rechazar la capacidad
+  showApprovalButtons?: boolean; // Mostrar botones de aprobación/rechazo
 }
 
-export default function CapacidadCard({ capacidad, onViewDetails, onEdit }: CapacidadCardProps) {
+export default function CapacidadCard({ 
+  capacidad, 
+  onViewDetails, 
+  onEdit, 
+  onAprobar, 
+  onRechazar, 
+  showApprovalButtons = false 
+}: CapacidadCardProps) {
   // Obtener el nombre a mostrar según el tipo
   const getNombre = () => {
     if (capacidad.tipo_registro === 'docente_investigador') {
@@ -71,7 +81,7 @@ export default function CapacidadCard({ capacidad, onViewDetails, onEdit }: Capa
         </div>
       </CardContent>
 
-      <CardFooter className="pt-0 pb-4 px-5 flex justify-between items-center">
+      <CardFooter className="pt-0 pb-4 px-5 flex flex-col gap-3">
         {/* Palabras Clave */}
         <div className="flex flex-wrap gap-1">
           {capacidad.keywords.slice(0, 2).map((kw, index) => (
@@ -86,11 +96,37 @@ export default function CapacidadCard({ capacidad, onViewDetails, onEdit }: Capa
           )}
         </div>
 
-        {/* Botón */}
+        {/* Botones de acción */}
+        {showApprovalButtons ? (
+          <div className="flex gap-2 w-full">
+            <Button
+              size="sm"
+              onClick={(e) => {
+                e.stopPropagation();
+                onAprobar?.();
+              }}
+              className="flex-1 h-8 text-xs bg-green-600 text-white hover:bg-green-700 rounded-md"
+            >
+              ✓ Aprobar
+            </Button>
+            <Button
+              size="sm"
+              onClick={(e) => {
+                e.stopPropagation();
+                onRechazar?.();
+              }}
+              className="flex-1 h-8 text-xs bg-red-600 text-white hover:bg-red-700 rounded-md"
+            >
+              ✗ Rechazar
+            </Button>
+          </div>
+        ) : null}
+
+        {/* Botón Ver Detalles */}
         <Button
           size="sm"
           onClick={onViewDetails}
-          className="h-7 px-4 text-xs bg-black text-white hover:bg-gray-800 rounded-full"
+          className="w-full h-7 px-4 text-xs bg-black text-white hover:bg-gray-800 rounded-full"
         >
           VER CAPACIDAD
         </Button>
