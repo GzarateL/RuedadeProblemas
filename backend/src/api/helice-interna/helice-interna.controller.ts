@@ -357,4 +357,23 @@ export class HeliceInternaController {
       res.status(500).json({ error: 'Error interno del servidor' });
     }
   };
+
+  // ADMIN: Obtener todas las capacidades (perfiles de hélice interna)
+  obtenerTodasCapacidades = async (req: Request, res: Response) => {
+    try {
+      const userRole = req.user?.rol;
+      if (userRole !== 'admin') {
+        return res.status(403).json({ error: 'Solo administradores pueden ver todas las capacidades' });
+      }
+
+      const capacidades = await this.heliceInternaService.obtenerTodasCapacidades();
+      res.json(capacidades);
+    } catch (error: any) {
+      console.error('Error al obtener todas las capacidades:', error);
+      res.status(500).json({ 
+        error: 'Error interno del servidor',
+        message: error.message 
+      });
+    }
+  };
 }

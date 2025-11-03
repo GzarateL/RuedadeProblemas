@@ -28,5 +28,6 @@ router.post('/registros/:id/completar', authenticateToken, heliceInternaControll
 // Rutas para administradores
 router.get('/admin/registros', authenticateToken, heliceInternaController.getRegistrosParaAprobacion);
 router.post('/admin/registros/:id/aprobar-rechazar', authenticateToken, heliceInternaController.aprobarRechazarRegistro);
+router.get('/admin/capacidades', authenticateToken, heliceInternaController.obtenerTodasCapacidades);
 
 export { router as heliceInternaRoutes };

@@ -34,7 +34,7 @@ interface RegistroGrupoCentroInstituto {
 interface RegistroLaboratorio {
   registro_id?: number;
   usuario_id: number;
-  nombre: string; 
+  nombre: string;
   nombre_completo_responsable: string;
   email: string;
   telefono: string;
@@ -58,7 +58,7 @@ interface RegistroCentroProduccion {
 interface DatosRegistroCompleto {
   // Tipo de registro
   tipo: 'docente_investigador' | 'grupo_centro_instituto' | 'laboratorio' | 'centro_produccion';
-  
+
   // Información básica - Docente Investigador
   nombre_completo?: string;
   email?: string;
@@ -135,7 +135,7 @@ interface DatosRegistroCompleto {
 }
 
 export class HeliceInternaService {
-  
+
   async getTipos(): Promise<TipoHeliceInterna[]> {
     return [
       { tipo: 'docente_investigador', nombre: 'Docente Investigador' },
@@ -156,11 +156,11 @@ export class HeliceInternaService {
   }
 
   async crearRegistro(
-    usuarioId: number, 
+    usuarioId: number,
     datos: DatosRegistroCompleto
   ): Promise<any> {
     const connection = await db.getConnection();
-    
+
     try {
       await connection.beginTransaction();
 
@@ -173,10 +173,10 @@ export class HeliceInternaService {
 
       const tabla = this.getTablaByTipo(datos.tipo);
       console.log('Tabla a usar:', tabla);
-      
+
       // NOTA: Permitimos múltiples registros del mismo tipo para el mismo usuario
       // No eliminamos registros existentes, simplemente creamos uno nuevo
-      
+
       let registroId: number;
 
       // Crear registro principal según el tipo
@@ -210,7 +210,7 @@ export class HeliceInternaService {
           oficina_departamento_vinculado: datos.oficina_departamento_vinculado,
           paso_actual: datos.paso_actual || 1
         });
-        
+
         const [result] = await connection.execute<ResultSetHeader>(
           `INSERT INTO ${tabla} 
            (usuario_id, nombre, nombre_completo_responsable, email, telefono, oficina_departamento_vinculado, estado, paso_actual) 
@@ -231,7 +231,7 @@ export class HeliceInternaService {
 
       // Guardar datos compartidos
       console.log('Guardando datos compartidos...');
-      
+
       // Limpiar datos compartidos existentes de ESTE registro específico antes de insertar nuevos
       console.log(`Limpiando datos compartidos previos del registro ${registroId}, tipo ${datos.tipo}...`);
       await connection.execute('DELETE FROM Registro_OCDE WHERE usuario_id = ? AND registro_id = ? AND tipo = ?', [usuarioId, registroId, datos.tipo]);
@@ -243,7 +243,7 @@ export class HeliceInternaService {
       await connection.execute('DELETE FROM Registro_Keywords WHERE usuario_id = ? AND registro_id = ? AND tipo = ?', [usuarioId, registroId, datos.tipo]);
       await connection.execute('DELETE FROM Registro_Soluciones WHERE usuario_id = ? AND registro_id = ? AND tipo = ?', [usuarioId, registroId, datos.tipo]);
       await connection.execute('DELETE FROM Registro_Archivos WHERE usuario_id = ? AND registro_id = ? AND tipo = ?', [usuarioId, registroId, datos.tipo]);
-      
+
       if (datos.ocde && datos.ocde.length > 0) {
         console.log('Guardando OCDE:', datos.ocde);
         await this.guardarOCDE(connection, usuarioId, registroId, datos.tipo, datos.ocde);
@@ -292,7 +292,7 @@ export class HeliceInternaService {
         console.log('Guardando archivos:', datos.archivos);
         await this.guardarArchivos(connection, usuarioId, registroId, datos.tipo, datos.archivos);
       }
-      
+
       console.log('Todos los datos guardados exitosamente');
 
       await connection.commit();
@@ -315,7 +315,7 @@ export class HeliceInternaService {
     datos: DatosRegistroCompleto
   ): Promise<any> {
     const connection = await db.getConnection();
-    
+
     try {
       await connection.beginTransaction();
 
@@ -435,7 +435,7 @@ export class HeliceInternaService {
   }
 
   // Métodos auxiliares para guardar datos compartidos
-  private async guardarOCDE(connection: PoolConnection, usuarioId: number, registroId: number, tipo: string, ocde: Array<{area_id?: number, sub_area_id?: number, disciplina_id?: number}>) {
+  private async guardarOCDE(connection: PoolConnection, usuarioId: number, registroId: number, tipo: string, ocde: Array<{ area_id?: number, sub_area_id?: number, disciplina_id?: number }>) {
     console.log(`Guardando ${ocde.length} registros OCDE para usuario ${usuarioId}, registro ${registroId}, tipo ${tipo}`);
     for (const item of ocde) {
       console.log('Insertando OCDE:', { usuarioId, registroId, tipo, ...item });
@@ -447,20 +447,20 @@ export class HeliceInternaService {
     }
   }
 
-  private async guardarODS(connection: PoolConnection, usuarioId: number, registroId: number, tipo: string, ods: Array<{objetivo_id: number | null, meta_id?: number | null}>) {
+  private async guardarODS(connection: PoolConnection, usuarioId: number, registroId: number, tipo: string, ods: Array<{ objetivo_id: number | null, meta_id?: number | null }>) {
     console.log(`=== GUARDAR ODS - INICIO ===`);
     console.log(`Total de items ODS a guardar: ${ods.length}`);
     console.log(`Usuario: ${usuarioId}, Registro: ${registroId}, Tipo: ${tipo}`);
     console.log(`Items ODS recibidos:`, JSON.stringify(ods, null, 2));
-    
+
     for (let i = 0; i < ods.length; i++) {
       const item = ods[i];
       console.log(`\n--- Procesando item ${i + 1}/${ods.length} ---`);
       console.log(`Item original:`, JSON.stringify(item, null, 2));
-      
+
       let objetivoId = item.objetivo_id;
       let metaId = item.meta_id || null;
-      
+
       // Si solo se proporcionó meta_id, buscar el objetivo_id correspondiente
       if (!objetivoId && metaId) {
         console.log(`Buscando objetivo_id para meta_id: ${metaId}`);
@@ -476,7 +476,7 @@ export class HeliceInternaService {
           console.warn(`✗ No se encontró objetivo_id para meta_id: ${metaId}`);
         }
       }
-      
+
       // Solo insertar si tenemos al menos un objetivo_id
       if (objetivoId) {
         console.log(`Insertando en BD: objetivo_id=${objetivoId}, meta_id=${metaId}`);
@@ -573,7 +573,7 @@ export class HeliceInternaService {
     }
   }
 
-  private async guardarSoluciones(connection: PoolConnection, usuarioId: number, registroId: number, tipo: string, soluciones: Array<{titulo: string, problema: string, solucion: string}>) {
+  private async guardarSoluciones(connection: PoolConnection, usuarioId: number, registroId: number, tipo: string, soluciones: Array<{ titulo: string, problema: string, solucion: string }>) {
     for (let i = 0; i < soluciones.length; i++) {
       await connection.execute(
         'INSERT INTO Registro_Soluciones (usuario_id, registro_id, tipo, titulo, problema, solucion, orden) VALUES (?, ?, ?, ?, ?, ?, ?)',
@@ -615,7 +615,7 @@ export class HeliceInternaService {
 
   async getRegistroById(registroId: number, usuarioId: number, tipo: string): Promise<any> {
     const tabla = this.getTablaByTipo(tipo);
-    
+
     const [rows] = await db.execute<RowDataPacket[]>(
       `SELECT * FROM ${tabla} WHERE registro_id = ? AND usuario_id = ?`,
       [registroId, usuarioId]
@@ -690,7 +690,7 @@ export class HeliceInternaService {
 
   async completarRegistro(registroId: number, usuarioId: number, tipo: string): Promise<any> {
     const tabla = this.getTablaByTipo(tipo);
-    
+
     const [result] = await db.execute<ResultSetHeader>(
       `UPDATE ${tabla} 
        SET estado = 'completado', fecha_completado = CURRENT_TIMESTAMP
@@ -707,7 +707,7 @@ export class HeliceInternaService {
 
   async eliminarRegistro(registroId: number, usuarioId: number, tipo: string): Promise<boolean> {
     const connection = await db.getConnection();
-    
+
     try {
       await connection.beginTransaction();
 
@@ -844,7 +844,7 @@ export class HeliceInternaService {
 
   async aprobarRechazarRegistro(registroId: number, tipo: string, estado: string, observaciones?: string) {
     const tabla = this.getTablaByTipo(tipo);
-    
+
     const [result] = await db.execute<ResultSetHeader>(
       `UPDATE ${tabla} 
        SET estado = ?, observaciones = ?, fecha_aprobacion = CURRENT_TIMESTAMP
@@ -867,5 +867,186 @@ export class HeliceInternaService {
     }
 
     return null;
+  }
+
+  async obtenerTodasCapacidades() {
+    const connection = await db.getConnection();
+
+    try {
+      console.log('=== OBTENER TODAS LAS CAPACIDADES - INICIO ===');
+
+      // Obtener todos los registros de hélice interna con información básica
+      const capacidades = [];
+
+      // 1. Docentes Investigadores
+      console.log('Consultando Docentes Investigadores...');
+      const [docentes] = await connection.query<RowDataPacket[]>(
+        `SELECT 
+          rd.registro_id,
+          rd.usuario_id,
+          'docente_investigador' as tipo_registro,
+          rd.nombre_completo,
+          rd.email,
+          rd.telefono,
+          rd.programa_estudio,
+          rd.estado,
+          rd.fecha_creacion
+        FROM Registro_Docente_Investigador rd
+        ORDER BY rd.fecha_creacion DESC`
+      );
+      console.log(`✓ Encontrados ${docentes.length} docentes investigadores`);
+
+      // 2. Grupos/Centros/Institutos
+      console.log('Consultando Grupos/Centros/Institutos...');
+      const [grupos] = await connection.query<RowDataPacket[]>(
+        `SELECT 
+          rg.registro_id,
+          rg.usuario_id,
+          'grupo_centro_instituto' as tipo_registro,
+          rg.nombre,
+          rg.nombre_completo_responsable,
+          rg.email,
+          rg.telefono,
+          rg.oficina_departamento_vinculado,
+          rg.estado,
+          rg.fecha_creacion
+        FROM Registro_Grupo_Centro_Instituto rg
+        ORDER BY rg.fecha_creacion DESC`
+      );
+      console.log(`✓ Encontrados ${grupos.length} grupos/centros/institutos`);
+
+      // 3. Laboratorios
+      console.log('Consultando Laboratorios...');
+      const [laboratorios] = await connection.query<RowDataPacket[]>(
+        `SELECT 
+          rl.registro_id,
+          rl.usuario_id,
+          'laboratorio' as tipo_registro,
+          rl.nombre,
+          rl.nombre_completo_responsable,
+          rl.email,
+          rl.telefono,
+          rl.oficina_departamento_vinculado,
+          rl.estado,
+          rl.fecha_creacion
+        FROM Registro_Laboratorio rl
+        ORDER BY rl.fecha_creacion DESC`
+      );
+      console.log(`✓ Encontrados ${laboratorios.length} laboratorios`);
+
+      // 4. Centros de Producción
+      console.log('Consultando Centros de Producción...');
+      const [centros] = await connection.query<RowDataPacket[]>(
+        `SELECT 
+          rc.registro_id,
+          rc.usuario_id,
+          'centro_produccion' as tipo_registro,
+          rc.nombre,
+          rc.nombre_completo_responsable,
+          rc.email,
+          rc.telefono,
+          rc.oficina_departamento_vinculado,
+          rc.estado,
+          rc.fecha_creacion
+        FROM Registro_Centro_Produccion rc
+        ORDER BY rc.fecha_creacion DESC`
+      );
+      console.log(`✓ Encontrados ${centros.length} centros de producción`);
+
+      // Combinar todos los registros
+      const todosRegistros = [...docentes, ...grupos, ...laboratorios, ...centros];
+      console.log(`\n📊 TOTAL DE REGISTROS: ${todosRegistros.length}`);
+
+      // Para cada registro, obtener sus datos relacionados
+      for (let i = 0; i < todosRegistros.length; i++) {
+        const registro = todosRegistros[i];
+        console.log(`\n--- Procesando registro ${i + 1}/${todosRegistros.length} ---`);
+        console.log(`Tipo: ${registro.tipo_registro}, ID: ${registro.registro_id}, Usuario: ${registro.usuario_id}`);
+        // Obtener Keywords - Soportar tanto registros nuevos (con registro_id/tipo) como antiguos (sin ellos)
+        const [keywords] = await connection.query<RowDataPacket[]>(
+          `SELECT k.id, k.keyword, k.category
+           FROM Registro_Keywords rk
+           INNER JOIN keywords_catalog k ON rk.keyword_id = k.id
+           WHERE rk.usuario_id = ? 
+           AND (
+             (rk.registro_id = ? AND rk.tipo = ?) 
+             OR (rk.registro_id IS NULL AND rk.tipo IS NULL)
+           )`,
+          [registro.usuario_id, registro.registro_id, registro.tipo_registro]
+        );
+        console.log(`  Keywords: ${keywords.length}`);
+
+        // Obtener OCDE - Soportar tanto registros nuevos como antiguos
+        const [ocde] = await connection.query<RowDataPacket[]>(
+          `SELECT 
+            ro.area_id,
+            a.nombre as area_nombre,
+            ro.sub_area_id,
+            sa.nombre as sub_area_nombre,
+            ro.disciplina_id,
+            d.nombre as disciplina_nombre
+           FROM Registro_OCDE ro
+           LEFT JOIN areas a ON ro.area_id = a.id
+           LEFT JOIN sub_areas sa ON ro.sub_area_id = sa.id
+           LEFT JOIN disciplinas d ON ro.disciplina_id = d.id
+           WHERE ro.usuario_id = ? 
+           AND (
+             (ro.registro_id = ? AND ro.tipo = ?) 
+             OR (ro.registro_id IS NULL AND ro.tipo IS NULL)
+           )`,
+          [registro.usuario_id, registro.registro_id, registro.tipo_registro]
+        );
+        console.log(`  OCDE: ${ocde.length}`);
+
+        // Obtener ODS - Soportar tanto registros nuevos como antiguos
+        const [ods] = await connection.query<RowDataPacket[]>(
+          `SELECT 
+            ro.objetivo_id,
+            o.nombre as objetivo_nombre,
+            ro.meta_id,
+            m.codigo as meta_codigo,
+            m.descripcion as meta_descripcion
+           FROM Registro_ODS ro
+           INNER JOIN objetivos o ON ro.objetivo_id = o.id
+           LEFT JOIN metas m ON ro.meta_id = m.id
+           WHERE ro.usuario_id = ? 
+           AND (
+             (ro.registro_id = ? AND ro.tipo = ?) 
+             OR (ro.registro_id IS NULL AND ro.tipo IS NULL)
+           )`,
+          [registro.usuario_id, registro.registro_id, registro.tipo_registro]
+        );
+        console.log(`  ODS: ${ods.length}`);
+
+        // Obtener Soluciones - Soportar tanto registros nuevos como antiguos
+        const [soluciones] = await connection.query<RowDataPacket[]>(
+          `SELECT titulo, problema, solucion
+           FROM Registro_Soluciones
+           WHERE usuario_id = ? 
+           AND (
+             (registro_id = ? AND tipo = ?) 
+             OR (registro_id IS NULL AND tipo IS NULL)
+           )
+           ORDER BY orden`,
+          [registro.usuario_id, registro.registro_id, registro.tipo_registro]
+        );
+        console.log(`  Soluciones: ${soluciones.length}`);
+
+        capacidades.push({
+          ...registro,
+          keywords,
+          ocde,
+          ods,
+          soluciones
+        });
+      }
+
+      console.log(`\n✅ TOTAL CAPACIDADES PROCESADAS: ${capacidades.length}`);
+      console.log('=== OBTENER TODAS LAS CAPACIDADES - FIN ===\n');
+
+      return capacidades;
+    } finally {
+      connection.release();
+    }
   }
 }

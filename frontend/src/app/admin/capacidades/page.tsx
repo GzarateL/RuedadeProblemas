@@ -35,7 +35,7 @@ export default function AdminCapacidadesPage() {
 
       try {
         // Llama al endpoint del backend para obtener TODAS las capacidades (protegido)
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/capacidades`, {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/helice-interna/admin/capacidades`, {
           headers: { "Authorization": `Bearer ${token}` }
         });
 
@@ -80,8 +80,11 @@ export default function AdminCapacidadesPage() {
   // Handler para editar capacidad
   const handleEdit = (capacidad: CapacidadAdmin) => {
     // TODO: Implementar lógica de edición
+    const nombre = capacidad.tipo_registro === 'docente_investigador' 
+      ? capacidad.nombre_completo 
+      : capacidad.nombre;
     toast.info("Editar capacidad", { 
-      description: `Editando: ${capacidad.descripcion_capacidad.substring(0, 50)}...` 
+      description: `Editando: ${nombre}` 
     });
     console.log("Editar capacidad:", capacidad);
   };
@@ -110,7 +113,7 @@ export default function AdminCapacidadesPage() {
           {/* Mapea cada capacidad a su tarjeta */}
           {capacidades.map((capacidad) => (
             <CapacidadCard
-              key={capacidad.capacidad_id}
+              key={capacidad.registro_id}
               capacidad={capacidad}
               onViewDetails={() => handleViewDetails(capacidad)} // Pasa la función para abrir modal
               onEdit={() => handleEdit(capacidad)} // Pasa la función para editar

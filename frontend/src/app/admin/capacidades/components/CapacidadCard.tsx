@@ -12,17 +12,25 @@ interface CapacidadCardProps {
 }
 
 export default function CapacidadCard({ capacidad, onViewDetails, onEdit }: CapacidadCardProps) {
-  // Procesa las palabras clave
-  const keywords = capacidad.palabras_clave
-    ? capacidad.palabras_clave.split(',').map(kw => kw.trim()).filter(kw => kw)
-    : [];
+  // Obtener el nombre a mostrar según el tipo
+  const getNombre = () => {
+    if (capacidad.tipo_registro === 'docente_investigador') {
+      return capacidad.nombre_completo || 'Sin nombre';
+    }
+    return capacidad.nombre || 'Sin nombre';
+  };
 
-  // Trunca la descripción principal (ajusta el largo si es necesario)
-  const maxDescLength = 100;
-  const truncatedDesc = capacidad.descripcion_capacidad.length > maxDescLength
-    ? capacidad.descripcion_capacidad.substring(0, maxDescLength) + "..."
-    : capacidad.descripcion_capacidad;
-  const needsSeeMore = capacidad.descripcion_capacidad.length > maxDescLength;
+  // Mapeo de tipos a etiquetas legibles
+  const tipoLabels: Record<string, string> = {
+    'docente_investigador': 'Docente Investigador',
+    'grupo_centro_instituto': 'Grupo/Centro/Instituto',
+    'laboratorio': 'Laboratorio',
+    'centro_produccion': 'Centro de Producción'
+  };
+
+  const nombre = getNombre();
+  const maxLength = 60;
+  const truncatedNombre = nombre.length > maxLength ? nombre.substring(0, maxLength) + "..." : nombre;
 
   return (
     <Card className="flex flex-col h-full overflow-hidden border border-gray-300 rounded-xl shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300 ease-out relative group">
@@ -40,36 +48,41 @@ export default function CapacidadCard({ capacidad, onViewDetails, onEdit }: Capa
             <Pencil className="w-4 h-4" />
           </button>
         )}
-        {/* Título: Usaremos la descripción truncada como título principal de la tarjeta */}
-        <CardTitle className="text-base font-semibold line-clamp-3 h-[72px]"> {/* Permite hasta 3 líneas */}
-          {truncatedDesc}
+        {/* Título: Nombre del perfil */}
+        <CardTitle className="text-base font-semibold line-clamp-2 h-[48px]">
+          {truncatedNombre}
         </CardTitle>
-        {/* Descripción: Mostramos el nombre del investigador */}
+        {/* Descripción: Tipo de registro */}
         <CardDescription className="text-xs text-gray-500 pt-1">
-          Investigador: {capacidad.investigador_nombre || "No especificado"}
+          {tipoLabels[capacidad.tipo_registro]}
         </CardDescription>
       </CardHeader>
 
-      {/* Dejamos CardContent vacío o para un futuro "Ver más" si aplica */}
+      {/* CardContent: Información adicional */}
       <CardContent className="flex-grow pt-1 pb-3 px-5">
-        {/* Si necesitas mostrar "Ver más" para la descripción, iría aquí */}
-        {needsSeeMore && (
-          <Button variant="link" size="sm" onClick={onViewDetails} className="text-xs px-0 py-0 h-auto text-blue-600 hover:text-blue-800 -mt-1">
-            Leer descripción completa...
-          </Button>
-        )}
+        <div className="text-xs text-gray-600 space-y-1">
+          <p><span className="font-medium">Email:</span> {capacidad.email}</p>
+          {capacidad.programa_estudio && (
+            <p><span className="font-medium">Programa:</span> {capacidad.programa_estudio}</p>
+          )}
+          {capacidad.oficina_departamento_vinculado && (
+            <p><span className="font-medium">Departamento:</span> {capacidad.oficina_departamento_vinculado}</p>
+          )}
+        </div>
       </CardContent>
 
       <CardFooter className="pt-0 pb-4 px-5 flex justify-between items-center">
         {/* Palabras Clave */}
         <div className="flex flex-wrap gap-1">
-          {keywords.slice(0, 2).map((kw, index) => (
+          {capacidad.keywords.slice(0, 2).map((kw, index) => (
             <Badge key={index} variant="outline" className="text-[10px] px-2.5 py-0.5 font-medium border-gray-400 rounded-full bg-white text-gray-700">
-              {kw}
+              {kw.keyword}
             </Badge>
           ))}
-          {keywords.length > 2 && (
-            <Badge variant="outline" className="text-[10px] px-2.5 py-0.5 font-medium border-gray-400 rounded-full bg-white text-gray-700">...</Badge>
+          {capacidad.keywords.length > 2 && (
+            <Badge variant="outline" className="text-[10px] px-2.5 py-0.5 font-medium border-gray-400 rounded-full bg-white text-gray-700">
+              +{capacidad.keywords.length - 2}
+            </Badge>
           )}
         </div>
 
