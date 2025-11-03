@@ -141,3 +141,25 @@ export const getMyMatchesController = async (req: Request, res: Response) => {
     res.status(500).json({ message: error.message || 'Error al obtener matches personalizados.' });
   }
 };
+
+/**
+ * NUEVO: Controlador para obtener matching avanzado de capacidades para un desafío
+ * Usa algoritmo con pesos: OCDE (60%), ODS (25%), Keywords (15%)
+ */
+export const getCapacidadMatchesAvanzadoController = async (req: Request, res: Response) => {
+  try {
+    const desafioId = parseInt(req.params.id, 10);
+    if (isNaN(desafioId)) {
+      return res.status(400).json({ message: 'ID de desafío inválido.' });
+    }
+
+    const limit = req.query.limit ? parseInt(req.query.limit as string, 10) : 20;
+
+    const matches = await matchingService.findCapacidadesForDesafioAvanzado(desafioId, limit);
+    res.status(200).json(matches);
+
+  } catch (error: any) {
+    console.error("Error en getCapacidadMatchesAvanzadoController:", error);
+    res.status(500).json({ message: error.message || 'Error interno al buscar coincidencias avanzadas.' });
+  }
+};

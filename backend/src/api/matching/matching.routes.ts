@@ -15,6 +15,9 @@ router.post('/toggle', authenticateToken, authorizeRole(['admin']), matchingCont
 // Ruta para obtener capacidades que coinciden con un desafío específico
 router.get('/desafio/:id', authenticateToken, authorizeRole(['admin']), matchingController.getCapacidadMatchesController);
 
+// NUEVO: Ruta para obtener matching avanzado (OCDE, ODS, Keywords con pesos)
+router.get('/desafio/:id/avanzado', authenticateToken, authorizeRole(['admin']), matchingController.getCapacidadMatchesAvanzadoController);
+
 // Ruta para obtener desafíos que coinciden con una capacidad específica
 router.get('/capacidad/:id', authenticateToken, authorizeRole(['admin']), matchingController.getDesafioMatchesController);
 

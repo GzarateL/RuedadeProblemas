@@ -224,3 +224,220 @@ export const getMatchesForParticipante = async (participanteId: number, limit: n
     throw new Error('Error al obtener matches para el participante.');
   }
 };
+
+/**
+ * NUEVO: Calcula el matching avanzado entre un desafío y todas las capacidades
+ * Pesos: OCDE (60%), ODS (25%), Keywords (15%)
+ */
+export interface CapacidadMatchAvanzado extends RowDataPacket {
+  registro_id: number;
+  usuario_id: number;
+  tipo_registro: string;
+  nombre_completo?: string;
+  nombre?: string;
+  email: string;
+  telefono: string;
+  programa_estudio?: string;
+  oficina_departamento_vinculado?: string;
+  
+  // Métricas de matching
+  score_total: number;
+  score_ocde: number;
+  score_ods: number;
+  score_keywords: number;
+  
+  // Coincidencias
+  ocde_coincidencias: number;
+  ods_coincidencias: number;
+  keywords_coincidencias: number;
+  
+  // Detalles
+  keywords_comunes?: string;
+}
+
+export const findCapacidadesForDesafioAvanzado = async (
+  desafioId: number,
+  limit: number = 20
+): Promise<CapacidadMatchAvanzado[]> => {
+  try {
+    const connection = await dbPool.getConnection();
+    
+    try {
+      // 1. Obtener datos del desafío
+      const [desafioRows] = await connection.query<RowDataPacket[]>(
+        'SELECT usuario_id FROM Desafios WHERE desafio_id = ?',
+        [desafioId]
+      );
+      
+      if (desafioRows.length === 0) {
+        return [];
+      }
+      
+      const desafioUserId = desafioRows[0].usuario_id;
+      
+      console.log(`\n=== MATCHING AVANZADO PARA DESAFÍO ${desafioId} ===`);
+      console.log(`Usuario del desafío: ${desafioUserId}`);
+      
+      // 2. Obtener OCDE, ODS y Keywords del desafío
+      const [desafioOCDE] = await connection.query<RowDataPacket[]>(
+        'SELECT DISTINCT disciplina_id FROM Registro_OCDE WHERE registro_id = ? AND usuario_id = ?',
+        [desafioId, desafioUserId]
+      );
+      console.log(`Query OCDE desafío - Rows encontrados:`, desafioOCDE.length);
+      
+      const [desafioODS] = await connection.query<RowDataPacket[]>(
+        'SELECT DISTINCT meta_id FROM Registro_ODS WHERE registro_id = ? AND usuario_id = ?',
+        [desafioId, desafioUserId]
+      );
+      console.log(`Query ODS desafío - Rows encontrados:`, desafioODS.length);
+      
+      const [desafioKeywords] = await connection.query<RowDataPacket[]>(
+        'SELECT keyword_id, kc.keyword FROM Registro_Keywords rk JOIN keywords_catalog kc ON rk.keyword_id = kc.id WHERE rk.registro_id = ? AND rk.usuario_id = ?',
+        [desafioId, desafioUserId]
+      );
+      console.log(`Query Keywords desafío - Rows encontrados:`, desafioKeywords.length);
+      
+      const desafioOCDEIds = desafioOCDE.map(r => r.disciplina_id).filter(id => id);
+      const desafioODSIds = desafioODS.map(r => r.meta_id).filter(id => id);
+      const desafioKeywordIds = desafioKeywords.map(r => r.keyword_id).filter(id => id);
+      
+      console.log(`\n📊 DATOS DEL DESAFÍO:`);
+      console.log(`  - OCDE (disciplinas): ${desafioOCDEIds.length} → [${desafioOCDEIds.join(', ')}]`);
+      console.log(`  - ODS (metas): ${desafioODSIds.length} → [${desafioODSIds.join(', ')}]`);
+      console.log(`  - Keywords: ${desafioKeywordIds.length} → [${desafioKeywordIds.join(', ')}]`);
+      if (desafioKeywords.length > 0) {
+        console.log(`  - Keywords nombres:`, desafioKeywords.map(k => k.keyword).join(', '));
+      }
+      
+      // 3. Obtener todas las capacidades y calcular matching
+      const capacidades: CapacidadMatchAvanzado[] = [];
+      
+      const tablas = [
+        { tabla: 'Registro_Docente_Investigador', tipo: 'docente_investigador', campoNombre: 'nombre_completo' },
+        { tabla: 'Registro_Grupo_Centro_Instituto', tipo: 'grupo_centro_instituto', campoNombre: 'nombre' },
+        { tabla: 'Registro_Laboratorio', tipo: 'laboratorio', campoNombre: 'nombre' },
+        { tabla: 'Registro_Centro_Produccion', tipo: 'centro_produccion', campoNombre: 'nombre' }
+      ];
+      
+      for (const { tabla, tipo, campoNombre } of tablas) {
+        const [registros] = await connection.query<RowDataPacket[]>(
+          `SELECT * FROM ${tabla}`
+        );
+        
+        console.log(`\n--- Procesando ${registros.length} registros de tipo: ${tipo} ---`);
+        
+        for (const registro of registros) {
+          // Obtener OCDE, ODS y Keywords de esta capacidad
+          const [capOCDE] = await connection.query<RowDataPacket[]>(
+            'SELECT DISTINCT disciplina_id FROM Registro_OCDE WHERE registro_id = ? AND usuario_id = ? AND tipo = ?',
+            [registro.registro_id, registro.usuario_id, tipo]
+          );
+          
+          const [capODS] = await connection.query<RowDataPacket[]>(
+            'SELECT DISTINCT meta_id FROM Registro_ODS WHERE registro_id = ? AND usuario_id = ? AND tipo = ?',
+            [registro.registro_id, registro.usuario_id, tipo]
+          );
+          
+          const [capKeywords] = await connection.query<RowDataPacket[]>(
+            'SELECT keyword_id, kc.keyword FROM Registro_Keywords rk JOIN keywords_catalog kc ON rk.keyword_id = kc.id WHERE rk.registro_id = ? AND rk.usuario_id = ? AND rk.tipo = ?',
+            [registro.registro_id, registro.usuario_id, tipo]
+          );
+          
+          const capOCDEIds = capOCDE.map(r => r.disciplina_id).filter(id => id);
+          const capODSIds = capODS.map(r => r.meta_id).filter(id => id);
+          const capKeywordIds = capKeywords.map(r => r.keyword_id).filter(id => id);
+          
+          // Calcular coincidencias
+          const ocdeCoincidencias = capOCDEIds.filter(id => desafioOCDEIds.includes(id)).length;
+          const odsCoincidencias = capODSIds.filter(id => desafioODSIds.includes(id)).length;
+          const keywordsCoincidencias = capKeywordIds.filter(id => desafioKeywordIds.includes(id)).length;
+          
+          // Identificar cuáles coinciden
+          const ocdeCoincidentesIds = capOCDEIds.filter(id => desafioOCDEIds.includes(id));
+          const odsCoincidentesIds = capODSIds.filter(id => desafioODSIds.includes(id));
+          const keywordsCoincidentesIds = capKeywordIds.filter(id => desafioKeywordIds.includes(id));
+          
+          // Log detallado de cada capacidad
+          const nombreCap = registro[campoNombre] || 'Sin nombre';
+          console.log(`\n  📋 Capacidad: ${nombreCap} (${tipo})`);
+          console.log(`    OCDE Capacidad: [${capOCDEIds.join(', ')}]`);
+          console.log(`    OCDE Desafío:   [${desafioOCDEIds.join(', ')}]`);
+          console.log(`    ✓ Coincidencias OCDE: ${ocdeCoincidencias} → [${ocdeCoincidentesIds.join(', ')}]`);
+          console.log(`    ODS Capacidad: [${capODSIds.join(', ')}]`);
+          console.log(`    ODS Desafío:   [${desafioODSIds.join(', ')}]`);
+          console.log(`    ✓ Coincidencias ODS: ${odsCoincidencias} → [${odsCoincidentesIds.join(', ')}]`);
+          console.log(`    Keywords Capacidad: [${capKeywordIds.join(', ')}]`);
+          if (capKeywords.length > 0) {
+            console.log(`    Keywords Capacidad (nombres): ${capKeywords.map(k => k.keyword).join(', ')}`);
+          }
+          console.log(`    Keywords Desafío:   [${desafioKeywordIds.join(', ')}]`);
+          console.log(`    ✓ Coincidencias Keywords: ${keywordsCoincidencias} → [${keywordsCoincidentesIds.join(', ')}]`);
+          
+          // Solo incluir si hay al menos una coincidencia
+          if (ocdeCoincidencias > 0 || odsCoincidencias > 0 || keywordsCoincidencias > 0) {
+            // Calcular scores (pesos: OCDE 60%, ODS 25%, Keywords 15%)
+            const scoreOCDE = capOCDEIds.length > 0 ? (ocdeCoincidencias / capOCDEIds.length) * 100 : 0;
+            const scoreODS = capODSIds.length > 0 ? (odsCoincidencias / capODSIds.length) * 100 : 0;
+            const scoreKeywords = capKeywordIds.length > 0 ? (keywordsCoincidencias / capKeywordIds.length) * 100 : 0;
+            
+            const scoreTotal = (scoreOCDE * 0.6) + (scoreODS * 0.25) + (scoreKeywords * 0.15);
+            
+            // Keywords comunes
+            const keywordsComunes = capKeywords
+              .filter(kw => desafioKeywordIds.includes(kw.keyword_id))
+              .map(kw => kw.keyword)
+              .join(', ');
+            
+            capacidades.push({
+              registro_id: registro.registro_id,
+              usuario_id: registro.usuario_id,
+              tipo_registro: tipo,
+              nombre_completo: tipo === 'docente_investigador' ? registro[campoNombre] : undefined,
+              nombre: tipo !== 'docente_investigador' ? registro[campoNombre] : undefined,
+              email: registro.email,
+              telefono: registro.telefono,
+              programa_estudio: registro.programa_estudio,
+              oficina_departamento_vinculado: registro.oficina_departamento_vinculado,
+              score_total: Math.round(scoreTotal * 100) / 100,
+              score_ocde: Math.round(scoreOCDE * 100) / 100,
+              score_ods: Math.round(scoreODS * 100) / 100,
+              score_keywords: Math.round(scoreKeywords * 100) / 100,
+              ocde_coincidencias: ocdeCoincidencias,
+              ods_coincidencias: odsCoincidencias,
+              keywords_coincidencias: keywordsCoincidencias,
+              keywords_comunes: keywordsComunes || undefined
+            } as CapacidadMatchAvanzado);
+          }
+        }
+      }
+      
+      // Ordenar por score total descendente
+      capacidades.sort((a, b) => b.score_total - a.score_total);
+      
+      // Limitar resultados
+      const limitValue = Math.max(1, Math.min(100, Math.floor(limit)));
+      const resultado = capacidades.slice(0, limitValue);
+      
+      console.log(`\n✅ RESULTADO FINAL:`);
+      console.log(`  Total capacidades analizadas: ${capacidades.length}`);
+      console.log(`  Capacidades con coincidencias: ${resultado.length}`);
+      if (resultado.length > 0) {
+        console.log(`\n  Top 5 matches:`);
+        resultado.slice(0, 5).forEach((cap, i) => {
+          const nombre = cap.nombre_completo || cap.nombre;
+          console.log(`    ${i + 1}. ${nombre} - Score: ${cap.score_total}% (OCDE: ${cap.score_ocde}%, ODS: ${cap.score_ods}%, KW: ${cap.score_keywords}%)`);
+        });
+      }
+      console.log(`=== FIN MATCHING AVANZADO ===\n`);
+      
+      return resultado;
+      
+    } finally {
+      connection.release();
+    }
+
+  } catch (error: any) {
+    console.error(`Error en matching avanzado para desafío ${desafioId}:`, error);
+    throw new Error('Error al calcular matching avanzado.');
+  }
+};

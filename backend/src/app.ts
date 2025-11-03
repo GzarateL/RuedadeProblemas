@@ -34,7 +34,7 @@ app.use('/uploads', express.static(uploadsPath));
 app.use('/api/auth', authRoutes);
 app.use('/api/cronograma', cronogramaRoutes);
 app.use('/api/users', usersRoutes); // <-- NUEVO
-app.use('/api/matches', matchingRoutes);
+app.use('/api/matching', matchingRoutes);
 app.use('/api/solicitudes', solicitudesRoutes);
 app.use('/api/chats', chatsRoutes);
 app.use('/api/helice-interna', heliceInternaRoutes);
