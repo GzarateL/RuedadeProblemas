@@ -1,9 +1,10 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import Cookies from "js-cookie";
+import { toast } from "sonner";
 import ProgressBar from "../components/ProgressBar";
 import StepNavigation from "../components/StepNavigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -105,10 +106,13 @@ const initialFormData: FormData = {
 export default function RegistroDocenteInvestigador() {
   const { user, isLoading } = useAuth();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const editId = searchParams.get('edit');
   const [currentStep, setCurrentStep] = useState(1);
   const [formData, setFormData] = useState<FormData>(initialFormData);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLoadingData, setIsLoadingData] = useState(false);
   const totalSteps = 9; // Actualizado: ahora son 9 pasos
 
   useEffect(() => {
@@ -128,7 +132,105 @@ export default function RegistroDocenteInvestigador() {
     }
   }, [user, isLoading, router]);
 
-  if (isLoading) {
+  // Cargar datos del registro si estamos editando
+  useEffect(() => {
+    const cargarDatosRegistro = async () => {
+      if (!editId || !user) return;
+
+      setIsLoadingData(true);
+      const token = Cookies.get('token');
+      if (!token) {
+        toast.error('No autenticado');
+        return;
+      }
+
+      try {
+        const response = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL}/api/helice-interna/registros/${editId}?tipo=docente_investigador`,
+          {
+            headers: {
+              'Authorization': `Bearer ${token}`
+            }
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error('Error al cargar el registro');
+        }
+
+        const registro = await response.json();
+        console.log('Registro cargado para edición:', registro);
+
+        // Mapear los datos del registro al formulario
+        setFormData({
+          nombreCompleto: registro.nombre_completo || '',
+          emailCorporativo: registro.email || '',
+          telefono: registro.telefono || '',
+          programaEstudio: registro.programa_estudio || '',
+          ctiVitae: registro.url_cti_vitae || '',
+          
+          // OCDE
+          areasOCDE: registro.ocde?.map((o: any) => o.area_id).filter(Boolean) || [],
+          subAreasOCDE: registro.ocde?.map((o: any) => o.sub_area_id).filter(Boolean) || [],
+          disciplinasOCDE: registro.ocde?.map((o: any) => o.disciplina_id).filter(Boolean) || [],
+          
+          // ODS
+          objetivosODS: registro.ods?.map((o: any) => o.objetivo_id).filter(Boolean) || [],
+          metasODS: registro.ods?.map((o: any) => o.meta_id).filter(Boolean) || [],
+          
+          // Aportes
+          nivelAporteDEL: registro.aportes?.nivel_aporte_del || null,
+          nivelAporteDS: registro.aportes?.nivel_aporte_ds || null,
+          
+          // Niveles tecnológicos
+          nivelTRL: registro.niveles?.nivel_trl || null,
+          descripcionTRL: '',
+          nivelCRL: registro.niveles?.nivel_crl || null,
+          descripcionCRL: '',
+          
+          // PIU
+          tesis: registro.piu?.tesis || 0,
+          libros: registro.piu?.libros || 0,
+          capitulosLibro: registro.piu?.capitulos_libro || 0,
+          manuscritosPublicados: registro.piu?.manuscritos_publicados || 0,
+          manuscritosAceptados: registro.piu?.manuscritos_aceptados || 0,
+          manuscritosEvaluacion: registro.piu?.manuscritos_evaluacion || 0,
+          propiedadIntelectualPatente: registro.piu?.pi_patente_invencion || 0,
+          propiedadIntelectualModalidadUso: registro.piu?.pi_patente_modalidad_uso || 0,
+          propiedadIntelectualSuiGeneris: registro.piu?.pi_sui_generis || 0,
+          propiedadIntelectualSoftware: registro.piu?.pi_derecho_autor_software || 0,
+          propiedadIntelectualObrasLiterarias: registro.piu?.pi_derecho_obras_literarias || 0,
+          propiedadIntelectualOtras: registro.piu?.pi_otras || 0,
+          
+          // Keywords
+          palabrasClave: registro.keywords?.map((k: any) => k.keyword_id) || [],
+          
+          // Soluciones
+          soluciones: registro.soluciones?.length > 0 
+            ? registro.soluciones.map((s: any) => ({
+                titulo: s.titulo || '',
+                problema: s.problema || '',
+                solucion: s.solucion || ''
+              }))
+            : [{ titulo: '', problema: '', solucion: '' }]
+        });
+
+        // Establecer el paso actual
+        setCurrentStep(registro.paso_actual || 1);
+
+        toast.success('Datos cargados correctamente');
+      } catch (error: any) {
+        console.error('Error al cargar registro:', error);
+        toast.error('Error al cargar el registro para edición');
+      } finally {
+        setIsLoadingData(false);
+      }
+    };
+
+    cargarDatosRegistro();
+  }, [editId, user]);
+
+  if (isLoading || isLoadingData) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-red-600"></div>
@@ -225,6 +327,8 @@ export default function RegistroDocenteInvestigador() {
     try {
       console.log('Enviando formulario completo...', formData);
 
+      const isEditing = !!editId;
+
       // Preparar datos según la estructura de la BD
       const datosRegistro = {
         tipo: 'docente_investigador',
@@ -271,7 +375,7 @@ export default function RegistroDocenteInvestigador() {
           pi_otras: formData.propiedadIntelectualOtras
         },
         
-        // Keywords (convertir strings a IDs si es necesario)
+        // Keywords
         keywords: formData.palabrasClave,
         
         // Soluciones
@@ -288,9 +392,16 @@ export default function RegistroDocenteInvestigador() {
       }
       
       console.log('Token encontrado:', token ? 'Sí' : 'No');
+      console.log('Modo:', isEditing ? 'Editando' : 'Creando nuevo');
       
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/helice-interna/registros`, {
-        method: 'POST',
+      const url = isEditing 
+        ? `${process.env.NEXT_PUBLIC_API_URL}/api/helice-interna/registros/${editId}`
+        : `${process.env.NEXT_PUBLIC_API_URL}/api/helice-interna/registros`;
+      
+      const method = isEditing ? 'PUT' : 'POST';
+      
+      const response = await fetch(url, {
+        method: method,
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
@@ -306,17 +417,13 @@ export default function RegistroDocenteInvestigador() {
       const resultado = await response.json();
       console.log('Registro exitoso:', resultado);
 
-      // Guardar datos en localStorage para mostrar en confirmación
-      localStorage.setItem('registro_confirmacion', JSON.stringify({
-        tipo: 'docente_investigador',
-        datos: formData,
-        fecha: new Date().toISOString()
-      }));
-
-      router.push('/registro-helice-interna/confirmacion');
-    } catch (error) {
+      toast.success(isEditing ? 'Registro actualizado exitosamente' : 'Registro creado exitosamente');
+      
+      // Redirigir a la página de capacidades
+      router.push('/capacidad');
+    } catch (error: any) {
       console.error('Error al enviar formulario:', error);
-      alert('Error al registrar. Por favor intente nuevamente.');
+      toast.error(error.message || 'Error al procesar el registro');
     } finally {
       setIsSubmitting(false);
     }

@@ -50,6 +50,33 @@ export default function OCDESelector({
     fetchOCDEData();
   }, []);
 
+  // Expandir y cargar datos cuando hay selecciones previas (modo edición)
+  useEffect(() => {
+    const loadSelectedData = async () => {
+      if (areas.length === 0) return;
+
+      // Expandir y cargar sub-áreas para áreas seleccionadas
+      for (const areaId of selectedAreas) {
+        setExpandedAreas(prev => new Set(prev).add(areaId));
+        const areaSubAreas = subAreas.filter(sa => sa.area_id === areaId);
+        if (areaSubAreas.length === 0) {
+          await fetchSubAreas(areaId);
+        }
+      }
+
+      // Expandir y cargar disciplinas para sub-áreas seleccionadas
+      for (const subAreaId of selectedSubAreas) {
+        setExpandedSubAreas(prev => new Set(prev).add(subAreaId));
+        const subAreaDisciplinas = disciplinas.filter(d => d.sub_area_id === subAreaId);
+        if (subAreaDisciplinas.length === 0) {
+          await fetchDisciplinas(subAreaId);
+        }
+      }
+    };
+
+    loadSelectedData();
+  }, [selectedAreas, selectedSubAreas, areas]);
+
   const fetchOCDEData = async () => {
     try {
       // Obtener solo las áreas principales

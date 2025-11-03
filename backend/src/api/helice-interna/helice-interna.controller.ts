@@ -29,15 +29,26 @@ export class HeliceInternaController {
 
       const datosRegistro = req.body;
       
+      console.log('=== CREAR REGISTRO ===');
+      console.log('Usuario ID:', userId);
+      console.log('Tipo:', datosRegistro.tipo);
+      console.log('Datos recibidos:', JSON.stringify(datosRegistro, null, 2));
+      
       const registro = await this.heliceInternaService.crearRegistro(
         userId,
         datosRegistro
       );
 
       res.status(201).json(registro);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error al crear registro:', error);
-      res.status(500).json({ error: 'Error interno del servidor' });
+      console.error('Error stack:', error.stack);
+      console.error('Error message:', error.message);
+      res.status(500).json({ 
+        error: 'Error interno del servidor',
+        message: error.message,
+        details: process.env.NODE_ENV === 'development' ? error.stack : undefined
+      });
     }
   };
 

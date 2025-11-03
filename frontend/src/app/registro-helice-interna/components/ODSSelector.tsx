@@ -38,6 +38,24 @@ export default function ODSSelector({
     fetchODSData();
   }, []);
 
+  // Expandir y cargar metas cuando hay objetivos seleccionados (modo edición)
+  useEffect(() => {
+    const loadSelectedData = async () => {
+      if (objetivos.length === 0) return;
+
+      // Expandir y cargar metas para objetivos seleccionados
+      for (const objetivoId of selectedObjetivos) {
+        setExpandedObjetivos(prev => new Set(prev).add(objetivoId));
+        const objetivoMetas = metas.filter(m => m.objetivo_id === objetivoId);
+        if (objetivoMetas.length === 0) {
+          await fetchMetas(objetivoId);
+        }
+      }
+    };
+
+    loadSelectedData();
+  }, [selectedObjetivos, objetivos]);
+
   const fetchODSData = async () => {
     try {
       // Obtener solo los objetivos principales

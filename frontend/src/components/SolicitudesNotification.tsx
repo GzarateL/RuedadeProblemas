@@ -5,11 +5,16 @@ import Cookies from 'js-cookie';
 import { Badge } from "@/components/ui/badge";
 import { Bell } from 'lucide-react';
 import Link from 'next/link';
+import { useAuth } from '@/context/AuthContext';
 
 export default function SolicitudesNotification() {
+  const { user } = useAuth();
   const [pendientes, setPendientes] = useState(0);
 
   useEffect(() => {
+    // Solo cargar para usuarios admin
+    if (!user || user.rol !== 'admin') return;
+
     const fetchConteo = async () => {
       const token = Cookies.get('token');
       if (!token) return;
@@ -24,7 +29,10 @@ export default function SolicitudesNotification() {
           setPendientes(data.total || 0);
         }
       } catch (err) {
-        console.error("Error fetching conteo solicitudes:", err);
+        // Silenciar error si no es admin
+        if (user?.rol === 'admin') {
+          console.error("Error fetching conteo solicitudes:", err);
+        }
       }
     };
 
@@ -34,7 +42,7 @@ export default function SolicitudesNotification() {
     const interval = setInterval(fetchConteo, 30000);
     
     return () => clearInterval(interval);
-  }, []);
+  }, [user]);
 
   if (pendientes === 0) return null;
 
