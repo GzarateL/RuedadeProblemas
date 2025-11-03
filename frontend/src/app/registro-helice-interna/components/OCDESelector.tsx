@@ -54,6 +54,7 @@ export default function OCDESelector({
   useEffect(() => {
     const loadSelectedData = async () => {
       if (areas.length === 0) return;
+      if (selectedAreas.length === 0 && selectedSubAreas.length === 0) return;
 
       // Expandir y cargar sub-áreas para áreas seleccionadas
       for (const areaId of selectedAreas) {
@@ -75,7 +76,8 @@ export default function OCDESelector({
     };
 
     loadSelectedData();
-  }, [selectedAreas, selectedSubAreas, areas]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [areas.length]); // Solo ejecutar cuando se cargan las áreas inicialmente
 
   const fetchOCDEData = async () => {
     try {
@@ -98,7 +100,12 @@ export default function OCDESelector({
       if (!response.ok) throw new Error('Error al cargar sub-áreas');
 
       const subAreasData = await response.json();
-      setSubAreas(prev => [...prev, ...subAreasData]);
+      setSubAreas(prev => {
+        // Evitar duplicados: solo agregar sub-áreas que no existen
+        const existingIds = new Set(prev.map(sa => sa.id));
+        const newSubAreas = subAreasData.filter((sa: SubArea) => !existingIds.has(sa.id));
+        return [...prev, ...newSubAreas];
+      });
     } catch (error) {
       console.error('Error fetching sub-areas:', error);
     }
@@ -110,7 +117,12 @@ export default function OCDESelector({
       if (!response.ok) throw new Error('Error al cargar disciplinas');
 
       const disciplinasData = await response.json();
-      setDisciplinas(prev => [...prev, ...disciplinasData]);
+      setDisciplinas(prev => {
+        // Evitar duplicados: solo agregar disciplinas que no existen
+        const existingIds = new Set(prev.map(d => d.id));
+        const newDisciplinas = disciplinasData.filter((d: Disciplina) => !existingIds.has(d.id));
+        return [...prev, ...newDisciplinas];
+      });
     } catch (error) {
       console.error('Error fetching disciplinas:', error);
     }
@@ -251,13 +263,13 @@ export default function OCDESelector({
             {isAreaExpanded && (
               <CardContent className="pt-0">
                 <div className="ml-6 space-y-3">
-                  {areaSubAreas.map((subArea) => {
+                  {areaSubAreas.map((subArea, subAreaIndex) => {
                     const subAreaDisciplinas = disciplinas.filter(d => d.sub_area_id === subArea.id);
                     const isSubAreaExpanded = expandedSubAreas.has(subArea.id);
                     const isSubAreaSelected = selectedSubAreas.includes(subArea.id);
 
                     return (
-                      <div key={subArea.id} className="border-l-2 border-gray-100 pl-4">
+                      <div key={`area-${area.id}-subarea-${subArea.id}-idx-${subAreaIndex}`} className="border-l-2 border-gray-100 pl-4">
                         <div className="flex items-center space-x-3 mb-2">
                           <Checkbox
                             id={`subarea-${subArea.id}`}
@@ -281,11 +293,11 @@ export default function OCDESelector({
 
                         {isSubAreaExpanded && (
                           <div className="ml-6 space-y-2">
-                            {subAreaDisciplinas.map((disciplina) => {
+                            {subAreaDisciplinas.map((disciplina, discIndex) => {
                               const isDisciplinaSelected = selectedDisciplinas.includes(disciplina.id);
 
                               return (
-                                <div key={disciplina.id} className="flex items-center space-x-3">
+                                <div key={`area-${area.id}-subarea-${subArea.id}-disciplina-${disciplina.id}-idx-${discIndex}`} className="flex items-center space-x-3">
                                   <Checkbox
                                     id={`disciplina-${disciplina.id}`}
                                     checked={isDisciplinaSelected}

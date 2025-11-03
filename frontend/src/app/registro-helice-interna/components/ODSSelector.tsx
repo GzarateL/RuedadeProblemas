@@ -42,6 +42,7 @@ export default function ODSSelector({
   useEffect(() => {
     const loadSelectedData = async () => {
       if (objetivos.length === 0) return;
+      if (selectedObjetivos.length === 0) return;
 
       // Expandir y cargar metas para objetivos seleccionados
       for (const objetivoId of selectedObjetivos) {
@@ -54,7 +55,8 @@ export default function ODSSelector({
     };
 
     loadSelectedData();
-  }, [selectedObjetivos, objetivos]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [objetivos.length]); // Solo ejecutar cuando se cargan los objetivos inicialmente
 
   const fetchODSData = async () => {
     try {
@@ -77,7 +79,12 @@ export default function ODSSelector({
       if (!response.ok) throw new Error('Error al cargar metas');
       
       const metasData = await response.json();
-      setMetas(prev => [...prev, ...metasData]);
+      setMetas(prev => {
+        // Evitar duplicados: solo agregar metas que no existen
+        const existingIds = new Set(prev.map(m => m.id));
+        const newMetas = metasData.filter((m: Meta) => !existingIds.has(m.id));
+        return [...prev, ...newMetas];
+      });
     } catch (error) {
       console.error('Error fetching metas:', error);
     }
@@ -188,11 +195,11 @@ export default function ODSSelector({
                   <div className="text-sm font-medium text-gray-700 mb-3">
                     Metas específicas:
                   </div>
-                  {objetivoMetas.map((meta) => {
+                  {objetivoMetas.map((meta, metaIndex) => {
                     const isMetaSelected = selectedMetas.includes(meta.id);
 
                     return (
-                      <div key={meta.id} className="border-l-2 border-gray-100 pl-4">
+                      <div key={`objetivo-${objetivo.id}-meta-${meta.id}-idx-${metaIndex}`} className="border-l-2 border-gray-100 pl-4">
                         <div className="flex items-start space-x-3">
                           <Checkbox
                             id={`meta-${meta.id}`}

@@ -91,8 +91,8 @@ export function Navbar() {
             <Link
               href="/agenda"
               className={`text-sm transition-all duration-300 ${pathname === '/agenda'
-                  ? 'text-electric underline underline-offset-4'
-                  : 'text-neutral-900 hover:text-electric'
+                ? 'text-electric underline underline-offset-4'
+                : 'text-neutral-900 hover:text-electric'
                 }`}
             >
               Agenda
@@ -107,8 +107,8 @@ export function Navbar() {
                     <Link
                       href="/desafio"
                       className={`text-sm transition-all duration-300 ${pathname === '/desafio'
-                          ? 'text-electric underline underline-offset-4'
-                          : 'text-neutral-900 hover:text-electric'
+                        ? 'text-electric underline underline-offset-4'
+                        : 'text-neutral-900 hover:text-electric'
                         }`}
                     >
                       Mis Desafíos
@@ -116,48 +116,57 @@ export function Navbar() {
                     <Link
                       href="/chats"
                       className={`text-sm transition-all duration-300 ${pathname === '/chats'
-                          ? 'text-electric underline underline-offset-4'
-                          : 'text-neutral-900 hover:text-electric'
+                        ? 'text-electric underline underline-offset-4'
+                        : 'text-neutral-900 hover:text-electric'
                         }`}
                     >
                       Chats
                     </Link>
                   </>
                 )}
-                {user.rol === 'interno' && (
-                  <>
-                  </>
-                )}
 
                 {/* Botón de registro según el rol del usuario */}
                 {user.rol === 'interno' && (
-                  <Link
-                    href="/registro-helice-interna"
-                    className={`text-sm transition-all duration-300 ${pathname.startsWith('/registro-helice-interna')
+                  <>
+                    <Link
+                      href="/registro-helice-interna"
+                      className={`text-sm transition-all duration-300 ${pathname.startsWith('/registro-helice-interna')
                         ? 'text-electric underline underline-offset-4'
                         : 'text-neutral-900 hover:text-electric'
-                      }`}
-                  >
-                    Registrar rol en Hélice Interna
-                  </Link>
+                        }`}
+                    >
+                      Registrar rol en Hélice Interna
+                    </Link>
+                    <Link
+                      href="/capacidad"
+                      className={`text-sm transition-all duration-300 ${pathname === '/capacidad'
+                        ? 'text-electric underline underline-offset-4'
+                        : 'text-neutral-900 hover:text-electric'
+                        }`}
+                    >
+                      Mis registros
+                    </Link>
+                  </>
                 )}
                 {user.rol === 'externo' && (
                   <Link
                     href="/desafio/registrar"
                     className={`text-sm transition-all duration-300 ${pathname.startsWith('/desafio/registrar')
-                        ? 'text-electric underline underline-offset-4'
-                        : 'text-neutral-900 hover:text-electric'
+                      ? 'text-electric underline underline-offset-4'
+                      : 'text-neutral-900 hover:text-electric'
                       }`}
                   >
                     Registrar rol en Hélice Externa
                   </Link>
+
+
                 )}
                 {user.rol === 'admin' && (
                   <Link
                     href="/admin/dashboard"
                     className={`text-sm transition-all duration-300 ${pathname === '/admin/dashboard'
-                        ? 'text-electric underline underline-offset-4'
-                        : 'text-neutral-900 hover:text-electric'
+                      ? 'text-electric underline underline-offset-4'
+                      : 'text-neutral-900 hover:text-electric'
                       }`}
                   >
                     Dashboard Admin

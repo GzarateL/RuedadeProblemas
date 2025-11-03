@@ -162,6 +162,13 @@ export default function RegistroDocenteInvestigador() {
         console.log('Registro cargado para edición:', registro);
 
         // Mapear los datos del registro al formulario
+        // Eliminar duplicados usando Set
+        const uniqueAreas = [...new Set(registro.ocde?.map((o: any) => o.area_id).filter(Boolean))] as number[];
+        const uniqueSubAreas = [...new Set(registro.ocde?.map((o: any) => o.sub_area_id).filter(Boolean))] as number[];
+        const uniqueDisciplinas = [...new Set(registro.ocde?.map((o: any) => o.disciplina_id).filter(Boolean))] as number[];
+        const uniqueObjetivos = [...new Set(registro.ods?.map((o: any) => o.objetivo_id).filter(Boolean))] as number[];
+        const uniqueMetas = [...new Set(registro.ods?.map((o: any) => o.meta_id).filter(Boolean))] as number[];
+
         setFormData({
           nombreCompleto: registro.nombre_completo || '',
           emailCorporativo: registro.email || '',
@@ -170,13 +177,13 @@ export default function RegistroDocenteInvestigador() {
           ctiVitae: registro.url_cti_vitae || '',
 
           // OCDE
-          areasOCDE: registro.ocde?.map((o: any) => o.area_id).filter(Boolean) || [],
-          subAreasOCDE: registro.ocde?.map((o: any) => o.sub_area_id).filter(Boolean) || [],
-          disciplinasOCDE: registro.ocde?.map((o: any) => o.disciplina_id).filter(Boolean) || [],
+          areasOCDE: uniqueAreas,
+          subAreasOCDE: uniqueSubAreas,
+          disciplinasOCDE: uniqueDisciplinas,
 
           // ODS
-          objetivosODS: registro.ods?.map((o: any) => o.objetivo_id).filter(Boolean) || [],
-          metasODS: registro.ods?.map((o: any) => o.meta_id).filter(Boolean) || [],
+          objetivosODS: uniqueObjetivos,
+          metasODS: uniqueMetas,
 
           // Aportes
           nivelAporteDEL: registro.aportes?.nivel_aporte_del || null,
@@ -346,10 +353,18 @@ export default function RegistroDocenteInvestigador() {
         })),
 
         // ODS
-        ods: formData.objetivosODS.map((objetivoId, index) => ({
-          objetivo_id: objetivoId,
-          meta_id: formData.metasODS[index] || null
-        })),
+        ods: [
+          // Agregar objetivos seleccionados
+          ...formData.objetivosODS.map(objetivoId => ({
+            objetivo_id: objetivoId,
+            meta_id: null
+          })),
+          // Agregar metas seleccionadas (el backend buscará el objetivo_id)
+          ...formData.metasODS.map(metaId => ({
+            objetivo_id: null, // El backend lo completará
+            meta_id: metaId
+          }))
+        ],
 
         // Aportes (escala 1-7)
         nivel_aporte_del: formData.nivelAporteDEL,

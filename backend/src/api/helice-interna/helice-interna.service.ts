@@ -34,7 +34,7 @@ interface RegistroGrupoCentroInstituto {
 interface RegistroLaboratorio {
   registro_id?: number;
   usuario_id: number;
-  nombre: string; // Nombre del laboratorio
+  nombre: string; 
   nombre_completo_responsable: string;
   email: string;
   telefono: string;
@@ -174,16 +174,8 @@ export class HeliceInternaService {
       const tabla = this.getTablaByTipo(datos.tipo);
       console.log('Tabla a usar:', tabla);
       
-      // Verificar si ya existe un registro para este usuario y tipo
-      const [existingRecords] = await connection.execute<RowDataPacket[]>(
-        `SELECT registro_id FROM ${tabla} WHERE usuario_id = ?`,
-        [usuarioId]
-      );
-      
-      if (existingRecords.length > 0) {
-        console.log('Ya existe un registro para este usuario, se eliminará el anterior');
-        await connection.execute(`DELETE FROM ${tabla} WHERE usuario_id = ?`, [usuarioId]);
-      }
+      // NOTA: Permitimos múltiples registros del mismo tipo para el mismo usuario
+      // No eliminamos registros existentes, simplemente creamos uno nuevo
       
       let registroId: number;
 
@@ -240,61 +232,61 @@ export class HeliceInternaService {
       // Guardar datos compartidos
       console.log('Guardando datos compartidos...');
       
-      // Limpiar datos compartidos existentes del usuario antes de insertar nuevos
-      console.log('Limpiando datos compartidos previos del usuario...');
-      await connection.execute('DELETE FROM Registro_OCDE WHERE usuario_id = ?', [usuarioId]);
-      await connection.execute('DELETE FROM Registro_ODS WHERE usuario_id = ?', [usuarioId]);
-      await connection.execute('DELETE FROM Registro_Aportes WHERE usuario_id = ?', [usuarioId]);
-      await connection.execute('DELETE FROM Registro_CTI_Vitae WHERE usuario_id = ?', [usuarioId]);
-      await connection.execute('DELETE FROM Registro_Niveles_Tecnologicos WHERE usuario_id = ?', [usuarioId]);
-      await connection.execute('DELETE FROM Registro_PIU WHERE usuario_id = ?', [usuarioId]);
-      await connection.execute('DELETE FROM Registro_Keywords WHERE usuario_id = ?', [usuarioId]);
-      await connection.execute('DELETE FROM Registro_Soluciones WHERE usuario_id = ?', [usuarioId]);
-      await connection.execute('DELETE FROM Registro_Archivos WHERE usuario_id = ?', [usuarioId]);
+      // Limpiar datos compartidos existentes de ESTE registro específico antes de insertar nuevos
+      console.log(`Limpiando datos compartidos previos del registro ${registroId}, tipo ${datos.tipo}...`);
+      await connection.execute('DELETE FROM Registro_OCDE WHERE usuario_id = ? AND registro_id = ? AND tipo = ?', [usuarioId, registroId, datos.tipo]);
+      await connection.execute('DELETE FROM Registro_ODS WHERE usuario_id = ? AND registro_id = ? AND tipo = ?', [usuarioId, registroId, datos.tipo]);
+      await connection.execute('DELETE FROM Registro_Aportes WHERE usuario_id = ? AND registro_id = ? AND tipo = ?', [usuarioId, registroId, datos.tipo]);
+      await connection.execute('DELETE FROM Registro_CTI_Vitae WHERE usuario_id = ? AND registro_id = ? AND tipo = ?', [usuarioId, registroId, datos.tipo]);
+      await connection.execute('DELETE FROM Registro_Niveles_Tecnologicos WHERE usuario_id = ? AND registro_id = ? AND tipo = ?', [usuarioId, registroId, datos.tipo]);
+      await connection.execute('DELETE FROM Registro_PIU WHERE usuario_id = ? AND registro_id = ? AND tipo = ?', [usuarioId, registroId, datos.tipo]);
+      await connection.execute('DELETE FROM Registro_Keywords WHERE usuario_id = ? AND registro_id = ? AND tipo = ?', [usuarioId, registroId, datos.tipo]);
+      await connection.execute('DELETE FROM Registro_Soluciones WHERE usuario_id = ? AND registro_id = ? AND tipo = ?', [usuarioId, registroId, datos.tipo]);
+      await connection.execute('DELETE FROM Registro_Archivos WHERE usuario_id = ? AND registro_id = ? AND tipo = ?', [usuarioId, registroId, datos.tipo]);
       
       if (datos.ocde && datos.ocde.length > 0) {
         console.log('Guardando OCDE:', datos.ocde);
-        await this.guardarOCDE(connection, usuarioId, datos.ocde);
+        await this.guardarOCDE(connection, usuarioId, registroId, datos.tipo, datos.ocde);
       }
 
       if (datos.ods && datos.ods.length > 0) {
         console.log('Guardando ODS:', datos.ods);
-        await this.guardarODS(connection, usuarioId, datos.ods);
+        await this.guardarODS(connection, usuarioId, registroId, datos.tipo, datos.ods);
       }
 
       if (datos.nivel_aporte_del !== undefined && datos.nivel_aporte_ds !== undefined) {
         console.log('Guardando aportes:', { del: datos.nivel_aporte_del, ds: datos.nivel_aporte_ds });
-        await this.guardarAportes(connection, usuarioId, datos.nivel_aporte_del, datos.nivel_aporte_ds);
+        await this.guardarAportes(connection, usuarioId, registroId, datos.tipo, datos.nivel_aporte_del, datos.nivel_aporte_ds);
       }
 
       if (datos.cti_vitae_urls && datos.cti_vitae_urls.length > 0) {
         console.log('Guardando CTI Vitae:', datos.cti_vitae_urls);
-        await this.guardarCTIVitae(connection, usuarioId, datos.cti_vitae_urls);
+        await this.guardarCTIVitae(connection, usuarioId, registroId, datos.tipo, datos.cti_vitae_urls);
       }
 
       if (datos.nivel_trl !== undefined || datos.nivel_crl !== undefined) {
         console.log('Guardando niveles tecnológicos:', { trl: datos.nivel_trl, crl: datos.nivel_crl });
-        await this.guardarNivelesTecnologicos(connection, usuarioId, datos.nivel_trl, datos.nivel_crl);
+        await this.guardarNivelesTecnologicos(connection, usuarioId, registroId, datos.tipo, datos.nivel_trl, datos.nivel_crl);
       }
 
       if (datos.piu) {
         console.log('Guardando PIU:', datos.piu);
-        await this.guardarPIU(connection, usuarioId, datos.piu);
+        await this.guardarPIU(connection, usuarioId, registroId, datos.tipo, datos.piu);
       }
 
       if (datos.keywords && datos.keywords.length > 0) {
         console.log('Guardando keywords:', datos.keywords);
-        await this.guardarKeywords(connection, usuarioId, datos.keywords);
+        await this.guardarKeywords(connection, usuarioId, registroId, datos.tipo, datos.keywords);
       }
 
       if (datos.soluciones && datos.soluciones.length > 0) {
         console.log('Guardando soluciones:', datos.soluciones.length, 'soluciones');
-        await this.guardarSoluciones(connection, usuarioId, datos.soluciones);
+        await this.guardarSoluciones(connection, usuarioId, registroId, datos.tipo, datos.soluciones);
       }
 
       if (datos.archivos && datos.archivos.length > 0) {
         console.log('Guardando archivos:', datos.archivos);
-        await this.guardarArchivos(connection, usuarioId, datos.archivos);
+        await this.guardarArchivos(connection, usuarioId, registroId, datos.tipo, datos.archivos);
       }
       
       console.log('Todos los datos guardados exitosamente');
@@ -364,58 +356,58 @@ export class HeliceInternaService {
 
       // Actualizar datos compartidos (eliminar y reinsertar)
       if (datos.ocde !== undefined) {
-        await connection.execute('DELETE FROM Registro_OCDE WHERE usuario_id = ?', [usuarioId]);
+        await connection.execute('DELETE FROM Registro_OCDE WHERE usuario_id = ? AND registro_id = ? AND tipo = ?', [usuarioId, registroId, datos.tipo]);
         if (datos.ocde.length > 0) {
-          await this.guardarOCDE(connection, usuarioId, datos.ocde);
+          await this.guardarOCDE(connection, usuarioId, registroId, datos.tipo, datos.ocde);
         }
       }
 
       if (datos.ods !== undefined) {
-        await connection.execute('DELETE FROM Registro_ODS WHERE usuario_id = ?', [usuarioId]);
+        await connection.execute('DELETE FROM Registro_ODS WHERE usuario_id = ? AND registro_id = ? AND tipo = ?', [usuarioId, registroId, datos.tipo]);
         if (datos.ods.length > 0) {
-          await this.guardarODS(connection, usuarioId, datos.ods);
+          await this.guardarODS(connection, usuarioId, registroId, datos.tipo, datos.ods);
         }
       }
 
       if (datos.nivel_aporte_del !== undefined || datos.nivel_aporte_ds !== undefined) {
-        await connection.execute('DELETE FROM Registro_Aportes WHERE usuario_id = ?', [usuarioId]);
+        await connection.execute('DELETE FROM Registro_Aportes WHERE usuario_id = ? AND registro_id = ? AND tipo = ?', [usuarioId, registroId, datos.tipo]);
         if (datos.nivel_aporte_del !== undefined && datos.nivel_aporte_ds !== undefined) {
-          await this.guardarAportes(connection, usuarioId, datos.nivel_aporte_del, datos.nivel_aporte_ds);
+          await this.guardarAportes(connection, usuarioId, registroId, datos.tipo, datos.nivel_aporte_del, datos.nivel_aporte_ds);
         }
       }
 
       if (datos.cti_vitae_urls !== undefined) {
-        await connection.execute('DELETE FROM Registro_CTI_Vitae WHERE usuario_id = ?', [usuarioId]);
+        await connection.execute('DELETE FROM Registro_CTI_Vitae WHERE usuario_id = ? AND registro_id = ? AND tipo = ?', [usuarioId, registroId, datos.tipo]);
         if (datos.cti_vitae_urls.length > 0) {
-          await this.guardarCTIVitae(connection, usuarioId, datos.cti_vitae_urls);
+          await this.guardarCTIVitae(connection, usuarioId, registroId, datos.tipo, datos.cti_vitae_urls);
         }
       }
 
       if (datos.nivel_trl !== undefined || datos.nivel_crl !== undefined) {
-        await connection.execute('DELETE FROM Registro_Niveles_Tecnologicos WHERE usuario_id = ?', [usuarioId]);
+        await connection.execute('DELETE FROM Registro_Niveles_Tecnologicos WHERE usuario_id = ? AND registro_id = ? AND tipo = ?', [usuarioId, registroId, datos.tipo]);
         if (datos.nivel_trl !== undefined || datos.nivel_crl !== undefined) {
-          await this.guardarNivelesTecnologicos(connection, usuarioId, datos.nivel_trl, datos.nivel_crl);
+          await this.guardarNivelesTecnologicos(connection, usuarioId, registroId, datos.tipo, datos.nivel_trl, datos.nivel_crl);
         }
       }
 
       if (datos.piu !== undefined) {
-        await connection.execute('DELETE FROM Registro_PIU WHERE usuario_id = ?', [usuarioId]);
+        await connection.execute('DELETE FROM Registro_PIU WHERE usuario_id = ? AND registro_id = ? AND tipo = ?', [usuarioId, registroId, datos.tipo]);
         if (datos.piu) {
-          await this.guardarPIU(connection, usuarioId, datos.piu);
+          await this.guardarPIU(connection, usuarioId, registroId, datos.tipo, datos.piu);
         }
       }
 
       if (datos.keywords !== undefined) {
-        await connection.execute('DELETE FROM Registro_Keywords WHERE usuario_id = ?', [usuarioId]);
+        await connection.execute('DELETE FROM Registro_Keywords WHERE usuario_id = ? AND registro_id = ? AND tipo = ?', [usuarioId, registroId, datos.tipo]);
         if (datos.keywords.length > 0) {
-          await this.guardarKeywords(connection, usuarioId, datos.keywords);
+          await this.guardarKeywords(connection, usuarioId, registroId, datos.tipo, datos.keywords);
         }
       }
 
       if (datos.soluciones !== undefined) {
-        await connection.execute('DELETE FROM Registro_Soluciones WHERE usuario_id = ?', [usuarioId]);
+        await connection.execute('DELETE FROM Registro_Soluciones WHERE usuario_id = ? AND registro_id = ? AND tipo = ?', [usuarioId, registroId, datos.tipo]);
         if (datos.soluciones.length > 0) {
-          await this.guardarSoluciones(connection, usuarioId, datos.soluciones);
+          await this.guardarSoluciones(connection, usuarioId, registroId, datos.tipo, datos.soluciones);
         }
       }
 
@@ -434,59 +426,98 @@ export class HeliceInternaService {
   }
 
   // Métodos auxiliares para guardar datos compartidos
-  private async guardarOCDE(connection: PoolConnection, usuarioId: number, ocde: Array<{area_id?: number, sub_area_id?: number, disciplina_id?: number}>) {
-    console.log(`Guardando ${ocde.length} registros OCDE para usuario ${usuarioId}`);
+  private async guardarOCDE(connection: PoolConnection, usuarioId: number, registroId: number, tipo: string, ocde: Array<{area_id?: number, sub_area_id?: number, disciplina_id?: number}>) {
+    console.log(`Guardando ${ocde.length} registros OCDE para usuario ${usuarioId}, registro ${registroId}, tipo ${tipo}`);
     for (const item of ocde) {
-      console.log('Insertando OCDE:', { usuarioId, ...item });
+      console.log('Insertando OCDE:', { usuarioId, registroId, tipo, ...item });
       const [result] = await connection.execute<ResultSetHeader>(
-        'INSERT INTO Registro_OCDE (usuario_id, area_id, sub_area_id, disciplina_id) VALUES (?, ?, ?, ?)',
-        [usuarioId, item.area_id || null, item.sub_area_id || null, item.disciplina_id || null]
+        'INSERT INTO Registro_OCDE (usuario_id, registro_id, tipo, area_id, sub_area_id, disciplina_id) VALUES (?, ?, ?, ?, ?, ?)',
+        [usuarioId, registroId, tipo, item.area_id || null, item.sub_area_id || null, item.disciplina_id || null]
       );
       console.log('OCDE insertado con ID:', result.insertId);
     }
   }
 
-  private async guardarODS(connection: PoolConnection, usuarioId: number, ods: Array<{objetivo_id: number, meta_id?: number}>) {
+  private async guardarODS(connection: PoolConnection, usuarioId: number, registroId: number, tipo: string, ods: Array<{objetivo_id: number | null, meta_id?: number | null}>) {
     for (const item of ods) {
-      await connection.execute(
-        'INSERT INTO Registro_ODS (usuario_id, objetivo_id, meta_id) VALUES (?, ?, ?)',
-        [usuarioId, item.objetivo_id, item.meta_id || null]
-      );
+      let objetivoId = item.objetivo_id;
+      
+      // Si solo se proporcionó meta_id, buscar el objetivo_id correspondiente
+      if (!objetivoId && item.meta_id) {
+        const [metaRows] = await connection.execute<RowDataPacket[]>(
+          'SELECT objetivo_id FROM metas WHERE id = ?',
+          [item.meta_id]
+        );
+        if (metaRows.length > 0) {
+          objetivoId = metaRows[0].objetivo_id;
+        }
+      }
+      
+      // Solo insertar si tenemos al menos un objetivo_id
+      if (objetivoId) {
+        await connection.execute(
+          'INSERT INTO Registro_ODS (usuario_id, registro_id, tipo, objetivo_id, meta_id) VALUES (?, ?, ?, ?, ?)',
+          [usuarioId, registroId, tipo, objetivoId, item.meta_id || null]
+        );
+      }
     }
   }
 
-  private async guardarAportes(connection: PoolConnection, usuarioId: number, nivelDEL: number, nivelDS: number) {
+  private async guardarAportes(connection: PoolConnection, usuarioId: number, registroId: number, tipo: string, nivelDEL: number, nivelDS: number) {
     await connection.execute(
-      'INSERT INTO Registro_Aportes (usuario_id, nivel_aporte_del, nivel_aporte_ds) VALUES (?, ?, ?)',
-      [usuarioId, nivelDEL, nivelDS]
+      `INSERT INTO Registro_Aportes (usuario_id, registro_id, tipo, nivel_aporte_del, nivel_aporte_ds) 
+       VALUES (?, ?, ?, ?, ?)
+       ON DUPLICATE KEY UPDATE 
+       nivel_aporte_del = VALUES(nivel_aporte_del),
+       nivel_aporte_ds = VALUES(nivel_aporte_ds)`,
+      [usuarioId, registroId, tipo, nivelDEL, nivelDS]
     );
   }
 
-  private async guardarCTIVitae(connection: PoolConnection, usuarioId: number, urls: string[]) {
+  private async guardarCTIVitae(connection: PoolConnection, usuarioId: number, registroId: number, tipo: string, urls: string[]) {
     for (let i = 0; i < urls.length; i++) {
       await connection.execute(
-        'INSERT INTO Registro_CTI_Vitae (usuario_id, url_cti, orden) VALUES (?, ?, ?)',
-        [usuarioId, urls[i], i + 1]
+        'INSERT INTO Registro_CTI_Vitae (usuario_id, registro_id, tipo, url_cti, orden) VALUES (?, ?, ?, ?, ?)',
+        [usuarioId, registroId, tipo, urls[i], i + 1]
       );
     }
   }
 
-  private async guardarNivelesTecnologicos(connection: PoolConnection, usuarioId: number, nivelTRL?: number, nivelCRL?: number) {
+  private async guardarNivelesTecnologicos(connection: PoolConnection, usuarioId: number, registroId: number, tipo: string, nivelTRL?: number, nivelCRL?: number) {
     await connection.execute(
-      'INSERT INTO Registro_Niveles_Tecnologicos (usuario_id, nivel_trl, nivel_crl) VALUES (?, ?, ?)',
-      [usuarioId, nivelTRL || null, nivelCRL || null]
+      `INSERT INTO Registro_Niveles_Tecnologicos (usuario_id, registro_id, tipo, nivel_trl, nivel_crl) 
+       VALUES (?, ?, ?, ?, ?)
+       ON DUPLICATE KEY UPDATE 
+       nivel_trl = VALUES(nivel_trl),
+       nivel_crl = VALUES(nivel_crl)`,
+      [usuarioId, registroId, tipo, nivelTRL || null, nivelCRL || null]
     );
   }
 
-  private async guardarPIU(connection: PoolConnection, usuarioId: number, piu: any) {
+  private async guardarPIU(connection: PoolConnection, usuarioId: number, registroId: number, tipo: string, piu: any) {
     await connection.execute(
       `INSERT INTO Registro_PIU 
-       (usuario_id, tesis, libros, capitulos_libro, manuscritos_publicados, manuscritos_aceptados, 
+       (usuario_id, registro_id, tipo, tesis, libros, capitulos_libro, manuscritos_publicados, manuscritos_aceptados, 
         manuscritos_evaluacion, pi_patente_invencion, pi_patente_modalidad_uso, pi_sui_generis, 
         pi_derecho_autor_software, pi_derecho_obras_literarias, pi_otras) 
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+       ON DUPLICATE KEY UPDATE
+       tesis = VALUES(tesis),
+       libros = VALUES(libros),
+       capitulos_libro = VALUES(capitulos_libro),
+       manuscritos_publicados = VALUES(manuscritos_publicados),
+       manuscritos_aceptados = VALUES(manuscritos_aceptados),
+       manuscritos_evaluacion = VALUES(manuscritos_evaluacion),
+       pi_patente_invencion = VALUES(pi_patente_invencion),
+       pi_patente_modalidad_uso = VALUES(pi_patente_modalidad_uso),
+       pi_sui_generis = VALUES(pi_sui_generis),
+       pi_derecho_autor_software = VALUES(pi_derecho_autor_software),
+       pi_derecho_obras_literarias = VALUES(pi_derecho_obras_literarias),
+       pi_otras = VALUES(pi_otras)`,
       [
         usuarioId,
+        registroId,
+        tipo,
         piu.tesis || 0,
         piu.libros || 0,
         piu.capitulos_libro || 0,
@@ -503,29 +534,29 @@ export class HeliceInternaService {
     );
   }
 
-  private async guardarKeywords(connection: PoolConnection, usuarioId: number, keywords: number[]) {
+  private async guardarKeywords(connection: PoolConnection, usuarioId: number, registroId: number, tipo: string, keywords: number[]) {
     for (const keywordId of keywords) {
       await connection.execute(
-        'INSERT INTO Registro_Keywords (usuario_id, keyword_id) VALUES (?, ?)',
-        [usuarioId, keywordId]
+        'INSERT INTO Registro_Keywords (usuario_id, registro_id, tipo, keyword_id) VALUES (?, ?, ?, ?)',
+        [usuarioId, registroId, tipo, keywordId]
       );
     }
   }
 
-  private async guardarSoluciones(connection: PoolConnection, usuarioId: number, soluciones: Array<{titulo: string, problema: string, solucion: string}>) {
+  private async guardarSoluciones(connection: PoolConnection, usuarioId: number, registroId: number, tipo: string, soluciones: Array<{titulo: string, problema: string, solucion: string}>) {
     for (let i = 0; i < soluciones.length; i++) {
       await connection.execute(
-        'INSERT INTO Registro_Soluciones (usuario_id, titulo, problema, solucion, orden) VALUES (?, ?, ?, ?, ?)',
-        [usuarioId, soluciones[i].titulo, soluciones[i].problema, soluciones[i].solucion, i + 1]
+        'INSERT INTO Registro_Soluciones (usuario_id, registro_id, tipo, titulo, problema, solucion, orden) VALUES (?, ?, ?, ?, ?, ?, ?)',
+        [usuarioId, registroId, tipo, soluciones[i].titulo, soluciones[i].problema, soluciones[i].solucion, i + 1]
       );
     }
   }
 
-  private async guardarArchivos(connection: PoolConnection, usuarioId: number, archivos: Array<any>) {
+  private async guardarArchivos(connection: PoolConnection, usuarioId: number, registroId: number, tipoRegistro: string, archivos: Array<any>) {
     for (const archivo of archivos) {
       await connection.execute(
-        'INSERT INTO Registro_Archivos (usuario_id, nombre_archivo, ruta_archivo, tipo_archivo, tamano_archivo, descripcion) VALUES (?, ?, ?, ?, ?, ?)',
-        [usuarioId, archivo.nombre_archivo, archivo.ruta_archivo, archivo.tipo_archivo || null, archivo.tamano_archivo || null, archivo.descripcion || null]
+        'INSERT INTO Registro_Archivos (usuario_id, registro_id, tipo, nombre_archivo, ruta_archivo, tipo_archivo, tamano_archivo, descripcion) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+        [usuarioId, registroId, tipoRegistro, archivo.nombre_archivo, archivo.ruta_archivo, archivo.tipo_archivo || null, archivo.tamano_archivo || null, archivo.descripcion || null]
       );
     }
   }
@@ -566,50 +597,50 @@ export class HeliceInternaService {
 
     const registro = rows[0];
 
-    // Obtener datos compartidos
+    // Obtener datos compartidos de este registro específico
     const [ocde] = await db.execute<RowDataPacket[]>(
-      'SELECT * FROM Registro_OCDE WHERE usuario_id = ?',
-      [usuarioId]
+      'SELECT * FROM Registro_OCDE WHERE usuario_id = ? AND registro_id = ? AND tipo = ?',
+      [usuarioId, registroId, tipo]
     );
 
     const [ods] = await db.execute<RowDataPacket[]>(
-      'SELECT * FROM Registro_ODS WHERE usuario_id = ?',
-      [usuarioId]
+      'SELECT * FROM Registro_ODS WHERE usuario_id = ? AND registro_id = ? AND tipo = ?',
+      [usuarioId, registroId, tipo]
     );
 
     const [aportes] = await db.execute<RowDataPacket[]>(
-      'SELECT * FROM Registro_Aportes WHERE usuario_id = ?',
-      [usuarioId]
+      'SELECT * FROM Registro_Aportes WHERE usuario_id = ? AND registro_id = ? AND tipo = ?',
+      [usuarioId, registroId, tipo]
     );
 
     const [ctiVitae] = await db.execute<RowDataPacket[]>(
-      'SELECT * FROM Registro_CTI_Vitae WHERE usuario_id = ? ORDER BY orden',
-      [usuarioId]
+      'SELECT * FROM Registro_CTI_Vitae WHERE usuario_id = ? AND registro_id = ? AND tipo = ? ORDER BY orden',
+      [usuarioId, registroId, tipo]
     );
 
     const [niveles] = await db.execute<RowDataPacket[]>(
-      'SELECT * FROM Registro_Niveles_Tecnologicos WHERE usuario_id = ?',
-      [usuarioId]
+      'SELECT * FROM Registro_Niveles_Tecnologicos WHERE usuario_id = ? AND registro_id = ? AND tipo = ?',
+      [usuarioId, registroId, tipo]
     );
 
     const [piu] = await db.execute<RowDataPacket[]>(
-      'SELECT * FROM Registro_PIU WHERE usuario_id = ?',
-      [usuarioId]
+      'SELECT * FROM Registro_PIU WHERE usuario_id = ? AND registro_id = ? AND tipo = ?',
+      [usuarioId, registroId, tipo]
     );
 
     const [keywords] = await db.execute<RowDataPacket[]>(
-      'SELECT * FROM Registro_Keywords WHERE usuario_id = ?',
-      [usuarioId]
+      'SELECT * FROM Registro_Keywords WHERE usuario_id = ? AND registro_id = ? AND tipo = ?',
+      [usuarioId, registroId, tipo]
     );
 
     const [soluciones] = await db.execute<RowDataPacket[]>(
-      'SELECT * FROM Registro_Soluciones WHERE usuario_id = ? ORDER BY orden',
-      [usuarioId]
+      'SELECT * FROM Registro_Soluciones WHERE usuario_id = ? AND registro_id = ? AND tipo = ? ORDER BY orden',
+      [usuarioId, registroId, tipo]
     );
 
     const [archivos] = await db.execute<RowDataPacket[]>(
-      'SELECT * FROM Registro_Archivos WHERE usuario_id = ?',
-      [usuarioId]
+      'SELECT * FROM Registro_Archivos WHERE usuario_id = ? AND registro_id = ? AND tipo = ?',
+      [usuarioId, registroId, tipo]
     );
 
     return {
@@ -650,18 +681,18 @@ export class HeliceInternaService {
     try {
       await connection.beginTransaction();
 
-      console.log(`Eliminando registro ${registroId} del usuario ${usuarioId}`);
+      console.log(`Eliminando registro ${registroId} del usuario ${usuarioId}, tipo ${tipo}`);
 
-      // Eliminar datos compartidos del usuario (en cascada)
-      await connection.execute('DELETE FROM Registro_OCDE WHERE usuario_id = ?', [usuarioId]);
-      await connection.execute('DELETE FROM Registro_ODS WHERE usuario_id = ?', [usuarioId]);
-      await connection.execute('DELETE FROM Registro_Aportes WHERE usuario_id = ?', [usuarioId]);
-      await connection.execute('DELETE FROM Registro_CTI_Vitae WHERE usuario_id = ?', [usuarioId]);
-      await connection.execute('DELETE FROM Registro_Niveles_Tecnologicos WHERE usuario_id = ?', [usuarioId]);
-      await connection.execute('DELETE FROM Registro_PIU WHERE usuario_id = ?', [usuarioId]);
-      await connection.execute('DELETE FROM Registro_Keywords WHERE usuario_id = ?', [usuarioId]);
-      await connection.execute('DELETE FROM Registro_Soluciones WHERE usuario_id = ?', [usuarioId]);
-      await connection.execute('DELETE FROM Registro_Archivos WHERE usuario_id = ?', [usuarioId]);
+      // Eliminar datos compartidos de este registro específico (en cascada)
+      await connection.execute('DELETE FROM Registro_OCDE WHERE usuario_id = ? AND registro_id = ? AND tipo = ?', [usuarioId, registroId, tipo]);
+      await connection.execute('DELETE FROM Registro_ODS WHERE usuario_id = ? AND registro_id = ? AND tipo = ?', [usuarioId, registroId, tipo]);
+      await connection.execute('DELETE FROM Registro_Aportes WHERE usuario_id = ? AND registro_id = ? AND tipo = ?', [usuarioId, registroId, tipo]);
+      await connection.execute('DELETE FROM Registro_CTI_Vitae WHERE usuario_id = ? AND registro_id = ? AND tipo = ?', [usuarioId, registroId, tipo]);
+      await connection.execute('DELETE FROM Registro_Niveles_Tecnologicos WHERE usuario_id = ? AND registro_id = ? AND tipo = ?', [usuarioId, registroId, tipo]);
+      await connection.execute('DELETE FROM Registro_PIU WHERE usuario_id = ? AND registro_id = ? AND tipo = ?', [usuarioId, registroId, tipo]);
+      await connection.execute('DELETE FROM Registro_Keywords WHERE usuario_id = ? AND registro_id = ? AND tipo = ?', [usuarioId, registroId, tipo]);
+      await connection.execute('DELETE FROM Registro_Soluciones WHERE usuario_id = ? AND registro_id = ? AND tipo = ?', [usuarioId, registroId, tipo]);
+      await connection.execute('DELETE FROM Registro_Archivos WHERE usuario_id = ? AND registro_id = ? AND tipo = ?', [usuarioId, registroId, tipo]);
 
       // Eliminar el registro principal
       const tabla = this.getTablaByTipo(tipo);
