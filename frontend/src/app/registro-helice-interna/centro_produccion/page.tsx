@@ -1,22 +1,24 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
+import Cookies from "js-cookie";
+import { toast } from "sonner";
 import ProgressBar from "../components/ProgressBar";
 import StepNavigation from "../components/StepNavigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import OCDESelector from "../components/OCDESelector";
 import ODSSelector from "../components/ODSSelector";
+import AporteSelector from "../components/AporteSelector";
+import NivelesSelector from "../components/NivelesSelector";
+import PIUSelector from "../components/PIUSelector";
+import KeywordSelector from "../components/KeywordSelector";
+import SolucionesEditor from "../components/SolucionesEditor";
 import { Plus, Trash2 } from "lucide-react";
-
-// Reutilizar la misma interfaz y lógica que grupo_centro_instituto
-// Solo cambiar el título y algunos textos específicos
 
 interface FormData {
   // Paso 1: Información de la Entidad
@@ -36,38 +38,36 @@ interface FormData {
   metasODS: number[];
 
   // Paso 4: Nivel de Aporte
-  nivelAporte: 'alto' | 'medio' | 'bajo' | '';
-  descripcionAporte: string;
+  nivelAporteDEL: number | null;
+  nivelAporteDS: number | null;
 
-  // Paso 5: Información Académica
+  // Paso 5: CTI Vitae múltiple
   integrantesCTI: string[];
+
+  // Paso 6: Niveles TRL/CRL
   nivelTRL: number | null;
-  descripcionTRL: string;
   nivelCRL: number | null;
-  descripcionCRL: string;
 
-  // Paso 6: PIU
-  articulosQ1: number;
-  articulosQ2: number;
-  articulosQ3: number;
-  articulosQ4: number;
-  articulosOtros: number;
-  librosInvestigacion: number;
+  // Paso 7: PIU
+  tesis: number;
+  libros: number;
   capitulosLibro: number;
-  patentesOtorgadas: number;
-  patentesSolicitadas: number;
-  modelosUtilidad: number;
-  disenosIndustriales: number;
-  softwareRegistrado: number;
-  prototipos: number;
-  tesisDoctorado: number;
-  tesisMaestria: number;
-  tesisPregrado: number;
-  informesTecnicos: number;
-  consultoriaEspecializada: number;
+  manuscritosPublicados: number;
+  manuscritosAceptados: number;
+  manuscritosEvaluacion: number;
+  propiedadIntelectualPatente: number;
+  propiedadIntelectualModalidadUso: number;
+  propiedadIntelectualSuiGeneris: number;
+  propiedadIntelectualSoftware: number;
+  propiedadIntelectualObrasLiterarias: number;
+  propiedadIntelectualOtras: number;
 
-  // Paso 7: Soluciones
+  // Paso 8: Palabras Clave
+  palabrasClave: number[];
+
+  // Paso 9: Soluciones
   soluciones: Array<{
+    titulo: string;
     problema: string;
     solucion: string;
   }>;
@@ -84,51 +84,45 @@ const initialFormData: FormData = {
   disciplinasOCDE: [],
   objetivosODS: [],
   metasODS: [],
-  nivelAporte: '',
-  descripcionAporte: '',
+  nivelAporteDEL: null,
+  nivelAporteDS: null,
   integrantesCTI: [''],
   nivelTRL: null,
-  descripcionTRL: '',
   nivelCRL: null,
-  descripcionCRL: '',
-  articulosQ1: 0,
-  articulosQ2: 0,
-  articulosQ3: 0,
-  articulosQ4: 0,
-  articulosOtros: 0,
-  librosInvestigacion: 0,
+  tesis: 0,
+  libros: 0,
   capitulosLibro: 0,
-  patentesOtorgadas: 0,
-  patentesSolicitadas: 0,
-  modelosUtilidad: 0,
-  disenosIndustriales: 0,
-  softwareRegistrado: 0,
-  prototipos: 0,
-  tesisDoctorado: 0,
-  tesisMaestria: 0,
-  tesisPregrado: 0,
-  informesTecnicos: 0,
-  consultoriaEspecializada: 0,
-  soluciones: [{ problema: '', solucion: '' }]
+  manuscritosPublicados: 0,
+  manuscritosAceptados: 0,
+  manuscritosEvaluacion: 0,
+  propiedadIntelectualPatente: 0,
+  propiedadIntelectualModalidadUso: 0,
+  propiedadIntelectualSuiGeneris: 0,
+  propiedadIntelectualSoftware: 0,
+  propiedadIntelectualObrasLiterarias: 0,
+  propiedadIntelectualOtras: 0,
+  palabrasClave: [],
+  soluciones: [{ titulo: '', problema: '', solucion: '' }]
 };
 
 export default function RegistroCentroProduccion() {
   const { user, isLoading } = useAuth();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const editId = searchParams.get('edit');
   const [currentStep, setCurrentStep] = useState(1);
   const [formData, setFormData] = useState<FormData>(initialFormData);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const totalSteps = 8;
+  const [isLoadingData, setIsLoadingData] = useState(false);
+  const totalSteps = 9;
 
   useEffect(() => {
     if (!isLoading && !user) {
-      localStorage.setItem('registro_helice_tipo', 'centro_produccion');
       router.push('/login?redirect=/registro-helice-interna&message=Debe iniciar sesión para continuar con el registro');
     } else if (!isLoading && user && user.rol !== 'interno') {
       router.push('/?error=Solo los miembros de la UNSA pueden registrarse en la hélice interna');
     } else if (!isLoading && user) {
-      // Auto-rellenar datos del usuario
       setFormData(prev => ({
         ...prev,
         nombreResponsable: user.nombres_apellidos || '',
@@ -136,6 +130,85 @@ export default function RegistroCentroProduccion() {
       }));
     }
   }, [user, isLoading, router]);
+
+  // Cargar datos en modo edición
+  useEffect(() => {
+    const cargarDatosRegistro = async () => {
+      if (!editId || !user) return;
+
+      setIsLoadingData(true);
+      const token = Cookies.get('token');
+      if (!token) {
+        toast.error('No autenticado');
+        return;
+      }
+
+      try {
+        const res = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL}/api/helice-interna/registros/${editId}?tipo=centro_produccion`,
+          {
+            headers: { Authorization: `Bearer ${token}` }
+          }
+        );
+
+        if (!res.ok) throw new Error('Error al cargar el registro');
+
+        const data = await res.json();
+        console.log('Datos cargados:', data);
+
+        // Mapear los datos del backend al formulario
+        setFormData({
+          nombreEntidad: data.nombre || '',
+          nombreResponsable: data.nombre_completo_responsable || '',
+          emailCorporativo: data.email || '',
+          telefono: data.telefono || '',
+          oficinaDepartamento: data.oficina_departamento_vinculado || '',
+          areasOCDE: data.ocde?.map((o: any) => o.area_id).filter(Boolean) || [],
+          subAreasOCDE: data.ocde?.map((o: any) => o.sub_area_id).filter(Boolean) || [],
+          disciplinasOCDE: data.ocde?.map((o: any) => o.disciplina_id).filter(Boolean) || [],
+          objetivosODS: data.ods?.map((o: any) => o.objetivo_id).filter(Boolean) || [],
+          metasODS: data.ods?.map((o: any) => o.meta_id).filter(Boolean) || [],
+          nivelAporteDEL: data.aportes?.nivel_aporte_del || null,
+          nivelAporteDS: data.aportes?.nivel_aporte_ds || null,
+          integrantesCTI: data.cti_vitae?.map((c: any) => c.url_cti) || [''],
+          nivelTRL: data.niveles?.nivel_trl || null,
+          nivelCRL: data.niveles?.nivel_crl || null,
+          tesis: data.piu?.tesis || 0,
+          libros: data.piu?.libros || 0,
+          capitulosLibro: data.piu?.capitulos_libro || 0,
+          manuscritosPublicados: data.piu?.manuscritos_publicados || 0,
+          manuscritosAceptados: data.piu?.manuscritos_aceptados || 0,
+          manuscritosEvaluacion: data.piu?.manuscritos_evaluacion || 0,
+          propiedadIntelectualPatente: data.piu?.pi_patente_invencion || 0,
+          propiedadIntelectualModalidadUso: data.piu?.pi_patente_modalidad_uso || 0,
+          propiedadIntelectualSuiGeneris: data.piu?.pi_sui_generis || 0,
+          propiedadIntelectualSoftware: data.piu?.pi_derecho_autor_software || 0,
+          propiedadIntelectualObrasLiterarias: data.piu?.pi_derecho_obras_literarias || 0,
+          propiedadIntelectualOtras: data.piu?.pi_otras || 0,
+          palabrasClave: data.keywords?.map((k: any) => k.keyword_id) || [],
+          soluciones: data.soluciones?.length > 0 ? data.soluciones : [{ titulo: '', problema: '', solucion: '' }]
+        });
+
+        setCurrentStep(data.paso_actual || 1);
+        toast.success('Datos cargados correctamente');
+      } catch (err: any) {
+        console.error('Error cargando registro:', err);
+        toast.error('Error al cargar el registro');
+      } finally {
+        setIsLoadingData(false);
+      }
+    };
+
+    cargarDatosRegistro();
+  }, [editId, user]);
+
+  if (isLoading || isLoadingData) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-red-600"></div>
+      </div>
+    );
+  }
 
   if (isLoading) {
     return (
@@ -154,57 +227,64 @@ export default function RegistroCentroProduccion() {
 
     switch (step) {
       case 1:
-        if (!formData.nombreEntidad.trim()) newErrors.nombreEntidad = 'El nombre del centro o unidad de producción es obligatorio';
+        if (!formData.nombreEntidad.trim()) newErrors.nombreEntidad = 'El nombre de la entidad es obligatorio';
         if (!formData.nombreResponsable.trim()) newErrors.nombreResponsable = 'El nombre del responsable es obligatorio';
-        if (!formData.emailCorporativo.trim()) newErrors.emailCorporativo = 'El email corporativo es obligatorio';
+        if (!formData.emailCorporativo.trim()) newErrors.emailCorporativo = 'El email es obligatorio';
         if (!formData.telefono.trim()) newErrors.telefono = 'El teléfono es obligatorio';
-        if (!formData.oficinaDepartamento.trim()) newErrors.oficinaDepartamento = 'La oficina o departamento es obligatorio';
-        
-        // Validar formato de email
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (formData.emailCorporativo && !emailRegex.test(formData.emailCorporativo)) {
-          newErrors.emailCorporativo = 'Formato de email inválido';
-        }
+        if (!formData.oficinaDepartamento.trim()) newErrors.oficinaDepartamento = 'La oficina/departamento es obligatorio';
         break;
 
       case 2:
+        // Validar que al menos haya seleccionado algo en OCDE
         if (formData.areasOCDE.length === 0 && formData.subAreasOCDE.length === 0 && formData.disciplinasOCDE.length === 0) {
-          newErrors.ocde = 'Debe seleccionar al menos un área OCDE';
+          newErrors.ocde = 'Debe seleccionar al menos un área, sub-área o disciplina OCDE';
         }
+        console.log('Validación OCDE:', {
+          areas: formData.areasOCDE.length,
+          subAreas: formData.subAreasOCDE.length,
+          disciplinas: formData.disciplinasOCDE.length
+        });
         break;
 
       case 3:
         if (formData.objetivosODS.length === 0) {
-          newErrors.ods = 'Debe seleccionar al menos un ODS';
+          newErrors.ods = 'Debe seleccionar al menos un objetivo ODS';
         }
         break;
 
       case 4:
-        if (!formData.nivelAporte) newErrors.nivelAporte = 'Debe seleccionar un nivel de aporte';
-        break;
-
-      case 5:
-        // Validar URLs de CTI Vitae
-        const urlRegex = /^https?:\/\/.+/;
-        formData.integrantesCTI.forEach((url, index) => {
-          if (url.trim() && !urlRegex.test(url.trim())) {
-            newErrors[`cti_${index}`] = 'La URL debe comenzar con http:// o https://';
-          }
-        });
-        
-        if (formData.integrantesCTI.filter(url => url.trim()).length === 0) {
-          newErrors.integrantesCTI = 'Debe agregar al menos un integrante';
+        if (formData.nivelAporteDEL === null || formData.nivelAporteDEL < 1 || formData.nivelAporteDEL > 7) {
+          newErrors.nivelAporteDEL = 'Debe seleccionar un nivel de aporte DEL (1-7)';
+        }
+        if (formData.nivelAporteDS === null || formData.nivelAporteDS < 1 || formData.nivelAporteDS > 7) {
+          newErrors.nivelAporteDS = 'Debe seleccionar un nivel de aporte DS (1-7)';
         }
         break;
 
-      case 7:
-        formData.soluciones.forEach((solucion, index) => {
-          if (!solucion.problema.trim()) {
-            newErrors[`problema_${index}`] = 'La descripción del problema es obligatoria';
+      case 5:
+        formData.integrantesCTI.forEach((url, index) => {
+          if (url.trim() && !url.match(/^https?:\/\/.+/)) {
+            newErrors[`cti_${index}`] = 'Debe ser una URL válida (http:// o https://)';
           }
-          if (!solucion.solucion.trim()) {
-            newErrors[`solucion_${index}`] = 'La propuesta de solución es obligatoria';
-          }
+        });
+        break;
+
+      case 6:
+        if (!formData.nivelTRL) newErrors.nivelTRL = 'Debe seleccionar un nivel TRL';
+        if (!formData.nivelCRL) newErrors.nivelCRL = 'Debe seleccionar un nivel CRL';
+        break;
+
+      case 8:
+        if (formData.palabrasClave.length === 0) {
+          newErrors.palabrasClave = 'Debe seleccionar al menos una palabra clave';
+        }
+        break;
+
+      case 9:
+        formData.soluciones.forEach((sol, index) => {
+          if (!sol.titulo.trim()) newErrors[`titulo_${index}`] = 'El título es obligatorio';
+          if (!sol.problema.trim()) newErrors[`problema_${index}`] = 'El problema es obligatorio';
+          if (!sol.solucion.trim()) newErrors[`solucion_${index}`] = 'La solución es obligatoria';
         });
         break;
     }
@@ -214,9 +294,15 @@ export default function RegistroCentroProduccion() {
   };
 
   const handleNext = () => {
+    console.log('Intentando avanzar del paso', currentStep);
+    console.log('Datos actuales:', formData);
+    console.log('Errores:', errors);
+
     if (validateStep(currentStep)) {
+      console.log('Validación exitosa, avanzando...');
       setCurrentStep(prev => Math.min(prev + 1, totalSteps));
-      saveProgress();
+    } else {
+      console.log('Validación falló, no se puede avanzar');
     }
   };
 
@@ -224,28 +310,123 @@ export default function RegistroCentroProduccion() {
     setCurrentStep(prev => Math.max(prev - 1, 1));
   };
 
-  const saveProgress = async () => {
-    console.log('Guardando progreso...', formData);
-  };
-
   const handleSubmit = async () => {
     if (!validateStep(currentStep)) return;
 
     setIsSubmitting(true);
     try {
-      console.log('Enviando formulario completo...', formData);
-      
-      // Guardar datos en localStorage para mostrar en confirmación
-      localStorage.setItem('registro_confirmacion', JSON.stringify({
+      // Construir array de OCDE correctamente
+      const ocdeArray = [];
+
+      // Agregar áreas seleccionadas
+      for (const areaId of formData.areasOCDE) {
+        ocdeArray.push({
+          area_id: areaId,
+          sub_area_id: null,
+          disciplina_id: null
+        });
+      }
+
+      // Agregar sub-áreas seleccionadas
+      for (const subAreaId of formData.subAreasOCDE) {
+        ocdeArray.push({
+          area_id: null,
+          sub_area_id: subAreaId,
+          disciplina_id: null
+        });
+      }
+
+      // Agregar disciplinas seleccionadas
+      for (const disciplinaId of formData.disciplinasOCDE) {
+        ocdeArray.push({
+          area_id: null,
+          sub_area_id: null,
+          disciplina_id: disciplinaId
+        });
+      }
+
+      console.log('=== DEBUG OCDE FRONTEND ===');
+      console.log('formData.areasOCDE:', formData.areasOCDE);
+      console.log('formData.subAreasOCDE:', formData.subAreasOCDE);
+      console.log('formData.disciplinasOCDE:', formData.disciplinasOCDE);
+      console.log('ocdeArray construido:', ocdeArray);
+
+      const datosRegistro = {
         tipo: 'centro_produccion',
-        datos: formData,
-        fecha: new Date().toISOString()
-      }));
-      
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      router.push('/registro-helice-interna/confirmacion');
-    } catch (error) {
+        nombre: formData.nombreEntidad,
+        nombre_completo_responsable: formData.nombreResponsable,
+        email: formData.emailCorporativo,
+        telefono: formData.telefono,
+        oficina_departamento_vinculado: formData.oficinaDepartamento,
+
+        ocde: ocdeArray,
+
+        ods: formData.objetivosODS.map(objetivoId => ({
+          objetivo_id: objetivoId,
+          meta_id: null
+        })),
+
+        nivel_aporte_del: formData.nivelAporteDEL,
+        nivel_aporte_ds: formData.nivelAporteDS,
+
+        cti_vitae_urls: formData.integrantesCTI.filter(url => url.trim()),
+
+        nivel_trl: formData.nivelTRL,
+        nivel_crl: formData.nivelCRL,
+
+        piu: {
+          tesis: formData.tesis,
+          libros: formData.libros,
+          capitulos_libro: formData.capitulosLibro,
+          manuscritos_publicados: formData.manuscritosPublicados,
+          manuscritos_aceptados: formData.manuscritosAceptados,
+          manuscritos_evaluacion: formData.manuscritosEvaluacion,
+          pi_patente_invencion: formData.propiedadIntelectualPatente,
+          pi_patente_modalidad_uso: formData.propiedadIntelectualModalidadUso,
+          pi_sui_generis: formData.propiedadIntelectualSuiGeneris,
+          pi_derecho_autor_software: formData.propiedadIntelectualSoftware,
+          pi_derecho_obras_literarias: formData.propiedadIntelectualObrasLiterarias,
+          pi_otras: formData.propiedadIntelectualOtras
+        },
+
+        keywords: formData.palabrasClave,
+        soluciones: formData.soluciones,
+        paso_actual: totalSteps
+      };
+
+      const token = Cookies.get('token');
+      if (!token) {
+        throw new Error('No se encontró el token de autenticación');
+      }
+
+      // Determinar si es creación o edición
+      const url = editId
+        ? `${process.env.NEXT_PUBLIC_API_URL}/api/helice-interna/registros/${editId}`
+        : `${process.env.NEXT_PUBLIC_API_URL}/api/helice-interna/registros`;
+
+      const method = editId ? 'PUT' : 'POST';
+
+      const response = await fetch(url, {
+        method,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(datosRegistro)
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || `Error al ${editId ? 'actualizar' : 'registrar'}`);
+      }
+
+      toast.success(editId ? 'Registro actualizado exitosamente' : 'Registro creado exitosamente');
+
+      // Redirigir a la página de capacidades en lugar de confirmación
+      router.push('/capacidad');
+    } catch (error: any) {
       console.error('Error al enviar formulario:', error);
+      toast.error(error.message || 'Error al procesar el registro');
     } finally {
       setIsSubmitting(false);
     }
@@ -258,21 +439,45 @@ export default function RegistroCentroProduccion() {
     }));
   };
 
+  const addIntegrante = () => {
+    setFormData(prev => ({
+      ...prev,
+      integrantesCTI: [...prev.integrantesCTI, '']
+    }));
+  };
+
+  const removeIntegrante = (index: number) => {
+    if (formData.integrantesCTI.length > 1) {
+      setFormData(prev => ({
+        ...prev,
+        integrantesCTI: prev.integrantesCTI.filter((_, i) => i !== index)
+      }));
+    }
+  };
+
+  const updateIntegrante = (index: number, value: string) => {
+    setFormData(prev => ({
+      ...prev,
+      integrantesCTI: prev.integrantesCTI.map((url, i) => i === index ? value : url)
+    }));
+  };
+
   const renderStep = () => {
     switch (currentStep) {
       case 1:
         return (
           <Card>
             <CardHeader>
-              <CardTitle>Información del Centro o Unidad de Producción</CardTitle>
+              <CardTitle>Información de la Entidad</CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
               <div>
-                <Label htmlFor="nombreEntidad">Nombre del centro o unidad de producción *</Label>
+                <Label htmlFor="nombreEntidad">Nombre del centro de producción *</Label>
                 <Input
                   id="nombreEntidad"
                   value={formData.nombreEntidad}
                   onChange={(e) => updateFormData('nombreEntidad', e.target.value)}
+                  placeholder="Registre el nombre del centro de producción de I+D+i+e"
                   className={errors.nombreEntidad ? 'border-red-500' : ''}
                 />
                 {errors.nombreEntidad && (
@@ -286,6 +491,7 @@ export default function RegistroCentroProduccion() {
                   id="nombreResponsable"
                   value={formData.nombreResponsable}
                   onChange={(e) => updateFormData('nombreResponsable', e.target.value)}
+                  placeholder="Registre sus nombres y apellidos"
                   className={errors.nombreResponsable ? 'border-red-500' : ''}
                 />
                 {errors.nombreResponsable && (
@@ -294,12 +500,13 @@ export default function RegistroCentroProduccion() {
               </div>
 
               <div>
-                <Label htmlFor="emailCorporativo">Email corporativo *</Label>
+                <Label htmlFor="emailCorporativo">Email *</Label>
                 <Input
                   id="emailCorporativo"
                   type="email"
                   value={formData.emailCorporativo}
                   onChange={(e) => updateFormData('emailCorporativo', e.target.value)}
+                  placeholder="Registre su correo corporativo"
                   className={errors.emailCorporativo ? 'border-red-500' : ''}
                 />
                 {errors.emailCorporativo && (
@@ -313,6 +520,7 @@ export default function RegistroCentroProduccion() {
                   id="telefono"
                   value={formData.telefono}
                   onChange={(e) => updateFormData('telefono', e.target.value)}
+                  placeholder="Registre su número de teléfono"
                   className={errors.telefono ? 'border-red-500' : ''}
                 />
                 {errors.telefono && (
@@ -326,7 +534,7 @@ export default function RegistroCentroProduccion() {
                   id="oficinaDepartamento"
                   value={formData.oficinaDepartamento}
                   onChange={(e) => updateFormData('oficinaDepartamento', e.target.value)}
-                  placeholder="Indique con quién se vincula directamente en el organigrama"
+                  placeholder="Con quien se vincula directamente en su organigrama"
                   className={errors.oficinaDepartamento ? 'border-red-500' : ''}
                 />
                 {errors.oficinaDepartamento && (
@@ -337,107 +545,190 @@ export default function RegistroCentroProduccion() {
           </Card>
         );
 
-      // Los demás casos son idénticos al formulario de grupo_centro_instituto
-      // Solo cambiaría el título en el paso 6 de "grupo/centro/instituto" a "centro o unidad de producción"
       case 2:
         return (
-          <Card>
-            <CardHeader>
-              <CardTitle>Áreas OCDE</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <OCDESelector
-                selectedAreas={formData.areasOCDE}
-                selectedSubAreas={formData.subAreasOCDE}
-                selectedDisciplinas={formData.disciplinasOCDE}
-                onSelectionChange={(areas, subAreas, disciplinas) => {
-                  updateFormData('areasOCDE', areas);
-                  updateFormData('subAreasOCDE', subAreas);
-                  updateFormData('disciplinasOCDE', disciplinas);
-                }}
-              />
-              {errors.ocde && (
-                <p className="text-red-500 text-sm mt-2">{errors.ocde}</p>
-              )}
-            </CardContent>
-          </Card>
+          <div className="space-y-4">
+            <OCDESelector
+              selectedAreas={formData.areasOCDE}
+              selectedSubAreas={formData.subAreasOCDE}
+              selectedDisciplinas={formData.disciplinasOCDE}
+              onSelectionChange={(areas, subAreas, disciplinas) => {
+                console.log('OCDE seleccionado:', { areas, subAreas, disciplinas });
+                setFormData(prev => ({
+                  ...prev,
+                  areasOCDE: areas,
+                  subAreasOCDE: subAreas,
+                  disciplinasOCDE: disciplinas
+                }));
+                // Limpiar error cuando se selecciona algo
+                if (errors.ocde) {
+                  setErrors(prev => {
+                    const newErrors = { ...prev };
+                    delete newErrors.ocde;
+                    return newErrors;
+                  });
+                }
+              }}
+            />
+            {errors.ocde && (
+              <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                <p className="text-red-600 text-sm">{errors.ocde}</p>
+              </div>
+            )}
+          </div>
         );
 
       case 3:
         return (
+          <ODSSelector
+            selectedObjetivos={formData.objetivosODS}
+            selectedMetas={formData.metasODS}
+            onSelectionChange={(objetivos, metas) => {
+              setFormData(prev => ({
+                ...prev,
+                objetivosODS: objetivos,
+                metasODS: metas
+              }));
+            }}
+          />
+        );
+
+      case 4:
+        return (
+          <AporteSelector
+            data={{
+              nivelAporteDEL: formData.nivelAporteDEL,
+              nivelAporteDS: formData.nivelAporteDS
+            }}
+            onChange={(field, value) => updateFormData(field, value)}
+            errors={errors}
+          />
+        );
+
+      case 5:
+        return (
           <Card>
             <CardHeader>
-              <CardTitle>Objetivos de Desarrollo Sostenible (ODS)</CardTitle>
+              <CardTitle>CTI Vitae de los Integrantes</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <p className="text-sm text-blue-800">
+                  <strong>Instrucciones:</strong> Copie los links de CTI Vitae de los integrantes
+                  (deben iniciar con http:// o https://)
+                </p>
+              </div>
+
+              {formData.integrantesCTI.map((url, index) => (
+                <div key={index} className="flex gap-2">
+                  <div className="flex-1">
+                    <Label htmlFor={`cti-${index}`}>Integrante {index + 1}</Label>
+                    <Input
+                      id={`cti-${index}`}
+                      value={url}
+                      onChange={(e) => updateIntegrante(index, e.target.value)}
+                      placeholder="https://ctivitae.concytec.gob.pe/..."
+                      className={errors[`cti_${index}`] ? 'border-red-500' : ''}
+                    />
+                    {errors[`cti_${index}`] && (
+                      <p className="text-red-500 text-sm mt-1">{errors[`cti_${index}`]}</p>
+                    )}
+                  </div>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="icon"
+                    onClick={() => removeIntegrante(index)}
+                    disabled={formData.integrantesCTI.length === 1}
+                    className="mt-6"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
+              ))}
+
+              <Button
+                type="button"
+                variant="outline"
+                onClick={addIntegrante}
+                className="w-full"
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Agregar otro integrante
+              </Button>
+            </CardContent>
+          </Card>
+        );
+
+      case 6:
+        return (
+          <NivelesSelector
+            data={{
+              nivelTRL: formData.nivelTRL,
+              nivelCRL: formData.nivelCRL
+            }}
+            onChange={(field, value) => updateFormData(field, value)}
+            errors={errors}
+          />
+        );
+
+      case 7:
+        return (
+          <PIUSelector
+            data={{
+              tesis: formData.tesis,
+              libros: formData.libros,
+              capitulosLibro: formData.capitulosLibro,
+              manuscritosPublicados: formData.manuscritosPublicados,
+              manuscritosAceptados: formData.manuscritosAceptados,
+              manuscritosEvaluacion: formData.manuscritosEvaluacion,
+              propiedadIntelectualPatente: formData.propiedadIntelectualPatente,
+              propiedadIntelectualModalidadUso: formData.propiedadIntelectualModalidadUso,
+              propiedadIntelectualSuiGeneris: formData.propiedadIntelectualSuiGeneris,
+              propiedadIntelectualSoftware: formData.propiedadIntelectualSoftware,
+              propiedadIntelectualObrasLiterarias: formData.propiedadIntelectualObrasLiterarias,
+              propiedadIntelectualOtras: formData.propiedadIntelectualOtras
+            }}
+            onChange={(field, value) => updateFormData(field, value)}
+            errors={errors}
+          />
+        );
+
+      case 8:
+        return (
+          <Card>
+            <CardHeader>
+              <CardTitle>Palabras Clave</CardTitle>
             </CardHeader>
             <CardContent>
-              <ODSSelector
-                selectedObjetivos={formData.objetivosODS}
-                selectedMetas={formData.metasODS}
-                onSelectionChange={(objetivos, metas) => {
-                  updateFormData('objetivosODS', objetivos);
-                  updateFormData('metasODS', metas);
-                }}
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+                <p className="text-sm text-blue-800">
+                  <strong>Instrucciones:</strong> De las soluciones que pueden otorgar, señale palabras claves.
+                  Ej.: nanomateriales, bacterias, dislexia, rotación de personal, biorremediación, estructura civil, etc.
+                </p>
+              </div>
+              <KeywordSelector
+                selectedKeywords={formData.palabrasClave}
+                onSelectionChange={(keywords) => updateFormData('palabrasClave', keywords)}
               />
-              {errors.ods && (
-                <p className="text-red-500 text-sm mt-2">{errors.ods}</p>
+              {errors.palabrasClave && (
+                <p className="text-red-500 text-sm mt-2">{errors.palabrasClave}</p>
               )}
             </CardContent>
           </Card>
         );
 
-      case 4:
+      case 9:
         return (
-          <Card>
-            <CardHeader>
-              <CardTitle>Nivel de Aporte</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div>
-                <Label>Nivel de aporte *</Label>
-                <Select
-                  value={formData.nivelAporte}
-                  onValueChange={(value) => updateFormData('nivelAporte', value)}
-                >
-                  <SelectTrigger className={errors.nivelAporte ? 'border-red-500' : ''}>
-                    <SelectValue placeholder="Seleccione el nivel de aporte" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="alto">Alto</SelectItem>
-                    <SelectItem value="medio">Medio</SelectItem>
-                    <SelectItem value="bajo">Bajo</SelectItem>
-                  </SelectContent>
-                </Select>
-                {errors.nivelAporte && (
-                  <p className="text-red-500 text-sm mt-1">{errors.nivelAporte}</p>
-                )}
-              </div>
-
-              <div>
-                <Label htmlFor="descripcionAporte">Descripción del aporte (opcional)</Label>
-                <Textarea
-                  id="descripcionAporte"
-                  value={formData.descripcionAporte}
-                  onChange={(e) => updateFormData('descripcionAporte', e.target.value)}
-                  placeholder="Describa brevemente el tipo de aporte que puede realizar"
-                  rows={4}
-                />
-              </div>
-            </CardContent>
-          </Card>
+          <SolucionesEditor
+            soluciones={formData.soluciones}
+            onChange={(soluciones) => updateFormData('soluciones', soluciones)}
+            errors={errors}
+          />
         );
-
-      // Continúa con los demás pasos...
-      // Por brevedad, incluyo solo los primeros pasos
-      // Los pasos 5-8 serían idénticos al formulario de grupo_centro_instituto
 
       default:
-        return (
-          <Card>
-            <CardContent>
-              <p>Paso en desarrollo...</p>
-            </CardContent>
-          </Card>
-        );
+        return null;
     }
   };
 
@@ -446,32 +737,27 @@ export default function RegistroCentroProduccion() {
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Registro de Centro o Unidad de Producción
+            Registro de Centro de Producción
           </h1>
           <p className="text-gray-600">
-            Complete la información de su centro o unidad de producción
+            Complete todos los pasos para registrar su centro de producción de I+D+i+e
           </p>
         </div>
 
         <ProgressBar currentStep={currentStep} totalSteps={totalSteps} />
 
-        <div className="bg-white rounded-lg shadow-sm">
-          <div className="p-6">
-            {renderStep()}
-          </div>
-          
-          <div className="px-6 pb-6">
-            <StepNavigation
-              currentStep={currentStep}
-              totalSteps={totalSteps}
-              onPrevious={handlePrevious}
-              onNext={handleNext}
-              onSubmit={handleSubmit}
-              isNextDisabled={false}
-              isLoading={isSubmitting}
-            />
-          </div>
+        <div className="mt-8">
+          {renderStep()}
         </div>
+
+        <StepNavigation
+          currentStep={currentStep}
+          totalSteps={totalSteps}
+          onPrevious={handlePrevious}
+          onNext={handleNext}
+          onSubmit={handleSubmit}
+          isLoading={isSubmitting}
+        />
       </div>
     </div>
   );

@@ -105,7 +105,7 @@ const initialFormData: FormData = {
   soluciones: [{ titulo: '', problema: '', solucion: '' }]
 };
 
-export default function RegistroLaboratorio() {
+export default function RegistroGrupoCentroInstituto() {
   const { user, isLoading } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -145,7 +145,7 @@ export default function RegistroLaboratorio() {
 
       try {
         const res = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/api/helice-interna/registros/${editId}?tipo=laboratorio`,
+          `${process.env.NEXT_PUBLIC_API_URL}/api/helice-interna/registros/${editId}?tipo=grupo_centro_instituto`,
           {
             headers: { Authorization: `Bearer ${token}` }
           }
@@ -352,7 +352,7 @@ export default function RegistroLaboratorio() {
       console.log('ocdeArray construido:', ocdeArray);
 
       const datosRegistro = {
-        tipo: 'laboratorio',
+        tipo: 'grupo_centro_instituto',
         nombre: formData.nombreEntidad,
         nombre_completo_responsable: formData.nombreResponsable,
         email: formData.emailCorporativo,
@@ -472,12 +472,12 @@ export default function RegistroLaboratorio() {
             </CardHeader>
             <CardContent className="space-y-6">
               <div>
-                <Label htmlFor="nombreEntidad">Nombre del laboratorio *</Label>
+                <Label htmlFor="nombreEntidad">Nombre del grupo, centro o instituto *</Label>
                 <Input
                   id="nombreEntidad"
                   value={formData.nombreEntidad}
                   onChange={(e) => updateFormData('nombreEntidad', e.target.value)}
-                  placeholder="Registre el nombre del laboratorio de I+D+i+e"
+                  placeholder="Registre el nombre del grupo, centro o instituto de I+D+i+e"
                   className={errors.nombreEntidad ? 'border-red-500' : ''}
                 />
                 {errors.nombreEntidad && (
@@ -737,10 +737,10 @@ export default function RegistroLaboratorio() {
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Registro de Laboratorio
+            Registro de Grupo, Centro o Instituto
           </h1>
           <p className="text-gray-600">
-            Complete todos los pasos para registrar su laboratorio de I+D+i+e
+            Complete todos los pasos para registrar su grupo, centro o instituto de I+D+i+e
           </p>
         </div>
 
