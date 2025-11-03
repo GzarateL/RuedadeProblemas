@@ -32,6 +32,7 @@ export interface MatchingStatus extends RowDataPacket {
 
 /**
  * Encuentra Capacidades que coinciden con las palabras clave de un Desafío específico.
+ * ACTUALIZADO: Usa registros_helice_interna en lugar de Capacidades_UNSA
  */
 export const findCapacidadMatchesForDesafio = async (desafioId: number): Promise<CapacidadMatch[]> => {
   if (!desafioId || typeof desafioId !== 'number' || !Number.isInteger(desafioId) || desafioId <= 0) {
@@ -41,19 +42,20 @@ export const findCapacidadMatchesForDesafio = async (desafioId: number): Promise
   try {
     const query = `
       SELECT
-          c.capacidad_id,
-          c.descripcion_capacidad,
+          r.id AS capacidad_id,
+          COALESCE(r.nombre_completo, r.nombre_entidad) AS descripcion_capacidad,
+          r.investigador_id,
           i.nombres_apellidos AS investigador_nombre,
           GROUP_CONCAT(DISTINCT pc.palabra ORDER BY pc.palabra SEPARATOR ', ') AS palabras_coincidentes,
           COUNT(DISTINCT pc.palabra_clave_id) AS total_coincidencias
       FROM Desafios_PalabrasClave dpc
-      JOIN Capacidades_PalabrasClave cpc ON dpc.palabra_clave_id = cpc.palabra_clave_id
+      JOIN registro_keywords rk ON dpc.palabra_clave_id = rk.palabra_clave_id
       JOIN PalabrasClave pc ON dpc.palabra_clave_id = pc.palabra_clave_id
-      JOIN Capacidades_UNSA c ON cpc.capacidad_id = c.capacidad_id
-      LEFT JOIN Investigadores_UNSA i ON c.investigador_id = i.investigador_id
-      WHERE dpc.desafio_id = ?
-      GROUP BY c.capacidad_id
-      ORDER BY total_coincidencias DESC, c.capacidad_id ASC;
+      JOIN registros_helice_interna r ON rk.registro_id = r.id
+      LEFT JOIN Investigadores_UNSA i ON r.investigador_id = i.investigador_id
+      WHERE dpc.desafio_id = ? AND r.estado = 'aprobado'
+      GROUP BY r.id
+      ORDER BY total_coincidencias DESC, r.id ASC;
     `;
 
     const [rows] = await dbPool.execute<CapacidadMatch[]>(query, [desafioId]);
@@ -68,6 +70,7 @@ export const findCapacidadMatchesForDesafio = async (desafioId: number): Promise
 
 /**
  * Encuentra Desafíos que coinciden con las palabras clave de una Capacidad específica.
+ * ACTUALIZADO: Usa registros_helice_interna en lugar de Capacidades_UNSA
  */
 export const findDesafioMatchesForCapacidad = async (capacidadId: number): Promise<DesafioMatch[]> => {
    if (!capacidadId || typeof capacidadId !== 'number' || !Number.isInteger(capacidadId) || capacidadId <= 0) {
@@ -79,16 +82,17 @@ export const findDesafioMatchesForCapacidad = async (capacidadId: number): Promi
            d.desafio_id,
            d.titulo,
            d.descripcion,
-           p.nombres_apellidos AS participante_nombre,
-           p.organizacion,
+           d.participante_id,
+           p.nombre_organizacion AS participante_nombre,
+           p.nombre_organizacion AS organizacion,
            GROUP_CONCAT(DISTINCT pc.palabra ORDER BY pc.palabra SEPARATOR ', ') AS palabras_coincidentes,
            COUNT(DISTINCT pc.palabra_clave_id) AS total_coincidencias
-       FROM Capacidades_PalabrasClave cpc
-       JOIN Desafios_PalabrasClave dpc ON cpc.palabra_clave_id = dpc.palabra_clave_id
-       JOIN PalabrasClave pc ON cpc.palabra_clave_id = pc.palabra_clave_id
+       FROM registro_keywords rk
+       JOIN Desafios_PalabrasClave dpc ON rk.palabra_clave_id = dpc.palabra_clave_id
+       JOIN PalabrasClave pc ON rk.palabra_clave_id = pc.palabra_clave_id
        JOIN Desafios d ON dpc.desafio_id = d.desafio_id
        LEFT JOIN Participantes_Externos p ON d.participante_id = p.participante_id
-       WHERE cpc.capacidad_id = ?
+       WHERE rk.registro_id = ?
        GROUP BY d.desafio_id
        ORDER BY total_coincidencias DESC, d.desafio_id ASC;
      `;
@@ -147,6 +151,7 @@ export const toggleMatchingStatus = async (activo: boolean): Promise<void> => {
 
 /**
  * Obtiene los mejores matches para un usuario profesional/UNSA (basado en sus capacidades)
+ * ACTUALIZADO: Usa registros_helice_interna en lugar de Capacidades_UNSA
  */
 export const getMatchesForInvestigador = async (investigadorId: number, limit: number = 10): Promise<DesafioMatch[]> => {
   try {
@@ -159,17 +164,17 @@ export const getMatchesForInvestigador = async (investigadorId: number, limit: n
           d.titulo,
           d.descripcion,
           d.participante_id,
-          p.nombres_apellidos AS participante_nombre,
-          p.organizacion,
+          p.nombre_organizacion AS participante_nombre,
+          p.nombre_organizacion AS organizacion,
           GROUP_CONCAT(DISTINCT pc.palabra ORDER BY pc.palabra SEPARATOR ', ') AS palabras_coincidentes,
           COUNT(DISTINCT pc.palabra_clave_id) AS total_coincidencias
-      FROM Capacidades_UNSA c
-      JOIN Capacidades_PalabrasClave cpc ON c.capacidad_id = cpc.capacidad_id
-      JOIN Desafios_PalabrasClave dpc ON cpc.palabra_clave_id = dpc.palabra_clave_id
-      JOIN PalabrasClave pc ON cpc.palabra_clave_id = pc.palabra_clave_id
+      FROM registros_helice_interna r
+      JOIN registro_keywords rk ON r.id = rk.registro_id
+      JOIN Desafios_PalabrasClave dpc ON rk.palabra_clave_id = dpc.palabra_clave_id
+      JOIN PalabrasClave pc ON rk.palabra_clave_id = pc.palabra_clave_id
       JOIN Desafios d ON dpc.desafio_id = d.desafio_id
       LEFT JOIN Participantes_Externos p ON d.participante_id = p.participante_id
-      WHERE c.investigador_id = ?
+      WHERE r.investigador_id = ? AND r.estado = 'aprobado'
       GROUP BY d.desafio_id
       ORDER BY total_coincidencias DESC, d.desafio_id DESC
       LIMIT ${limitValue};
@@ -185,6 +190,7 @@ export const getMatchesForInvestigador = async (investigadorId: number, limit: n
 
 /**
  * Obtiene los mejores matches para un participante externo (basado en sus desafíos)
+ * ACTUALIZADO: Usa registros_helice_interna en lugar de Capacidades_UNSA
  */
 export const getMatchesForParticipante = async (participanteId: number, limit: number = 10): Promise<CapacidadMatch[]> => {
   try {
@@ -193,21 +199,21 @@ export const getMatchesForParticipante = async (participanteId: number, limit: n
     
     const query = `
       SELECT DISTINCT
-          c.capacidad_id,
-          c.descripcion_capacidad,
-          c.investigador_id,
+          r.id AS capacidad_id,
+          COALESCE(r.nombre_completo, r.nombre_entidad) AS descripcion_capacidad,
+          r.investigador_id,
           i.nombres_apellidos AS investigador_nombre,
           GROUP_CONCAT(DISTINCT pc.palabra ORDER BY pc.palabra SEPARATOR ', ') AS palabras_coincidentes,
           COUNT(DISTINCT pc.palabra_clave_id) AS total_coincidencias
       FROM Desafios d
       JOIN Desafios_PalabrasClave dpc ON d.desafio_id = dpc.desafio_id
-      JOIN Capacidades_PalabrasClave cpc ON dpc.palabra_clave_id = cpc.palabra_clave_id
+      JOIN registro_keywords rk ON dpc.palabra_clave_id = rk.palabra_clave_id
       JOIN PalabrasClave pc ON dpc.palabra_clave_id = pc.palabra_clave_id
-      JOIN Capacidades_UNSA c ON cpc.capacidad_id = c.capacidad_id
-      LEFT JOIN Investigadores_UNSA i ON c.investigador_id = i.investigador_id
-      WHERE d.participante_id = ?
-      GROUP BY c.capacidad_id
-      ORDER BY total_coincidencias DESC, c.capacidad_id DESC
+      JOIN registros_helice_interna r ON rk.registro_id = r.id
+      LEFT JOIN Investigadores_UNSA i ON r.investigador_id = i.investigador_id
+      WHERE d.participante_id = ? AND r.estado = 'aprobado'
+      GROUP BY r.id
+      ORDER BY total_coincidencias DESC, r.id DESC
       LIMIT ${limitValue};
     `;
 

@@ -134,36 +134,36 @@ export default function ODSSelector({
         return (
           <Card key={objetivo.id} className="border border-gray-200">
             <CardHeader className="pb-3">
-              <div className="flex items-start space-x-3">
-                <Checkbox
-                  id={`objetivo-${objetivo.id}`}
-                  checked={isObjetivoSelected}
-                  onCheckedChange={(checked) => handleObjetivoChange(objetivo.id, checked as boolean)}
-                  className="mt-1"
-                />
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => toggleObjetivoExpansion(objetivo.id)}
-                  className="p-0 h-auto font-normal flex-1 justify-start text-left"
-                >
-                  {isObjetivoExpanded ? (
-                    <ChevronDown className="h-4 w-4 mr-2 mt-1 flex-shrink-0" />
-                  ) : (
-                    <ChevronRight className="h-4 w-4 mr-2 mt-1 flex-shrink-0" />
-                  )}
-                  <div className="text-left">
-                    <div className="font-medium text-sm mb-1">
-                      ODS {objetivo.id}
-                    </div>
-                    <div className="text-sm text-gray-700 leading-relaxed">
-                      {objetivo.nombre}
-                    </div>
-                  </div>
-                </Button>
-              </div>
-            </CardHeader>
-
+  <div className="flex items-start space-x-3">
+    <Checkbox
+      id={`objetivo-${objetivo.id}`}
+      checked={isObjetivoSelected}
+      onCheckedChange={(checked) => handleObjetivoChange(objetivo.id, checked as boolean)}
+      className="mt-1 flex-shrink-0"
+    />
+    <button
+      type="button"
+      onClick={() => toggleObjetivoExpansion(objetivo.id)}
+      className="flex-1 min-w-0 text-left p-0 bg-transparent hover:bg-gray-50 rounded transition-colors"
+    >
+      <div className="flex items-start w-full">
+        {isObjetivoExpanded ? (
+          <ChevronDown className="h-4 w-4 mr-2 mt-1 flex-shrink-0" />
+        ) : (
+          <ChevronRight className="h-4 w-4 mr-2 mt-1 flex-shrink-0" />
+        )}
+        <div className="flex-1 min-w-0 max-w-full overflow-hidden">
+          <div className="font-medium text-sm mb-1 break-words">
+            ODS {objetivo.id}
+          </div>
+          <div className="text-sm text-gray-700 leading-relaxed break-words">
+            {objetivo.nombre}
+          </div>
+        </div>
+      </div>
+    </button>
+  </div>
+</CardHeader>
             {isObjetivoExpanded && objetivoMetas.length > 0 && (
               <CardContent className="pt-0">
                 <div className="ml-6 space-y-3">

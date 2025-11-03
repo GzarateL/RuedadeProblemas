@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
+import Cookies from "js-cookie";
 import ProgressBar from "../components/ProgressBar";
 import StepNavigation from "../components/StepNavigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -13,6 +14,7 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import OCDESelector from "../components/OCDESelector";
 import ODSSelector from "../components/ODSSelector";
+import KeywordSelector from "../components/KeywordSelector";
 import { Plus, Trash2 } from "lucide-react";
 
 interface FormData {
@@ -20,7 +22,7 @@ interface FormData {
   nombreCompleto: string;
   emailCorporativo: string;
   telefono: string;
-  oficinaDepartamento: string;
+  programaEstudio: string;
   ctiVitae: string;
 
   // Paso 2: Áreas OCDE
@@ -33,8 +35,8 @@ interface FormData {
   metasODS: number[];
 
   // Paso 4: Nivel de Aporte
-  nivelAporte: 'alto' | 'medio' | 'bajo' | '';
-  descripcionAporte: string;
+  nivelAporteDEL: number | null; // 1-7
+  nivelAporteDS: number | null; // 1-7
 
   // Paso 5: Información Académica (solo niveles TRL/CRL para docentes individuales)
   nivelTRL: number | null;
@@ -42,28 +44,26 @@ interface FormData {
   nivelCRL: number | null;
   descripcionCRL: string;
 
-  // Paso 6: PIU (igual que otros formularios)
-  articulosQ1: number;
-  articulosQ2: number;
-  articulosQ3: number;
-  articulosQ4: number;
-  articulosOtros: number;
-  librosInvestigacion: number;
+  // Paso 6: PIU (Producción Intelectual Universitaria)
+  tesis: number;
+  libros: number;
   capitulosLibro: number;
-  patentesOtorgadas: number;
-  patentesSolicitadas: number;
-  modelosUtilidad: number;
-  disenosIndustriales: number;
-  softwareRegistrado: number;
-  prototipos: number;
-  tesisDoctorado: number;
-  tesisMaestria: number;
-  tesisPregrado: number;
-  informesTecnicos: number;
-  consultoriaEspecializada: number;
+  manuscritosPublicados: number;
+  manuscritosAceptados: number;
+  manuscritosEvaluacion: number;
+  propiedadIntelectualPatente: number;
+  propiedadIntelectualModalidadUso: number;
+  propiedadIntelectualSuiGeneris: number;
+  propiedadIntelectualSoftware: number;
+  propiedadIntelectualObrasLiterarias: number;
+  propiedadIntelectualOtras: number;
 
-  // Paso 7: Soluciones
+  // Paso 7: Palabras Clave
+  palabrasClave: number[]; // IDs de keywords_catalog
+
+  // Paso 8: Soluciones
   soluciones: Array<{
+    titulo: string;
     problema: string;
     solucion: string;
   }>;
@@ -73,38 +73,33 @@ const initialFormData: FormData = {
   nombreCompleto: '',
   emailCorporativo: '',
   telefono: '',
-  oficinaDepartamento: '',
+  programaEstudio: '',
   ctiVitae: '',
   areasOCDE: [],
   subAreasOCDE: [],
   disciplinasOCDE: [],
   objetivosODS: [],
   metasODS: [],
-  nivelAporte: '',
-  descripcionAporte: '',
+  nivelAporteDEL: null,
+  nivelAporteDS: null,
   nivelTRL: null,
   descripcionTRL: '',
   nivelCRL: null,
   descripcionCRL: '',
-  articulosQ1: 0,
-  articulosQ2: 0,
-  articulosQ3: 0,
-  articulosQ4: 0,
-  articulosOtros: 0,
-  librosInvestigacion: 0,
+  tesis: 0,
+  libros: 0,
   capitulosLibro: 0,
-  patentesOtorgadas: 0,
-  patentesSolicitadas: 0,
-  modelosUtilidad: 0,
-  disenosIndustriales: 0,
-  softwareRegistrado: 0,
-  prototipos: 0,
-  tesisDoctorado: 0,
-  tesisMaestria: 0,
-  tesisPregrado: 0,
-  informesTecnicos: 0,
-  consultoriaEspecializada: 0,
-  soluciones: [{ problema: '', solucion: '' }]
+  manuscritosPublicados: 0,
+  manuscritosAceptados: 0,
+  manuscritosEvaluacion: 0,
+  propiedadIntelectualPatente: 0,
+  propiedadIntelectualModalidadUso: 0,
+  propiedadIntelectualSuiGeneris: 0,
+  propiedadIntelectualSoftware: 0,
+  propiedadIntelectualObrasLiterarias: 0,
+  propiedadIntelectualOtras: 0,
+  palabrasClave: [],
+  soluciones: [{ titulo: '', problema: '', solucion: '' }]
 };
 
 export default function RegistroDocenteInvestigador() {
@@ -114,7 +109,7 @@ export default function RegistroDocenteInvestigador() {
   const [formData, setFormData] = useState<FormData>(initialFormData);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const totalSteps = 8;
+  const totalSteps = 9; // Actualizado: ahora son 9 pasos
 
   useEffect(() => {
     if (!isLoading && !user) {
@@ -153,9 +148,9 @@ export default function RegistroDocenteInvestigador() {
         if (!formData.nombreCompleto.trim()) newErrors.nombreCompleto = 'El nombre completo es obligatorio';
         if (!formData.emailCorporativo.trim()) newErrors.emailCorporativo = 'El email corporativo es obligatorio';
         if (!formData.telefono.trim()) newErrors.telefono = 'El teléfono es obligatorio';
-        if (!formData.oficinaDepartamento.trim()) newErrors.oficinaDepartamento = 'La oficina o departamento es obligatorio';
+        if (!formData.programaEstudio.trim()) newErrors.programaEstudio = 'El programa de estudio es obligatorio';
         if (!formData.ctiVitae.trim()) newErrors.ctiVitae = 'El enlace CTI Vitae es obligatorio';
-        
+
         // Validar formato de email
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (formData.emailCorporativo && !emailRegex.test(formData.emailCorporativo)) {
@@ -182,10 +177,17 @@ export default function RegistroDocenteInvestigador() {
         break;
 
       case 4:
-        if (!formData.nivelAporte) newErrors.nivelAporte = 'Debe seleccionar un nivel de aporte';
+        if (!formData.nivelAporteDEL) newErrors.nivelAporteDEL = 'Debe seleccionar el nivel de aporte al DEL';
+        if (!formData.nivelAporteDS) newErrors.nivelAporteDS = 'Debe seleccionar el nivel de aporte al DS';
         break;
 
       case 7:
+        if (formData.palabrasClave.length === 0) {
+          newErrors.palabrasClave = 'Debe seleccionar al menos una palabra clave';
+        }
+        break;
+
+      case 8:
         formData.soluciones.forEach((solucion, index) => {
           if (!solucion.problema.trim()) {
             newErrors[`problema_${index}`] = 'La descripción del problema es obligatoria';
@@ -222,18 +224,99 @@ export default function RegistroDocenteInvestigador() {
     setIsSubmitting(true);
     try {
       console.log('Enviando formulario completo...', formData);
+
+      // Preparar datos según la estructura de la BD
+      const datosRegistro = {
+        tipo: 'docente_investigador',
+        nombre_completo: formData.nombreCompleto,
+        email: formData.emailCorporativo,
+        telefono: formData.telefono,
+        programa_estudio: formData.programaEstudio,
+        url_cti_vitae: formData.ctiVitae,
+        
+        // OCDE
+        ocde: formData.disciplinasOCDE.map((disciplinaId, index) => ({
+          area_id: formData.areasOCDE[index] || null,
+          sub_area_id: formData.subAreasOCDE[index] || null,
+          disciplina_id: disciplinaId
+        })),
+        
+        // ODS
+        ods: formData.objetivosODS.map((objetivoId, index) => ({
+          objetivo_id: objetivoId,
+          meta_id: formData.metasODS[index] || null
+        })),
+        
+        // Aportes (escala 1-7)
+        nivel_aporte_del: formData.nivelAporteDEL,
+        nivel_aporte_ds: formData.nivelAporteDS,
+        
+        // Niveles tecnológicos
+        nivel_trl: formData.nivelTRL,
+        nivel_crl: formData.nivelCRL,
+        
+        // PIU
+        piu: {
+          tesis: formData.tesis,
+          libros: formData.libros,
+          capitulos_libro: formData.capitulosLibro,
+          manuscritos_publicados: formData.manuscritosPublicados,
+          manuscritos_aceptados: formData.manuscritosAceptados,
+          manuscritos_evaluacion: formData.manuscritosEvaluacion,
+          pi_patente_invencion: formData.propiedadIntelectualPatente,
+          pi_patente_modalidad_uso: formData.propiedadIntelectualModalidadUso,
+          pi_sui_generis: formData.propiedadIntelectualSuiGeneris,
+          pi_derecho_autor_software: formData.propiedadIntelectualSoftware,
+          pi_derecho_obras_literarias: formData.propiedadIntelectualObrasLiterarias,
+          pi_otras: formData.propiedadIntelectualOtras
+        },
+        
+        // Keywords (convertir strings a IDs si es necesario)
+        keywords: formData.palabrasClave,
+        
+        // Soluciones
+        soluciones: formData.soluciones,
+        
+        paso_actual: totalSteps
+      };
+
+      // Enviar al backend
+      const token = Cookies.get('token');
       
+      if (!token) {
+        throw new Error('No se encontró el token de autenticación. Por favor, inicie sesión nuevamente.');
+      }
+      
+      console.log('Token encontrado:', token ? 'Sí' : 'No');
+      
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/helice-interna/registros`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(datosRegistro)
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Error al registrar');
+      }
+
+      const resultado = await response.json();
+      console.log('Registro exitoso:', resultado);
+
       // Guardar datos en localStorage para mostrar en confirmación
       localStorage.setItem('registro_confirmacion', JSON.stringify({
         tipo: 'docente_investigador',
         datos: formData,
         fecha: new Date().toISOString()
       }));
-      
-      await new Promise(resolve => setTimeout(resolve, 2000));
+
       router.push('/registro-helice-interna/confirmacion');
     } catch (error) {
       console.error('Error al enviar formulario:', error);
+      alert('Error al registrar. Por favor intente nuevamente.');
     } finally {
       setIsSubmitting(false);
     }
@@ -249,7 +332,7 @@ export default function RegistroDocenteInvestigador() {
   const addSolucion = () => {
     setFormData(prev => ({
       ...prev,
-      soluciones: [...prev.soluciones, { problema: '', solucion: '' }]
+      soluciones: [{ titulo: '', problema: '', solucion: '' }]
     }));
   };
 
@@ -262,10 +345,10 @@ export default function RegistroDocenteInvestigador() {
     }
   };
 
-  const updateSolucion = (index: number, field: 'problema' | 'solucion', value: string) => {
+  const updateSolucion = (index: number, field: 'titulo' | 'problema' | 'solucion', value: string) => {
     setFormData(prev => ({
       ...prev,
-      soluciones: prev.soluciones.map((sol, i) => 
+      soluciones: prev.soluciones.map((sol, i) =>
         i === index ? { ...sol, [field]: value } : sol
       )
     }));
@@ -321,16 +404,19 @@ export default function RegistroDocenteInvestigador() {
               </div>
 
               <div>
-                <Label htmlFor="oficinaDepartamento">Oficina o departamento vinculado *</Label>
+                <Label htmlFor="programaEstudio">Programa de estudio *</Label>
                 <Input
-                  id="oficinaDepartamento"
-                  value={formData.oficinaDepartamento}
-                  onChange={(e) => updateFormData('oficinaDepartamento', e.target.value)}
-                  placeholder="Indique con quién se vincula directamente en el organigrama"
-                  className={errors.oficinaDepartamento ? 'border-red-500' : ''}
+                  id="programaEstudio"
+                  value={formData.programaEstudio}
+                  onChange={(e) => updateFormData('programaEstudio', e.target.value)}
+                  placeholder="Registre el programa de estudio principal"
+                  className={errors.programaEstudio ? 'border-red-500' : ''}
                 />
-                {errors.oficinaDepartamento && (
-                  <p className="text-red-500 text-sm mt-1">{errors.oficinaDepartamento}</p>
+                <p className="text-sm text-gray-600 mt-1">
+                  U: ingresa
+                </p>
+                {errors.programaEstudio && (
+                  <p className="text-red-500 text-sm mt-1">{errors.programaEstudio}</p>
                 )}
               </div>
 
@@ -380,24 +466,25 @@ export default function RegistroDocenteInvestigador() {
 
       case 3:
         return (
-          <Card>
-            <CardHeader>
-              <CardTitle>Objetivos de Desarrollo Sostenible (ODS)</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ODSSelector
-                selectedObjetivos={formData.objetivosODS}
-                selectedMetas={formData.metasODS}
-                onSelectionChange={(objetivos, metas) => {
-                  updateFormData('objetivosODS', objetivos);
-                  updateFormData('metasODS', metas);
-                }}
-              />
-              {errors.ods && (
-                <p className="text-red-500 text-sm mt-2">{errors.ods}</p>
-              )}
-            </CardContent>
-          </Card>
+          <div className="space-y-4">
+            <div className="mb-4">
+              <h2 className="text-2xl font-bold">Objetivos de Desarrollo Sostenible (ODS)</h2>
+              <p className="text-sm text-gray-600 mt-2">
+                Seleccione los ODS con los que su trabajo se alinea
+              </p>
+            </div>
+            <ODSSelector
+              selectedObjetivos={formData.objetivosODS}
+              selectedMetas={formData.metasODS}
+              onSelectionChange={(objetivos, metas) => {
+                updateFormData('objetivosODS', objetivos);
+                updateFormData('metasODS', metas);
+              }}
+            />
+            {errors.ods && (
+              <p className="text-red-500 text-sm mt-2">{errors.ods}</p>
+            )}
+          </div>
         );
 
       case 4:
@@ -405,37 +492,63 @@ export default function RegistroDocenteInvestigador() {
           <Card>
             <CardHeader>
               <CardTitle>Nivel de Aporte</CardTitle>
+              <p className="text-sm text-gray-600">
+                Indique el nivel de aporte que su capacidad puede ofrecer (Máximo aporte: 7 - Mínimo aporte: 1)
+              </p>
             </CardHeader>
             <CardContent className="space-y-6">
               <div>
-                <Label>Nivel de aporte *</Label>
+                <Label htmlFor="nivelAporteDEL" className="text-base font-medium">
+                  Aporte al DEL (Desarrollo Económico Local) *
+                </Label>
+                <p className="text-sm text-gray-600 mt-1 mb-3">
+                  Destinado a las personas: mejorar la calidad de vida y sus ingresos
+                </p>
                 <Select
-                  value={formData.nivelAporte}
-                  onValueChange={(value) => updateFormData('nivelAporte', value)}
+                  value={formData.nivelAporteDEL?.toString() || ''}
+                  onValueChange={(value) => updateFormData('nivelAporteDEL', parseInt(value))}
                 >
-                  <SelectTrigger className={errors.nivelAporte ? 'border-red-500' : ''}>
-                    <SelectValue placeholder="Seleccione el nivel de aporte" />
+                  <SelectTrigger className={errors.nivelAporteDEL ? 'border-red-500' : ''}>
+                    <SelectValue placeholder="Seleccione el nivel de aporte al DEL" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="alto">Alto</SelectItem>
-                    <SelectItem value="medio">Medio</SelectItem>
-                    <SelectItem value="bajo">Bajo</SelectItem>
+                    {[1, 2, 3, 4, 5, 6, 7].map(nivel => (
+                      <SelectItem key={nivel} value={nivel.toString()}>
+                        Nivel {nivel} {nivel === 7 ? '(Máximo)' : nivel === 1 ? '(Mínimo)' : ''}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
-                {errors.nivelAporte && (
-                  <p className="text-red-500 text-sm mt-1">{errors.nivelAporte}</p>
+                {errors.nivelAporteDEL && (
+                  <p className="text-red-500 text-sm mt-1">{errors.nivelAporteDEL}</p>
                 )}
               </div>
 
               <div>
-                <Label htmlFor="descripcionAporte">Descripción del aporte (opcional)</Label>
-                <Textarea
-                  id="descripcionAporte"
-                  value={formData.descripcionAporte}
-                  onChange={(e) => updateFormData('descripcionAporte', e.target.value)}
-                  placeholder="Describa brevemente el tipo de aporte que puede realizar"
-                  rows={4}
-                />
+                <Label htmlFor="nivelAporteDS" className="text-base font-medium">
+                  Aporte al DS (Desarrollo Social) *
+                </Label>
+                <p className="text-sm text-gray-600 mt-1 mb-3">
+                  Destinado a las políticas y gestión pública (Gobiernos): educación, salud, infraestructura, transporte, seguridad, cultura, etc.
+                </p>
+                <Select
+                  value={formData.nivelAporteDS?.toString() || ''}
+                  onValueChange={(value) => updateFormData('nivelAporteDS', parseInt(value))}
+                >
+                  <SelectTrigger className={errors.nivelAporteDS ? 'border-red-500' : ''}>
+                    <SelectValue placeholder="Seleccione el nivel de aporte al DS" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {[1, 2, 3, 4, 5, 6, 7].map(nivel => (
+                      <SelectItem key={nivel} value={nivel.toString()}>
+                        Nivel {nivel} {nivel === 7 ? '(Máximo)' : nivel === 1 ? '(Mínimo)' : ''}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {errors.nivelAporteDS && (
+                  <p className="text-red-500 text-sm mt-1">{errors.nivelAporteDS}</p>
+                )}
               </div>
             </CardContent>
           </Card>
@@ -448,58 +561,48 @@ export default function RegistroDocenteInvestigador() {
               <CardTitle>Niveles Tecnológicos</CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <Label htmlFor="nivelTRL">Nivel TRL (1-9)</Label>
-                  <Select
-                    value={formData.nivelTRL?.toString() || ''}
-                    onValueChange={(value) => updateFormData('nivelTRL', parseInt(value))}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Seleccione nivel TRL" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {[1,2,3,4,5,6,7,8,9].map(level => (
-                        <SelectItem key={level} value={level.toString()}>
-                          TRL {level}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <Textarea
-                    value={formData.descripcionTRL}
-                    onChange={(e) => updateFormData('descripcionTRL', e.target.value)}
-                    placeholder="Descripción del nivel TRL"
-                    className="mt-2"
-                    rows={3}
-                  />
-                </div>
+              <div>
+                <Label htmlFor="nivelTRL" className="text-base font-medium">Nivel TRL</Label>
+                <p className="text-sm text-gray-600 mt-1 mb-3">
+                  Señale su máximo nivel de TRL que podría alcanzar al día de hoy
+                </p>
+                <Select
+                  value={formData.nivelTRL?.toString() || ''}
+                  onValueChange={(value) => updateFormData('nivelTRL', parseInt(value))}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Seleccione nivel de TRL" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {[1, 2, 3, 4, 5, 6, 7, 8, 9].map(level => (
+                      <SelectItem key={level} value={level.toString()}>
+                        TRL {level}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
 
-                <div>
-                  <Label htmlFor="nivelCRL">Nivel CRL (1-9)</Label>
-                  <Select
-                    value={formData.nivelCRL?.toString() || ''}
-                    onValueChange={(value) => updateFormData('nivelCRL', parseInt(value))}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Seleccione nivel CRL" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {[1,2,3,4,5,6,7,8,9].map(level => (
-                        <SelectItem key={level} value={level.toString()}>
-                          CRL {level}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <Textarea
-                    value={formData.descripcionCRL}
-                    onChange={(e) => updateFormData('descripcionCRL', e.target.value)}
-                    placeholder="Descripción del nivel CRL"
-                    className="mt-2"
-                    rows={3}
-                  />
-                </div>
+              <div>
+                <Label htmlFor="nivelCRL" className="text-base font-medium">Nivel CRL</Label>
+                <p className="text-sm text-gray-600 mt-1 mb-3">
+                  Señale su máximo nivel de CRL que podría alcanzar al día de hoy
+                </p>
+                <Select
+                  value={formData.nivelCRL?.toString() || ''}
+                  onValueChange={(value) => updateFormData('nivelCRL', parseInt(value))}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Seleccione nivel de CRL" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {[1, 2, 3, 4, 5, 6, 7, 8, 9].map(level => (
+                      <SelectItem key={level} value={level.toString()}>
+                        CRL {level}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
             </CardContent>
           </Card>
@@ -509,226 +612,166 @@ export default function RegistroDocenteInvestigador() {
         return (
           <Card>
             <CardHeader>
-              <CardTitle>Producción Intelectual Universitaria (PIU)</CardTitle>
+              <CardTitle>PIU alcanzada</CardTitle>
               <p className="text-sm text-gray-600">
-                Indique la cantidad de productos PIU que ha logrado como investigador
+                Permite número de 0 a 999. Indique la cantidad de productos de PIU ha logrado
               </p>
             </CardHeader>
-            <CardContent className="space-y-6">
+            <CardContent className="space-y-4">
               <div>
-                <h4 className="font-medium mb-3">Artículos Científicos</h4>
-                <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-                  <div>
-                    <Label htmlFor="articulosQ1">Q1</Label>
-                    <Input
-                      id="articulosQ1"
-                      type="number"
-                      min="0"
-                      value={formData.articulosQ1}
-                      onChange={(e) => updateFormData('articulosQ1', parseInt(e.target.value) || 0)}
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="articulosQ2">Q2</Label>
-                    <Input
-                      id="articulosQ2"
-                      type="number"
-                      min="0"
-                      value={formData.articulosQ2}
-                      onChange={(e) => updateFormData('articulosQ2', parseInt(e.target.value) || 0)}
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="articulosQ3">Q3</Label>
-                    <Input
-                      id="articulosQ3"
-                      type="number"
-                      min="0"
-                      value={formData.articulosQ3}
-                      onChange={(e) => updateFormData('articulosQ3', parseInt(e.target.value) || 0)}
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="articulosQ4">Q4</Label>
-                    <Input
-                      id="articulosQ4"
-                      type="number"
-                      min="0"
-                      value={formData.articulosQ4}
-                      onChange={(e) => updateFormData('articulosQ4', parseInt(e.target.value) || 0)}
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="articulosOtros">Otros</Label>
-                    <Input
-                      id="articulosOtros"
-                      type="number"
-                      min="0"
-                      value={formData.articulosOtros}
-                      onChange={(e) => updateFormData('articulosOtros', parseInt(e.target.value) || 0)}
-                    />
-                  </div>
-                </div>
+                <Label htmlFor="tesis">Tesis</Label>
+                <Input
+                  id="tesis"
+                  type="number"
+                  min="0"
+                  max="999"
+                  value={formData.tesis}
+                  onChange={(e) => updateFormData('tesis', parseInt(e.target.value) || 0)}
+                  placeholder="Ingrese un número"
+                />
               </div>
 
               <div>
-                <h4 className="font-medium mb-3">Libros y Capítulos</h4>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="librosInvestigacion">Libros de investigación</Label>
-                    <Input
-                      id="librosInvestigacion"
-                      type="number"
-                      min="0"
-                      value={formData.librosInvestigacion}
-                      onChange={(e) => updateFormData('librosInvestigacion', parseInt(e.target.value) || 0)}
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="capitulosLibro">Capítulos de libro</Label>
-                    <Input
-                      id="capitulosLibro"
-                      type="number"
-                      min="0"
-                      value={formData.capitulosLibro}
-                      onChange={(e) => updateFormData('capitulosLibro', parseInt(e.target.value) || 0)}
-                    />
-                  </div>
-                </div>
+                <Label htmlFor="libros">Libros</Label>
+                <Input
+                  id="libros"
+                  type="number"
+                  min="0"
+                  max="999"
+                  value={formData.libros}
+                  onChange={(e) => updateFormData('libros', parseInt(e.target.value) || 0)}
+                  placeholder="Ingrese un número"
+                />
               </div>
 
               <div>
-                <h4 className="font-medium mb-3">Propiedad Intelectual</h4>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="patentesOtorgadas">Patentes otorgadas</Label>
-                    <Input
-                      id="patentesOtorgadas"
-                      type="number"
-                      min="0"
-                      value={formData.patentesOtorgadas}
-                      onChange={(e) => updateFormData('patentesOtorgadas', parseInt(e.target.value) || 0)}
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="patentesSolicitadas">Patentes solicitadas</Label>
-                    <Input
-                      id="patentesSolicitadas"
-                      type="number"
-                      min="0"
-                      value={formData.patentesSolicitadas}
-                      onChange={(e) => updateFormData('patentesSolicitadas', parseInt(e.target.value) || 0)}
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="modelosUtilidad">Modelos de utilidad</Label>
-                    <Input
-                      id="modelosUtilidad"
-                      type="number"
-                      min="0"
-                      value={formData.modelosUtilidad}
-                      onChange={(e) => updateFormData('modelosUtilidad', parseInt(e.target.value) || 0)}
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="disenosIndustriales">Diseños industriales</Label>
-                    <Input
-                      id="disenosIndustriales"
-                      type="number"
-                      min="0"
-                      value={formData.disenosIndustriales}
-                      onChange={(e) => updateFormData('disenosIndustriales', parseInt(e.target.value) || 0)}
-                    />
-                  </div>
-                </div>
+                <Label htmlFor="capitulosLibro">Capítulos de libro</Label>
+                <Input
+                  id="capitulosLibro"
+                  type="number"
+                  min="0"
+                  max="999"
+                  value={formData.capitulosLibro}
+                  onChange={(e) => updateFormData('capitulosLibro', parseInt(e.target.value) || 0)}
+                  placeholder="Ingrese un número"
+                />
               </div>
 
               <div>
-                <h4 className="font-medium mb-3">Productos Tecnológicos</h4>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="softwareRegistrado">Software registrado</Label>
-                    <Input
-                      id="softwareRegistrado"
-                      type="number"
-                      min="0"
-                      value={formData.softwareRegistrado}
-                      onChange={(e) => updateFormData('softwareRegistrado', parseInt(e.target.value) || 0)}
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="prototipos">Prototipos</Label>
-                    <Input
-                      id="prototipos"
-                      type="number"
-                      min="0"
-                      value={formData.prototipos}
-                      onChange={(e) => updateFormData('prototipos', parseInt(e.target.value) || 0)}
-                    />
-                  </div>
-                </div>
+                <Label htmlFor="manuscritosPublicados">Manuscritos publicados</Label>
+                <Input
+                  id="manuscritosPublicados"
+                  type="number"
+                  min="0"
+                  max="999"
+                  value={formData.manuscritosPublicados}
+                  onChange={(e) => updateFormData('manuscritosPublicados', parseInt(e.target.value) || 0)}
+                  placeholder="Ingrese un número"
+                />
               </div>
 
               <div>
-                <h4 className="font-medium mb-3">Formación de Recursos Humanos</h4>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div>
-                    <Label htmlFor="tesisDoctorado">Tesis de doctorado dirigidas</Label>
-                    <Input
-                      id="tesisDoctorado"
-                      type="number"
-                      min="0"
-                      value={formData.tesisDoctorado}
-                      onChange={(e) => updateFormData('tesisDoctorado', parseInt(e.target.value) || 0)}
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="tesisMaestria">Tesis de maestría dirigidas</Label>
-                    <Input
-                      id="tesisMaestria"
-                      type="number"
-                      min="0"
-                      value={formData.tesisMaestria}
-                      onChange={(e) => updateFormData('tesisMaestria', parseInt(e.target.value) || 0)}
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="tesisPregrado">Tesis de pregrado dirigidas</Label>
-                    <Input
-                      id="tesisPregrado"
-                      type="number"
-                      min="0"
-                      value={formData.tesisPregrado}
-                      onChange={(e) => updateFormData('tesisPregrado', parseInt(e.target.value) || 0)}
-                    />
-                  </div>
-                </div>
+                <Label htmlFor="manuscritosAceptados">Manuscritos aceptados para publicación</Label>
+                <Input
+                  id="manuscritosAceptados"
+                  type="number"
+                  min="0"
+                  max="999"
+                  value={formData.manuscritosAceptados}
+                  onChange={(e) => updateFormData('manuscritosAceptados', parseInt(e.target.value) || 0)}
+                  placeholder="Ingrese un número"
+                />
               </div>
 
               <div>
-                <h4 className="font-medium mb-3">Otros Productos</h4>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="informesTecnicos">Informes técnicos</Label>
-                    <Input
-                      id="informesTecnicos"
-                      type="number"
-                      min="0"
-                      value={formData.informesTecnicos}
-                      onChange={(e) => updateFormData('informesTecnicos', parseInt(e.target.value) || 0)}
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="consultoriaEspecializada">Consultoría especializada</Label>
-                    <Input
-                      id="consultoriaEspecializada"
-                      type="number"
-                      min="0"
-                      value={formData.consultoriaEspecializada}
-                      onChange={(e) => updateFormData('consultoriaEspecializada', parseInt(e.target.value) || 0)}
-                    />
-                  </div>
-                </div>
+                <Label htmlFor="manuscritosEvaluacion">Manuscritos en evaluación</Label>
+                <Input
+                  id="manuscritosEvaluacion"
+                  type="number"
+                  min="0"
+                  max="999"
+                  value={formData.manuscritosEvaluacion}
+                  onChange={(e) => updateFormData('manuscritosEvaluacion', parseInt(e.target.value) || 0)}
+                  placeholder="Ingrese un número"
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="propiedadIntelectualPatente">Propiedad intelectual Patente de invención</Label>
+                <Input
+                  id="propiedadIntelectualPatente"
+                  type="number"
+                  min="0"
+                  max="999"
+                  value={formData.propiedadIntelectualPatente}
+                  onChange={(e) => updateFormData('propiedadIntelectualPatente', parseInt(e.target.value) || 0)}
+                  placeholder="Ingrese un número"
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="propiedadIntelectualModalidadUso">Propiedad intelectual Patente modalidad de uso</Label>
+                <Input
+                  id="propiedadIntelectualModalidadUso"
+                  type="number"
+                  min="0"
+                  max="999"
+                  value={formData.propiedadIntelectualModalidadUso}
+                  onChange={(e) => updateFormData('propiedadIntelectualModalidadUso', parseInt(e.target.value) || 0)}
+                  placeholder="Ingrese un número"
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="propiedadIntelectualSuiGeneris">Propiedad intelectual Sui generis</Label>
+                <Input
+                  id="propiedadIntelectualSuiGeneris"
+                  type="number"
+                  min="0"
+                  max="999"
+                  value={formData.propiedadIntelectualSuiGeneris}
+                  onChange={(e) => updateFormData('propiedadIntelectualSuiGeneris', parseInt(e.target.value) || 0)}
+                  placeholder="Ingrese un número"
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="propiedadIntelectualSoftware">Propiedad intelectual Derecho de Autor Software</Label>
+                <Input
+                  id="propiedadIntelectualSoftware"
+                  type="number"
+                  min="0"
+                  max="999"
+                  value={formData.propiedadIntelectualSoftware}
+                  onChange={(e) => updateFormData('propiedadIntelectualSoftware', parseInt(e.target.value) || 0)}
+                  placeholder="Ingrese un número"
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="propiedadIntelectualObrasLiterarias">Propiedad intelectual Derecho de Obras literarias</Label>
+                <Input
+                  id="propiedadIntelectualObrasLiterarias"
+                  type="number"
+                  min="0"
+                  max="999"
+                  value={formData.propiedadIntelectualObrasLiterarias}
+                  onChange={(e) => updateFormData('propiedadIntelectualObrasLiterarias', parseInt(e.target.value) || 0)}
+                  placeholder="Ingrese un número"
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="propiedadIntelectualOtras">Propiedad intelectual (otras)</Label>
+                <Input
+                  id="propiedadIntelectualOtras"
+                  type="number"
+                  min="0"
+                  max="999"
+                  value={formData.propiedadIntelectualOtras}
+                  onChange={(e) => updateFormData('propiedadIntelectualOtras', parseInt(e.target.value) || 0)}
+                  placeholder="Ingrese un número"
+                />
               </div>
             </CardContent>
           </Card>
@@ -738,9 +781,30 @@ export default function RegistroDocenteInvestigador() {
         return (
           <Card>
             <CardHeader>
-              <CardTitle>Soluciones que Ofrece</CardTitle>
+              <CardTitle>Palabras Clave de Soluciones</CardTitle>
               <p className="text-sm text-gray-600">
-                Describa los problemas que puede solucionar y las soluciones que propone
+                De las soluciones que puede otorgar, señale palabras claves. Ej.: nanomateriales, bacterias, dislexia, rotación de personal, biorremediación, estructura civil, etc.
+              </p>
+            </CardHeader>
+            <CardContent>
+              <KeywordSelector
+                selectedKeywords={formData.palabrasClave}
+                onSelectionChange={(keywords) => updateFormData('palabrasClave', keywords)}
+              />
+              {errors.palabrasClave && (
+                <p className="text-red-500 text-sm mt-2">{errors.palabrasClave}</p>
+              )}
+            </CardContent>
+          </Card>
+        );
+
+      case 8:
+        return (
+          <Card>
+            <CardHeader>
+              <CardTitle>Soluciones</CardTitle>
+              <p className="text-sm text-gray-600">
+                Indique brevemente problemas que puede solucionar, ir
               </p>
             </CardHeader>
             <CardContent className="space-y-6">
@@ -758,15 +822,29 @@ export default function RegistroDocenteInvestigador() {
                       <Trash2 className="h-4 w-4" />
                     </Button>
                   </div>
-                  
+
                   <div className="space-y-4">
                     <div>
-                      <Label htmlFor={`problema_${index}`}>Descripción del problema *</Label>
+                      <Label htmlFor={`titulo_${index}`}>S: Título</Label>
+                      <Input
+                        id={`titulo_${index}`}
+                        value={solucion.titulo}
+                        onChange={(e) => updateSolucion(index, 'titulo', e.target.value)}
+                        placeholder="Ingrese información"
+                        className={errors[`titulo_${index}`] ? 'border-red-500' : ''}
+                      />
+                      {errors[`titulo_${index}`] && (
+                        <p className="text-red-500 text-sm mt-1">{errors[`titulo_${index}`]}</p>
+                      )}
+                    </div>
+
+                    <div>
+                      <Label htmlFor={`problema_${index}`}>S: Problema</Label>
                       <Textarea
                         id={`problema_${index}`}
                         value={solucion.problema}
                         onChange={(e) => updateSolucion(index, 'problema', e.target.value)}
-                        placeholder="Describa el problema que puede abordar"
+                        placeholder="Ingrese información"
                         rows={3}
                         className={errors[`problema_${index}`] ? 'border-red-500' : ''}
                       />
@@ -774,14 +852,14 @@ export default function RegistroDocenteInvestigador() {
                         <p className="text-red-500 text-sm mt-1">{errors[`problema_${index}`]}</p>
                       )}
                     </div>
-                    
+
                     <div>
-                      <Label htmlFor={`solucion_${index}`}>Propuesta de solución *</Label>
+                      <Label htmlFor={`solucion_${index}`}>S: Solución</Label>
                       <Textarea
                         id={`solucion_${index}`}
                         value={solucion.solucion}
                         onChange={(e) => updateSolucion(index, 'solucion', e.target.value)}
-                        placeholder="Describa la solución que propone"
+                        placeholder="Ingrese información"
                         rows={3}
                         className={errors[`solucion_${index}`] ? 'border-red-500' : ''}
                       />
@@ -792,7 +870,7 @@ export default function RegistroDocenteInvestigador() {
                   </div>
                 </div>
               ))}
-              
+
               <Button
                 type="button"
                 variant="outline"
@@ -805,8 +883,7 @@ export default function RegistroDocenteInvestigador() {
             </CardContent>
           </Card>
         );
-
-      case 8:
+      case 9:
         return (
           <Card>
             <CardHeader>
@@ -825,29 +902,24 @@ export default function RegistroDocenteInvestigador() {
                     <p><strong>Teléfono:</strong> {formData.telefono}</p>
                   </div>
                 </div>
-                
-                <div>
-                  <h4 className="font-medium mb-2">Nivel de Aporte</h4>
-                  <div className="text-sm">
-                    <p><strong>Nivel:</strong> {formData.nivelAporte}</p>
-                  </div>
-                </div>
+
+
               </div>
-              
+
               <div>
                 <h4 className="font-medium mb-2">Áreas OCDE Seleccionadas</h4>
                 <p className="text-sm text-gray-600">
                   {formData.areasOCDE.length + formData.subAreasOCDE.length + formData.disciplinasOCDE.length} áreas seleccionadas
                 </p>
               </div>
-              
+
               <div>
                 <h4 className="font-medium mb-2">ODS Seleccionados</h4>
                 <p className="text-sm text-gray-600">
                   {formData.objetivosODS.length} objetivos seleccionados
                 </p>
               </div>
-              
+
               <div>
                 <h4 className="font-medium mb-2">Soluciones</h4>
                 <p className="text-sm text-gray-600">
@@ -881,7 +953,7 @@ export default function RegistroDocenteInvestigador() {
           <div className="p-6">
             {renderStep()}
           </div>
-          
+
           <div className="px-6 pb-6">
             <StepNavigation
               currentStep={currentStep}

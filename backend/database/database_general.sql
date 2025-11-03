@@ -38,12 +38,12 @@ CREATE TABLE Sesiones_Evento (
 -- ====================================================================
 
 CREATE TABLE keywords_catalog (
-    id SERIAL PRIMARY KEY,
+    id BIGINT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
     keyword VARCHAR(100) NOT NULL UNIQUE,
     category VARCHAR(50) NOT NULL,
     description TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
 
 CREATE INDEX idx_keyword ON keywords_catalog(keyword);

@@ -83,7 +83,7 @@ export const getSolicitudesEnviadas = async (
       FROM Solicitudes s
       LEFT JOIN Investigadores_UNSA i ON s.destinatario_tipo = 'unsa' AND s.destinatario_id = i.investigador_id
       LEFT JOIN Participantes_Externos p ON s.destinatario_tipo = 'externo' AND s.destinatario_id = p.participante_id
-      LEFT JOIN Capacidades_UNSA c ON s.tipo_match = 'capacidad' AND s.match_id = c.capacidad_id
+      LEFT JOIN registros_helice_interna r ON s.tipo_match = 'capacidad' AND s.match_id = r.id
       LEFT JOIN Desafios d ON s.tipo_match = 'desafio' AND s.match_id = d.desafio_id
       WHERE s.remitente_tipo = ? AND s.remitente_id = ?
       ORDER BY s.fecha_creacion DESC
@@ -119,7 +119,7 @@ export const getSolicitudesRecibidas = async (
       FROM Solicitudes s
       LEFT JOIN Investigadores_UNSA i ON s.remitente_tipo = 'unsa' AND s.remitente_id = i.investigador_id
       LEFT JOIN Participantes_Externos p ON s.remitente_tipo = 'externo' AND s.remitente_id = p.participante_id
-      LEFT JOIN Capacidades_UNSA c ON s.tipo_match = 'capacidad' AND s.match_id = c.capacidad_id
+      LEFT JOIN registros_helice_interna r ON s.tipo_match = 'capacidad' AND s.match_id = r.id
       LEFT JOIN Desafios d ON s.tipo_match = 'desafio' AND s.match_id = d.desafio_id
       WHERE s.destinatario_tipo = ? AND s.destinatario_id = ?
       ORDER BY 

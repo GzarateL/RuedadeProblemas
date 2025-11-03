@@ -39,15 +39,22 @@ export default function MisCapacidadesPage() {
       if (!token) return;
 
       try {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/capacidades/mis-capacidades`, {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/helice-interna/registros`, {
           headers: { "Authorization": `Bearer ${token}` }
         });
 
         if (!res.ok) throw new Error('Error al cargar capacidades');
 
         const data = await res.json();
-        console.log("Capacidades recibidas:", data);
-        setCapacidades(data);
+        console.log("Registros recibidos:", data);
+        // Mapear los registros al formato esperado
+        const capacidadesMapeadas = data.map((reg: any) => ({
+          capacidad_id: reg.id,
+          descripcion_capacidad: reg.nombre_completo || reg.nombre_entidad || 'Sin descripción',
+          fecha_creacion: reg.fecha_creacion,
+          palabras_clave: null // TODO: obtener palabras clave del registro
+        }));
+        setCapacidades(capacidadesMapeadas);
       } catch (err: any) {
         console.error("Error fetching capacidades:", err);
         toast.error("Error", { description: err.message });

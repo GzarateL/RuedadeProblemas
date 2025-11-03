@@ -131,6 +131,7 @@ export default function RegistroLaboratorio() {
       // Auto-rellenar datos del usuario
       setFormData(prev => ({
         ...prev,
+        nombreResponsable: user.nombres_apellidos || '',
         emailCorporativo: user.email || ''
       }));
     }

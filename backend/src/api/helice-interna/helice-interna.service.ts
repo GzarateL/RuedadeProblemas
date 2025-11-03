@@ -1,87 +1,133 @@
-import { RowDataPacket, ResultSetHeader } from 'mysql2';
+import { RowDataPacket, ResultSetHeader, PoolConnection } from 'mysql2/promise';
 import db from '../../config/db';
 
 interface TipoHeliceInterna {
-  id: number;
+  tipo: string;
   nombre: string;
-  descripcion: string;
-  activo: boolean;
 }
 
-interface RegistroHeliceInterna {
-  id?: number;
-  tipo_id: number;
+// Interfaces para cada tipo de registro según la BD
+interface RegistroDocenteInvestigador {
+  registro_id?: number;
   usuario_id: number;
-  nombre_completo?: string;
-  nombre_entidad?: string;
-  email_corporativo: string;
+  nombre_completo: string;
+  email: string;
   telefono: string;
-  oficina_departamento: string;
-  estado: 'borrador' | 'completado' | 'aprobado' | 'rechazado';
+  programa_estudio: string;
+  url_cti_vitae?: string;
+  estado: 'borrador' | 'completado' | 'en_revision' | 'aprobado' | 'rechazado';
   paso_actual: number;
-  fecha_creacion?: Date;
-  fecha_actualizacion?: Date;
-  fecha_completado?: Date;
-  fecha_aprobacion?: Date;
+}
+
+interface RegistroGrupoCentroInstituto {
+  registro_id?: number;
+  usuario_id: number;
+  nombre: string; // Nombre del grupo/centro/instituto
+  nombre_completo_responsable: string;
+  email: string;
+  telefono: string;
+  oficina_departamento_vinculado: string;
+  estado: 'borrador' | 'completado' | 'en_revision' | 'aprobado' | 'rechazado';
+  paso_actual: number;
+}
+
+interface RegistroLaboratorio {
+  registro_id?: number;
+  usuario_id: number;
+  nombre: string; // Nombre del laboratorio
+  nombre_completo_responsable: string;
+  email: string;
+  telefono: string;
+  oficina_departamento_vinculado: string;
+  estado: 'borrador' | 'completado' | 'en_revision' | 'aprobado' | 'rechazado';
+  paso_actual: number;
+}
+
+interface RegistroCentroProduccion {
+  registro_id?: number;
+  usuario_id: number;
+  nombre: string; // Nombre del centro de producción
+  nombre_completo_responsable: string;
+  email: string;
+  telefono: string;
+  oficina_departamento_vinculado: string;
+  estado: 'borrador' | 'completado' | 'en_revision' | 'aprobado' | 'rechazado';
+  paso_actual: number;
 }
 
 interface DatosRegistroCompleto {
-  // Información básica
+  // Tipo de registro
+  tipo: 'docente_investigador' | 'grupo_centro_instituto' | 'laboratorio' | 'centro_produccion';
+  
+  // Información básica - Docente Investigador
   nombre_completo?: string;
-  nombre_entidad?: string;
-  email_corporativo: string;
-  telefono: string;
-  oficina_departamento: string;
-  cti_vitae?: string;
+  email?: string;
+  telefono?: string;
+  programa_estudio?: string;
+  url_cti_vitae?: string;
 
-  // Áreas OCDE
-  areas_ocde?: number[];
-  sub_areas_ocde?: number[];
-  disciplinas_ocde?: number[];
+  // Información básica - Grupos/Centros/Institutos/Laboratorios/Producción
+  nombre?: string; // Nombre de la entidad
+  nombre_completo_responsable?: string;
+  oficina_departamento_vinculado?: string;
 
-  // ODS
-  objetivos_ods?: number[];
-  metas_ods?: number[];
+  // Áreas OCDE (múltiples registros)
+  ocde?: Array<{
+    area_id?: number;
+    sub_area_id?: number;
+    disciplina_id?: number;
+  }>;
 
-  // Nivel de aporte
-  nivel_aporte?: 'alto' | 'medio' | 'bajo';
-  descripcion_aporte?: string;
+  // ODS (múltiples registros)
+  ods?: Array<{
+    objetivo_id: number;
+    meta_id?: number;
+  }>;
 
-  // Integrantes CTI (para grupos/centros/institutos)
-  integrantes_cti?: string[];
+  // Nivel de aporte (DEL y DS en escala 1-7)
+  nivel_aporte_del?: number;
+  nivel_aporte_ds?: number;
+
+  // CTI Vitae (múltiples URLs para grupos/centros/institutos)
+  cti_vitae_urls?: string[];
 
   // Niveles tecnológicos
   nivel_trl?: number;
-  descripcion_trl?: string;
   nivel_crl?: number;
-  descripcion_crl?: string;
 
-  // PIU
+  // PIU (Producción Intelectual Universitaria)
   piu?: {
-    articulos_q1?: number;
-    articulos_q2?: number;
-    articulos_q3?: number;
-    articulos_q4?: number;
-    articulos_otros?: number;
-    libros_investigacion?: number;
+    tesis?: number;
+    libros?: number;
     capitulos_libro?: number;
-    patentes_otorgadas?: number;
-    patentes_solicitadas?: number;
-    modelos_utilidad?: number;
-    disenos_industriales?: number;
-    software_registrado?: number;
-    prototipos?: number;
-    tesis_doctorado?: number;
-    tesis_maestria?: number;
-    tesis_pregrado?: number;
-    informes_tecnicos?: number;
-    consultoria_especializada?: number;
+    manuscritos_publicados?: number;
+    manuscritos_aceptados?: number;
+    manuscritos_evaluacion?: number;
+    pi_patente_invencion?: number;
+    pi_patente_modalidad_uso?: number;
+    pi_sui_generis?: number;
+    pi_derecho_autor_software?: number;
+    pi_derecho_obras_literarias?: number;
+    pi_otras?: number;
   };
+
+  // Palabras clave
+  keywords?: number[]; // IDs de keywords_catalog
 
   // Soluciones
   soluciones?: Array<{
+    titulo: string;
     problema: string;
     solucion: string;
+  }>;
+
+  // Archivos adjuntos
+  archivos?: Array<{
+    nombre_archivo: string;
+    ruta_archivo: string;
+    tipo_archivo?: string;
+    tamano_archivo?: number;
+    descripcion?: string;
   }>;
 
   // Paso actual
@@ -91,79 +137,114 @@ interface DatosRegistroCompleto {
 export class HeliceInternaService {
   
   async getTipos(): Promise<TipoHeliceInterna[]> {
-    const [rows] = await db.execute<RowDataPacket[]>(
-      'SELECT * FROM tipos_helice_interna WHERE activo = TRUE ORDER BY id'
-    );
-    return rows as TipoHeliceInterna[];
+    return [
+      { tipo: 'docente_investigador', nombre: 'Docente Investigador' },
+      { tipo: 'grupo_centro_instituto', nombre: 'Grupo, Centro o Instituto' },
+      { tipo: 'laboratorio', nombre: 'Laboratorio' },
+      { tipo: 'centro_produccion', nombre: 'Centro de Producción' }
+    ];
+  }
+
+  private getTablaByTipo(tipo: string): string {
+    const tablas: Record<string, string> = {
+      'docente_investigador': 'Registro_Docente_Investigador',
+      'grupo_centro_instituto': 'Registro_Grupo_Centro_Instituto',
+      'laboratorio': 'Registro_Laboratorio',
+      'centro_produccion': 'Registro_Centro_Produccion'
+    };
+    return tablas[tipo] || 'Registro_Docente_Investigador';
   }
 
   async crearRegistro(
     usuarioId: number, 
-    tipoId: number, 
     datos: DatosRegistroCompleto
-  ): Promise<RegistroHeliceInterna> {
+  ): Promise<any> {
     const connection = await db.getConnection();
     
     try {
       await connection.beginTransaction();
 
-      // Crear registro principal
-      const [result] = await connection.execute<ResultSetHeader>(
-        `INSERT INTO registros_helice_interna 
-         (tipo_id, usuario_id, nombre_completo, nombre_entidad, email_corporativo, 
-          telefono, oficina_departamento, estado, paso_actual) 
-         VALUES (?, ?, ?, ?, ?, ?, ?, 'borrador', ?)`,
-        [
-          tipoId,
-          usuarioId,
-          datos.nombre_completo || null,
-          datos.nombre_entidad || null,
-          datos.email_corporativo,
-          datos.telefono,
-          datos.oficina_departamento,
-          datos.paso_actual || 1
-        ]
-      );
+      const tabla = this.getTablaByTipo(datos.tipo);
+      let registroId: number;
 
-      const registroId = result.insertId;
-
-      // Guardar datos adicionales si existen
-      if (datos.areas_ocde || datos.sub_areas_ocde || datos.disciplinas_ocde) {
-        await this.guardarAreasOCDE(connection, registroId, datos);
+      // Crear registro principal según el tipo
+      if (datos.tipo === 'docente_investigador') {
+        const [result] = await connection.execute<ResultSetHeader>(
+          `INSERT INTO ${tabla} 
+           (usuario_id, nombre_completo, email, telefono, programa_estudio, url_cti_vitae, estado, paso_actual) 
+           VALUES (?, ?, ?, ?, ?, ?, 'borrador', ?)`,
+          [
+            usuarioId,
+            datos.nombre_completo,
+            datos.email,
+            datos.telefono,
+            datos.programa_estudio,
+            datos.url_cti_vitae || null,
+            datos.paso_actual || 1
+          ]
+        );
+        registroId = result.insertId;
+      } else {
+        // Para grupos, centros, institutos, laboratorios y centros de producción
+        const [result] = await connection.execute<ResultSetHeader>(
+          `INSERT INTO ${tabla} 
+           (usuario_id, nombre, nombre_completo_responsable, email, telefono, oficina_departamento_vinculado, estado, paso_actual) 
+           VALUES (?, ?, ?, ?, ?, ?, 'borrador', ?)`,
+          [
+            usuarioId,
+            datos.nombre,
+            datos.nombre_completo_responsable,
+            datos.email,
+            datos.telefono,
+            datos.oficina_departamento_vinculado,
+            datos.paso_actual || 1
+          ]
+        );
+        registroId = result.insertId;
       }
 
-      if (datos.objetivos_ods) {
-        await this.guardarODS(connection, registroId, datos);
+      // Guardar datos compartidos
+      if (datos.ocde && datos.ocde.length > 0) {
+        await this.guardarOCDE(connection, usuarioId, datos.ocde);
       }
 
-      if (datos.nivel_aporte) {
-        await this.guardarNivelAporte(connection, registroId, datos);
+      if (datos.ods && datos.ods.length > 0) {
+        await this.guardarODS(connection, usuarioId, datos.ods);
       }
 
-      if (datos.integrantes_cti) {
-        await this.guardarIntegrantesCTI(connection, registroId, datos.integrantes_cti);
+      if (datos.nivel_aporte_del !== undefined && datos.nivel_aporte_ds !== undefined) {
+        await this.guardarAportes(connection, usuarioId, datos.nivel_aporte_del, datos.nivel_aporte_ds);
       }
 
-      if (datos.nivel_trl || datos.nivel_crl) {
-        await this.guardarNivelesTecnologicos(connection, registroId, datos);
+      if (datos.cti_vitae_urls && datos.cti_vitae_urls.length > 0) {
+        await this.guardarCTIVitae(connection, usuarioId, datos.cti_vitae_urls);
+      }
+
+      if (datos.nivel_trl !== undefined || datos.nivel_crl !== undefined) {
+        await this.guardarNivelesTecnologicos(connection, usuarioId, datos.nivel_trl, datos.nivel_crl);
       }
 
       if (datos.piu) {
-        await this.guardarPIU(connection, registroId, datos.piu);
+        await this.guardarPIU(connection, usuarioId, datos.piu);
       }
 
-      if (datos.soluciones) {
-        await this.guardarSoluciones(connection, registroId, datos.soluciones);
+      if (datos.keywords && datos.keywords.length > 0) {
+        await this.guardarKeywords(connection, usuarioId, datos.keywords);
       }
 
-      // El usuario ya tiene rol 'interno' desde el registro inicial
-      // No es necesario actualizar el rol
+      if (datos.soluciones && datos.soluciones.length > 0) {
+        await this.guardarSoluciones(connection, usuarioId, datos.soluciones);
+      }
+
+      if (datos.archivos && datos.archivos.length > 0) {
+        await this.guardarArchivos(connection, usuarioId, datos.archivos);
+      }
 
       await connection.commit();
 
       // Obtener el registro completo
-      const registro = await this.getRegistroById(registroId, usuarioId);
-      return registro!;
+      const registro = await this.getRegistroById(registroId, usuarioId, datos.tipo);
+      return registro;
 
     } catch (error) {
       await connection.rollback();
@@ -177,94 +258,112 @@ export class HeliceInternaService {
     registroId: number,
     usuarioId: number,
     datos: DatosRegistroCompleto
-  ): Promise<RegistroHeliceInterna | null> {
+  ): Promise<any> {
     const connection = await db.getConnection();
     
     try {
       await connection.beginTransaction();
 
-      // Verificar que el registro pertenece al usuario
-      const [registroRows] = await connection.execute<RowDataPacket[]>(
-        'SELECT id FROM registros_helice_interna WHERE id = ? AND usuario_id = ?',
-        [registroId, usuarioId]
-      );
+      const tabla = this.getTablaByTipo(datos.tipo);
 
-      if (registroRows.length === 0) {
-        return null;
+      // Actualizar registro principal según el tipo
+      if (datos.tipo === 'docente_investigador') {
+        await connection.execute(
+          `UPDATE ${tabla} 
+           SET nombre_completo = ?, email = ?, telefono = ?, programa_estudio = ?, 
+               url_cti_vitae = ?, paso_actual = ?, fecha_actualizacion = CURRENT_TIMESTAMP
+           WHERE registro_id = ? AND usuario_id = ?`,
+          [
+            datos.nombre_completo,
+            datos.email,
+            datos.telefono,
+            datos.programa_estudio,
+            datos.url_cti_vitae || null,
+            datos.paso_actual || 1,
+            registroId,
+            usuarioId
+          ]
+        );
+      } else {
+        await connection.execute(
+          `UPDATE ${tabla} 
+           SET nombre = ?, nombre_completo_responsable = ?, email = ?, telefono = ?, 
+               oficina_departamento_vinculado = ?, paso_actual = ?, fecha_actualizacion = CURRENT_TIMESTAMP
+           WHERE registro_id = ? AND usuario_id = ?`,
+          [
+            datos.nombre,
+            datos.nombre_completo_responsable,
+            datos.email,
+            datos.telefono,
+            datos.oficina_departamento_vinculado,
+            datos.paso_actual || 1,
+            registroId,
+            usuarioId
+          ]
+        );
       }
 
-      // Actualizar registro principal
-      await connection.execute(
-        `UPDATE registros_helice_interna 
-         SET nombre_completo = ?, nombre_entidad = ?, email_corporativo = ?, 
-             telefono = ?, oficina_departamento = ?, paso_actual = ?,
-             fecha_actualizacion = CURRENT_TIMESTAMP
-         WHERE id = ?`,
-        [
-          datos.nombre_completo || null,
-          datos.nombre_entidad || null,
-          datos.email_corporativo,
-          datos.telefono,
-          datos.oficina_departamento,
-          datos.paso_actual || 1,
-          registroId
-        ]
-      );
-
-      // Actualizar datos relacionados
-      if (datos.areas_ocde !== undefined || datos.sub_areas_ocde !== undefined || datos.disciplinas_ocde !== undefined) {
-        await connection.execute('DELETE FROM registro_areas_ocde WHERE registro_id = ?', [registroId]);
-        if (datos.areas_ocde || datos.sub_areas_ocde || datos.disciplinas_ocde) {
-          await this.guardarAreasOCDE(connection, registroId, datos);
+      // Actualizar datos compartidos (eliminar y reinsertar)
+      if (datos.ocde !== undefined) {
+        await connection.execute('DELETE FROM Registro_OCDE WHERE usuario_id = ?', [usuarioId]);
+        if (datos.ocde.length > 0) {
+          await this.guardarOCDE(connection, usuarioId, datos.ocde);
         }
       }
 
-      if (datos.objetivos_ods !== undefined) {
-        await connection.execute('DELETE FROM registro_ods WHERE registro_id = ?', [registroId]);
-        if (datos.objetivos_ods.length > 0) {
-          await this.guardarODS(connection, registroId, datos);
+      if (datos.ods !== undefined) {
+        await connection.execute('DELETE FROM Registro_ODS WHERE usuario_id = ?', [usuarioId]);
+        if (datos.ods.length > 0) {
+          await this.guardarODS(connection, usuarioId, datos.ods);
         }
       }
 
-      if (datos.nivel_aporte !== undefined) {
-        await connection.execute('DELETE FROM registro_nivel_aporte WHERE registro_id = ?', [registroId]);
-        if (datos.nivel_aporte) {
-          await this.guardarNivelAporte(connection, registroId, datos);
+      if (datos.nivel_aporte_del !== undefined || datos.nivel_aporte_ds !== undefined) {
+        await connection.execute('DELETE FROM Registro_Aportes WHERE usuario_id = ?', [usuarioId]);
+        if (datos.nivel_aporte_del !== undefined && datos.nivel_aporte_ds !== undefined) {
+          await this.guardarAportes(connection, usuarioId, datos.nivel_aporte_del, datos.nivel_aporte_ds);
         }
       }
 
-      if (datos.integrantes_cti !== undefined) {
-        await connection.execute('DELETE FROM registro_integrantes_cti WHERE registro_id = ?', [registroId]);
-        if (datos.integrantes_cti.length > 0) {
-          await this.guardarIntegrantesCTI(connection, registroId, datos.integrantes_cti);
+      if (datos.cti_vitae_urls !== undefined) {
+        await connection.execute('DELETE FROM Registro_CTI_Vitae WHERE usuario_id = ?', [usuarioId]);
+        if (datos.cti_vitae_urls.length > 0) {
+          await this.guardarCTIVitae(connection, usuarioId, datos.cti_vitae_urls);
         }
       }
 
       if (datos.nivel_trl !== undefined || datos.nivel_crl !== undefined) {
-        await connection.execute('DELETE FROM registro_niveles_tecnologicos WHERE registro_id = ?', [registroId]);
-        if (datos.nivel_trl || datos.nivel_crl) {
-          await this.guardarNivelesTecnologicos(connection, registroId, datos);
+        await connection.execute('DELETE FROM Registro_Niveles_Tecnologicos WHERE usuario_id = ?', [usuarioId]);
+        if (datos.nivel_trl !== undefined || datos.nivel_crl !== undefined) {
+          await this.guardarNivelesTecnologicos(connection, usuarioId, datos.nivel_trl, datos.nivel_crl);
         }
       }
 
       if (datos.piu !== undefined) {
-        await connection.execute('DELETE FROM registro_piu WHERE registro_id = ?', [registroId]);
+        await connection.execute('DELETE FROM Registro_PIU WHERE usuario_id = ?', [usuarioId]);
         if (datos.piu) {
-          await this.guardarPIU(connection, registroId, datos.piu);
+          await this.guardarPIU(connection, usuarioId, datos.piu);
+        }
+      }
+
+      if (datos.keywords !== undefined) {
+        await connection.execute('DELETE FROM Registro_Keywords WHERE usuario_id = ?', [usuarioId]);
+        if (datos.keywords.length > 0) {
+          await this.guardarKeywords(connection, usuarioId, datos.keywords);
         }
       }
 
       if (datos.soluciones !== undefined) {
-        await connection.execute('DELETE FROM registro_soluciones WHERE registro_id = ?', [registroId]);
+        await connection.execute('DELETE FROM Registro_Soluciones WHERE usuario_id = ?', [usuarioId]);
         if (datos.soluciones.length > 0) {
-          await this.guardarSoluciones(connection, registroId, datos.soluciones);
+          await this.guardarSoluciones(connection, usuarioId, datos.soluciones);
         }
       }
 
       await connection.commit();
 
       // Obtener el registro actualizado
-      const registro = await this.getRegistroById(registroId, usuarioId);
+      const registro = await this.getRegistroById(registroId, usuarioId, datos.tipo);
       return registro;
 
     } catch (error) {
@@ -275,24 +374,127 @@ export class HeliceInternaService {
     }
   }
 
-  async getRegistrosByUsuario(usuarioId: number): Promise<RegistroHeliceInterna[]> {
-    const [rows] = await db.execute<RowDataPacket[]>(
-      `SELECT r.*, t.nombre as tipo_nombre 
-       FROM registros_helice_interna r
-       JOIN tipos_helice_interna t ON r.tipo_id = t.id
-       WHERE r.usuario_id = ?
-       ORDER BY r.fecha_creacion DESC`,
-      [usuarioId]
-    );
-    return rows as RegistroHeliceInterna[];
+  // Métodos auxiliares para guardar datos compartidos
+  private async guardarOCDE(connection: PoolConnection, usuarioId: number, ocde: Array<{area_id?: number, sub_area_id?: number, disciplina_id?: number}>) {
+    for (const item of ocde) {
+      await connection.execute(
+        'INSERT INTO Registro_OCDE (usuario_id, area_id, sub_area_id, disciplina_id) VALUES (?, ?, ?, ?)',
+        [usuarioId, item.area_id || null, item.sub_area_id || null, item.disciplina_id || null]
+      );
+    }
   }
 
-  async getRegistroById(registroId: number, usuarioId: number): Promise<RegistroHeliceInterna | null> {
+  private async guardarODS(connection: PoolConnection, usuarioId: number, ods: Array<{objetivo_id: number, meta_id?: number}>) {
+    for (const item of ods) {
+      await connection.execute(
+        'INSERT INTO Registro_ODS (usuario_id, objetivo_id, meta_id) VALUES (?, ?, ?)',
+        [usuarioId, item.objetivo_id, item.meta_id || null]
+      );
+    }
+  }
+
+  private async guardarAportes(connection: PoolConnection, usuarioId: number, nivelDEL: number, nivelDS: number) {
+    await connection.execute(
+      'INSERT INTO Registro_Aportes (usuario_id, nivel_aporte_del, nivel_aporte_ds) VALUES (?, ?, ?)',
+      [usuarioId, nivelDEL, nivelDS]
+    );
+  }
+
+  private async guardarCTIVitae(connection: PoolConnection, usuarioId: number, urls: string[]) {
+    for (let i = 0; i < urls.length; i++) {
+      await connection.execute(
+        'INSERT INTO Registro_CTI_Vitae (usuario_id, url_cti, orden) VALUES (?, ?, ?)',
+        [usuarioId, urls[i], i + 1]
+      );
+    }
+  }
+
+  private async guardarNivelesTecnologicos(connection: PoolConnection, usuarioId: number, nivelTRL?: number, nivelCRL?: number) {
+    await connection.execute(
+      'INSERT INTO Registro_Niveles_Tecnologicos (usuario_id, nivel_trl, nivel_crl) VALUES (?, ?, ?)',
+      [usuarioId, nivelTRL || null, nivelCRL || null]
+    );
+  }
+
+  private async guardarPIU(connection: PoolConnection, usuarioId: number, piu: any) {
+    await connection.execute(
+      `INSERT INTO Registro_PIU 
+       (usuario_id, tesis, libros, capitulos_libro, manuscritos_publicados, manuscritos_aceptados, 
+        manuscritos_evaluacion, pi_patente_invencion, pi_patente_modalidad_uso, pi_sui_generis, 
+        pi_derecho_autor_software, pi_derecho_obras_literarias, pi_otras) 
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [
+        usuarioId,
+        piu.tesis || 0,
+        piu.libros || 0,
+        piu.capitulos_libro || 0,
+        piu.manuscritos_publicados || 0,
+        piu.manuscritos_aceptados || 0,
+        piu.manuscritos_evaluacion || 0,
+        piu.pi_patente_invencion || 0,
+        piu.pi_patente_modalidad_uso || 0,
+        piu.pi_sui_generis || 0,
+        piu.pi_derecho_autor_software || 0,
+        piu.pi_derecho_obras_literarias || 0,
+        piu.pi_otras || 0
+      ]
+    );
+  }
+
+  private async guardarKeywords(connection: PoolConnection, usuarioId: number, keywords: number[]) {
+    for (const keywordId of keywords) {
+      await connection.execute(
+        'INSERT INTO Registro_Keywords (usuario_id, keyword_id) VALUES (?, ?)',
+        [usuarioId, keywordId]
+      );
+    }
+  }
+
+  private async guardarSoluciones(connection: PoolConnection, usuarioId: number, soluciones: Array<{titulo: string, problema: string, solucion: string}>) {
+    for (let i = 0; i < soluciones.length; i++) {
+      await connection.execute(
+        'INSERT INTO Registro_Soluciones (usuario_id, titulo, problema, solucion, orden) VALUES (?, ?, ?, ?, ?)',
+        [usuarioId, soluciones[i].titulo, soluciones[i].problema, soluciones[i].solucion, i + 1]
+      );
+    }
+  }
+
+  private async guardarArchivos(connection: PoolConnection, usuarioId: number, archivos: Array<any>) {
+    for (const archivo of archivos) {
+      await connection.execute(
+        'INSERT INTO Registro_Archivos (usuario_id, nombre_archivo, ruta_archivo, tipo_archivo, tamano_archivo, descripcion) VALUES (?, ?, ?, ?, ?, ?)',
+        [usuarioId, archivo.nombre_archivo, archivo.ruta_archivo, archivo.tipo_archivo || null, archivo.tamano_archivo || null, archivo.descripcion || null]
+      );
+    }
+  }
+
+  async getRegistrosByUsuario(usuarioId: number): Promise<any[]> {
+    const registros: any[] = [];
+
+    // Buscar en todas las tablas
+    const tablas = [
+      { tabla: 'Registro_Docente_Investigador', tipo: 'docente_investigador' },
+      { tabla: 'Registro_Grupo_Centro_Instituto', tipo: 'grupo_centro_instituto' },
+      { tabla: 'Registro_Laboratorio', tipo: 'laboratorio' },
+      { tabla: 'Registro_Centro_Produccion', tipo: 'centro_produccion' }
+    ];
+
+    for (const { tabla, tipo } of tablas) {
+      const [rows] = await db.execute<RowDataPacket[]>(
+        `SELECT *, '${tipo}' as tipo FROM ${tabla} WHERE usuario_id = ? ORDER BY fecha_creacion DESC`,
+        [usuarioId]
+      );
+      registros.push(...rows);
+    }
+
+    return registros;
+  }
+
+  async getRegistroById(registroId: number, usuarioId: number, tipo: string): Promise<any> {
+    const tabla = this.getTablaByTipo(tipo);
+    
     const [rows] = await db.execute<RowDataPacket[]>(
-      `SELECT r.*, t.nombre as tipo_nombre 
-       FROM registros_helice_interna r
-       JOIN tipos_helice_interna t ON r.tipo_id = t.id
-       WHERE r.id = ? AND r.usuario_id = ?`,
+      `SELECT * FROM ${tabla} WHERE registro_id = ? AND usuario_id = ?`,
       [registroId, usuarioId]
     );
 
@@ -300,41 +502,95 @@ export class HeliceInternaService {
       return null;
     }
 
-    return rows[0] as RegistroHeliceInterna;
+    const registro = rows[0];
+
+    // Obtener datos compartidos
+    const [ocde] = await db.execute<RowDataPacket[]>(
+      'SELECT * FROM Registro_OCDE WHERE usuario_id = ?',
+      [usuarioId]
+    );
+
+    const [ods] = await db.execute<RowDataPacket[]>(
+      'SELECT * FROM Registro_ODS WHERE usuario_id = ?',
+      [usuarioId]
+    );
+
+    const [aportes] = await db.execute<RowDataPacket[]>(
+      'SELECT * FROM Registro_Aportes WHERE usuario_id = ?',
+      [usuarioId]
+    );
+
+    const [ctiVitae] = await db.execute<RowDataPacket[]>(
+      'SELECT * FROM Registro_CTI_Vitae WHERE usuario_id = ? ORDER BY orden',
+      [usuarioId]
+    );
+
+    const [niveles] = await db.execute<RowDataPacket[]>(
+      'SELECT * FROM Registro_Niveles_Tecnologicos WHERE usuario_id = ?',
+      [usuarioId]
+    );
+
+    const [piu] = await db.execute<RowDataPacket[]>(
+      'SELECT * FROM Registro_PIU WHERE usuario_id = ?',
+      [usuarioId]
+    );
+
+    const [keywords] = await db.execute<RowDataPacket[]>(
+      'SELECT * FROM Registro_Keywords WHERE usuario_id = ?',
+      [usuarioId]
+    );
+
+    const [soluciones] = await db.execute<RowDataPacket[]>(
+      'SELECT * FROM Registro_Soluciones WHERE usuario_id = ? ORDER BY orden',
+      [usuarioId]
+    );
+
+    const [archivos] = await db.execute<RowDataPacket[]>(
+      'SELECT * FROM Registro_Archivos WHERE usuario_id = ?',
+      [usuarioId]
+    );
+
+    return {
+      ...registro,
+      tipo,
+      ocde,
+      ods,
+      aportes: aportes[0] || null,
+      cti_vitae: ctiVitae,
+      niveles: niveles[0] || null,
+      piu: piu[0] || null,
+      keywords,
+      soluciones,
+      archivos
+    };
   }
 
-  async completarRegistro(registroId: number, usuarioId: number): Promise<RegistroHeliceInterna | null> {
-    const connection = await db.getConnection();
+  async completarRegistro(registroId: number, usuarioId: number, tipo: string): Promise<any> {
+    const tabla = this.getTablaByTipo(tipo);
     
-    try {
-      await connection.beginTransaction();
+    const [result] = await db.execute<ResultSetHeader>(
+      `UPDATE ${tabla} 
+       SET estado = 'completado', fecha_completado = CURRENT_TIMESTAMP
+       WHERE registro_id = ? AND usuario_id = ? AND estado = 'borrador'`,
+      [registroId, usuarioId]
+    );
 
-      // Actualizar el registro de hélice interna
-      const [result] = await connection.execute<ResultSetHeader>(
-        `UPDATE registros_helice_interna 
-         SET estado = 'aprobado', fecha_completado = CURRENT_TIMESTAMP, fecha_aprobacion = CURRENT_TIMESTAMP
-         WHERE id = ? AND usuario_id = ? AND estado = 'borrador'`,
-        [registroId, usuarioId]
-      );
-
-      if (result.affectedRows === 0) {
-        await connection.rollback();
-        connection.release();
-        return null;
-      }
-
-      // El usuario ya tiene rol 'interno' desde el registro inicial
-      // No es necesario actualizar el rol
-
-      await connection.commit();
-      connection.release();
-
-      return await this.getRegistroById(registroId, usuarioId);
-    } catch (error) {
-      await connection.rollback();
-      connection.release();
-      throw error;
+    if (result.affectedRows === 0) {
+      return null;
     }
+
+    return await this.getRegistroById(registroId, usuarioId, tipo);
+  }
+
+  async eliminarRegistro(registroId: number, usuarioId: number, tipo: string): Promise<boolean> {
+    const tabla = this.getTablaByTipo(tipo);
+    
+    const [result] = await db.execute<ResultSetHeader>(
+      `DELETE FROM ${tabla} WHERE registro_id = ? AND usuario_id = ?`,
+      [registroId, usuarioId]
+    );
+
+    return result.affectedRows > 0;
   }
 
   // Métodos para obtener datos OCDE y ODS
@@ -376,164 +632,62 @@ export class HeliceInternaService {
     return rows;
   }
 
-  // Métodos para administradores
-  async getRegistrosParaAprobacion() {
+  async getKeywords() {
     const [rows] = await db.execute<RowDataPacket[]>(
-      `SELECT r.*, t.nombre as tipo_nombre, u.email as usuario_email
-       FROM registros_helice_interna r
-       JOIN tipos_helice_interna t ON r.tipo_id = t.id
-       JOIN Usuarios u ON r.usuario_id = u.usuario_id
-       WHERE r.estado = 'completado'
-       ORDER BY r.fecha_completado ASC`
+      'SELECT * FROM keywords_catalog ORDER BY category, keyword'
     );
     return rows;
   }
 
-  async aprobarRechazarRegistro(registroId: number, estado: string, comentarios?: string) {
+  // Métodos para administradores
+  async getRegistrosParaAprobacion() {
+    const registros: any[] = [];
+
+    const tablas = [
+      { tabla: 'Registro_Docente_Investigador', tipo: 'docente_investigador' },
+      { tabla: 'Registro_Grupo_Centro_Instituto', tipo: 'grupo_centro_instituto' },
+      { tabla: 'Registro_Laboratorio', tipo: 'laboratorio' },
+      { tabla: 'Registro_Centro_Produccion', tipo: 'centro_produccion' }
+    ];
+
+    for (const { tabla, tipo } of tablas) {
+      const [rows] = await db.execute<RowDataPacket[]>(
+        `SELECT r.*, u.email as usuario_email, '${tipo}' as tipo
+         FROM ${tabla} r
+         JOIN Usuarios u ON r.usuario_id = u.usuario_id
+         WHERE r.estado = 'completado'
+         ORDER BY r.fecha_completado ASC`
+      );
+      registros.push(...rows);
+    }
+
+    return registros;
+  }
+
+  async aprobarRechazarRegistro(registroId: number, tipo: string, estado: string, observaciones?: string) {
+    const tabla = this.getTablaByTipo(tipo);
+    
     const [result] = await db.execute<ResultSetHeader>(
-      `UPDATE registros_helice_interna 
-       SET estado = ?, fecha_aprobacion = CURRENT_TIMESTAMP
-       WHERE id = ? AND estado = 'completado'`,
-      [estado, registroId]
+      `UPDATE ${tabla} 
+       SET estado = ?, observaciones = ?, fecha_aprobacion = CURRENT_TIMESTAMP
+       WHERE registro_id = ?`,
+      [estado, observaciones || null, registroId]
     );
 
     if (result.affectedRows === 0) {
       return null;
     }
 
-    // Aquí podrías agregar lógica para enviar notificaciones por email
-    
+    // Obtener el usuario_id para devolver el registro completo
     const [rows] = await db.execute<RowDataPacket[]>(
-      'SELECT * FROM vista_registros_helice_completa WHERE id = ?',
+      `SELECT usuario_id FROM ${tabla} WHERE registro_id = ?`,
       [registroId]
     );
 
-    return rows[0] || null;
-  }
-
-  // Métodos privados para guardar datos relacionados
-  private async guardarAreasOCDE(connection: any, registroId: number, datos: DatosRegistroCompleto) {
-    const areas = datos.areas_ocde || [];
-    const subAreas = datos.sub_areas_ocde || [];
-    const disciplinas = datos.disciplinas_ocde || [];
-
-    for (const areaId of areas) {
-      await connection.execute(
-        'INSERT INTO registro_areas_ocde (registro_id, area_id) VALUES (?, ?)',
-        [registroId, areaId]
-      );
+    if (rows.length > 0) {
+      return await this.getRegistroById(registroId, rows[0].usuario_id, tipo);
     }
 
-    for (const subAreaId of subAreas) {
-      await connection.execute(
-        'INSERT INTO registro_areas_ocde (registro_id, sub_area_id) VALUES (?, ?)',
-        [registroId, subAreaId]
-      );
-    }
-
-    for (const disciplinaId of disciplinas) {
-      await connection.execute(
-        'INSERT INTO registro_areas_ocde (registro_id, disciplina_id) VALUES (?, ?)',
-        [registroId, disciplinaId]
-      );
-    }
-  }
-
-  private async guardarODS(connection: any, registroId: number, datos: DatosRegistroCompleto) {
-    const objetivos = datos.objetivos_ods || [];
-    const metas = datos.metas_ods || [];
-
-    for (const objetivoId of objetivos) {
-      await connection.execute(
-        'INSERT INTO registro_ods (registro_id, objetivo_id) VALUES (?, ?)',
-        [registroId, objetivoId]
-      );
-    }
-
-    for (const metaId of metas) {
-      await connection.execute(
-        'INSERT INTO registro_ods (registro_id, meta_id) VALUES (?, ?)',
-        [registroId, metaId]
-      );
-    }
-  }
-
-  private async guardarNivelAporte(connection: any, registroId: number, datos: DatosRegistroCompleto) {
-    await connection.execute(
-      'INSERT INTO registro_nivel_aporte (registro_id, nivel_aporte, descripcion) VALUES (?, ?, ?)',
-      [registroId, datos.nivel_aporte, datos.descripcion_aporte || null]
-    );
-  }
-
-  private async guardarIntegrantesCTI(connection: any, registroId: number, integrantes: string[]) {
-    for (let i = 0; i < integrantes.length; i++) {
-      const url = integrantes[i].trim();
-      if (url) {
-        await connection.execute(
-          'INSERT INTO registro_integrantes_cti (registro_id, url_cti_vitae, orden) VALUES (?, ?, ?)',
-          [registroId, url, i + 1]
-        );
-      }
-    }
-  }
-
-  private async guardarNivelesTecnologicos(connection: any, registroId: number, datos: DatosRegistroCompleto) {
-    await connection.execute(
-      `INSERT INTO registro_niveles_tecnologicos 
-       (registro_id, nivel_trl, descripcion_trl, nivel_crl, descripcion_crl) 
-       VALUES (?, ?, ?, ?, ?)`,
-      [
-        registroId,
-        datos.nivel_trl || null,
-        datos.descripcion_trl || null,
-        datos.nivel_crl || null,
-        datos.descripcion_crl || null
-      ]
-    );
-  }
-
-  private async guardarPIU(connection: any, registroId: number, piu: any) {
-    await connection.execute(
-      `INSERT INTO registro_piu 
-       (registro_id, articulos_q1, articulos_q2, articulos_q3, articulos_q4, articulos_otros,
-        libros_investigacion, capitulos_libro, patentes_otorgadas, patentes_solicitadas,
-        modelos_utilidad, disenos_industriales, software_registrado, prototipos,
-        tesis_doctorado_dirigidas, tesis_maestria_dirigidas, tesis_pregrado_dirigidas,
-        informes_tecnicos, consultoria_especializada)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [
-        registroId,
-        piu.articulos_q1 || 0,
-        piu.articulos_q2 || 0,
-        piu.articulos_q3 || 0,
-        piu.articulos_q4 || 0,
-        piu.articulos_otros || 0,
-        piu.libros_investigacion || 0,
-        piu.capitulos_libro || 0,
-        piu.patentes_otorgadas || 0,
-        piu.patentes_solicitadas || 0,
-        piu.modelos_utilidad || 0,
-        piu.disenos_industriales || 0,
-        piu.software_registrado || 0,
-        piu.prototipos || 0,
-        piu.tesis_doctorado || 0,
-        piu.tesis_maestria || 0,
-        piu.tesis_pregrado || 0,
-        piu.informes_tecnicos || 0,
-        piu.consultoria_especializada || 0
-      ]
-    );
-  }
-
-  private async guardarSoluciones(connection: any, registroId: number, soluciones: Array<{problema: string, solucion: string}>) {
-    for (let i = 0; i < soluciones.length; i++) {
-      const sol = soluciones[i];
-      if (sol.problema.trim() && sol.solucion.trim()) {
-        await connection.execute(
-          'INSERT INTO registro_soluciones (registro_id, problema_descripcion, solucion_propuesta, orden) VALUES (?, ?, ?, ?)',
-          [registroId, sol.problema, sol.solucion, i + 1]
-        );
-      }
-    }
+    return null;
   }
 }

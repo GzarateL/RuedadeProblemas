@@ -30,23 +30,31 @@ export const authenticateToken = async (req: Request, res: Response, next: NextF
     const payload = jwt.verify(token, env.JWT_SECRET) as { userId: number; rol: string };
     req.user = payload; // Guarda el payload básico
 
-    // Intentar obtener el ID del perfil desde registros_helice_interna si existe
-    try {
-      const [heliceRecords] = await dbPool.execute<RowDataPacket[]>(
-        'SELECT id FROM registros_helice_interna WHERE usuario_id = ? LIMIT 1',
-        [req.user.userId]
-      );
-      if (heliceRecords.length > 0) {
-        req.profileId = heliceRecords[0].id;
-        if (req.user.rol === 'interno') {
-          req.user.investigador_id = heliceRecords[0].id;
-        } else if (req.user.rol === 'externo') {
-          req.user.participante_id = heliceRecords[0].id;
+    // Intentar obtener el ID del perfil según el rol
+    if (req.user.rol === 'interno') {
+      // Buscar en las tablas de hélice interna
+      const tablas = [
+        'Registro_Docente_Investigador',
+        'Registro_Grupo_Centro_Instituto',
+        'Registro_Laboratorio',
+        'Registro_Centro_Produccion'
+      ];
+      
+      for (const tabla of tablas) {
+        try {
+          const [records] = await dbPool.execute<RowDataPacket[]>(
+            `SELECT registro_id FROM ${tabla} WHERE usuario_id = ? LIMIT 1`,
+            [req.user.userId]
+          );
+          if (records.length > 0) {
+            req.profileId = records[0].registro_id;
+            req.user.investigador_id = records[0].registro_id;
+            break;
+          }
+        } catch (error) {
+          // Continuar con la siguiente tabla
         }
       }
-    } catch (error) {
-      // Si la tabla no existe, continuar sin perfil
-      console.log('No se pudo obtener el perfil desde hélice interna');
     }
 
     next(); // Pasa al siguiente middleware o controlador

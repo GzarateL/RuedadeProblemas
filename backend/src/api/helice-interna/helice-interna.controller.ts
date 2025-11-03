@@ -27,11 +27,10 @@ export class HeliceInternaController {
         return res.status(401).json({ error: 'Usuario no autenticado' });
       }
 
-      const { tipo_id, ...datosRegistro } = req.body;
+      const datosRegistro = req.body;
       
       const registro = await this.heliceInternaService.crearRegistro(
         userId,
-        tipo_id,
         datosRegistro
       );
 
@@ -90,12 +89,17 @@ export class HeliceInternaController {
     try {
       const userId = req.user?.userId;
       const registroId = parseInt(req.params.id);
+      const tipo = req.query.tipo as string;
       
       if (!userId) {
         return res.status(401).json({ error: 'Usuario no autenticado' });
       }
 
-      const registro = await this.heliceInternaService.getRegistroById(registroId, userId);
+      if (!tipo) {
+        return res.status(400).json({ error: 'Tipo de registro requerido' });
+      }
+
+      const registro = await this.heliceInternaService.getRegistroById(registroId, userId, tipo);
       
       if (!registro) {
         return res.status(404).json({ error: 'Registro no encontrado' });
@@ -113,12 +117,17 @@ export class HeliceInternaController {
     try {
       const userId = req.user?.userId;
       const registroId = parseInt(req.params.id);
+      const { tipo } = req.body;
       
       if (!userId) {
         return res.status(401).json({ error: 'Usuario no autenticado' });
       }
 
-      const registro = await this.heliceInternaService.completarRegistro(registroId, userId);
+      if (!tipo) {
+        return res.status(400).json({ error: 'Tipo de registro requerido' });
+      }
+
+      const registro = await this.heliceInternaService.completarRegistro(registroId, userId, tipo);
       
       if (!registro) {
         return res.status(404).json({ error: 'Registro no encontrado' });
@@ -127,6 +136,34 @@ export class HeliceInternaController {
       res.json(registro);
     } catch (error) {
       console.error('Error al completar registro:', error);
+      res.status(500).json({ error: 'Error interno del servidor' });
+    }
+  };
+
+  // Eliminar un registro
+  eliminarRegistro = async (req: Request, res: Response) => {
+    try {
+      const userId = req.user?.userId;
+      const registroId = parseInt(req.params.id);
+      const tipo = req.query.tipo as string;
+      
+      if (!userId) {
+        return res.status(401).json({ error: 'Usuario no autenticado' });
+      }
+
+      if (!tipo) {
+        return res.status(400).json({ error: 'Tipo de registro requerido' });
+      }
+
+      const eliminado = await this.heliceInternaService.eliminarRegistro(registroId, userId, tipo);
+      
+      if (!eliminado) {
+        return res.status(404).json({ error: 'Registro no encontrado' });
+      }
+
+      res.json({ message: 'Registro eliminado correctamente' });
+    } catch (error) {
+      console.error('Error al eliminar registro:', error);
       res.status(500).json({ error: 'Error interno del servidor' });
     }
   };
@@ -189,6 +226,17 @@ export class HeliceInternaController {
     }
   };
 
+  // Obtener catálogo de palabras clave
+  getKeywords = async (req: Request, res: Response) => {
+    try {
+      const keywords = await this.heliceInternaService.getKeywords();
+      res.json(keywords);
+    } catch (error) {
+      console.error('Error al obtener palabras clave:', error);
+      res.status(500).json({ error: 'Error interno del servidor' });
+    }
+  };
+
   // ADMIN: Obtener todos los registros para aprobación
   getRegistrosParaAprobacion = async (req: Request, res: Response) => {
     try {
@@ -214,7 +262,11 @@ export class HeliceInternaController {
       }
 
       const registroId = parseInt(req.params.id);
-      const { estado, comentarios } = req.body;
+      const { tipo, estado, observaciones } = req.body;
+
+      if (!tipo) {
+        return res.status(400).json({ error: 'Tipo de registro requerido' });
+      }
 
       if (!['aprobado', 'rechazado'].includes(estado)) {
         return res.status(400).json({ error: 'Estado inválido' });
@@ -222,8 +274,9 @@ export class HeliceInternaController {
 
       const registro = await this.heliceInternaService.aprobarRechazarRegistro(
         registroId,
+        tipo,
         estado,
-        comentarios
+        observaciones
       );
 
       if (!registro) {

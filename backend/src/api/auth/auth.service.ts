@@ -402,19 +402,9 @@ export const createInternoUser = async (userData: UnsaUserData) => {
 
     const passwordHash = await hashPassword(userData.password);
     
-    const [userResult] = await connection.execute<OkPacket>(
-      'INSERT INTO Usuarios (email, password_hash, rol) VALUES (?, ?, ?)',
-      [userData.email, passwordHash, 'interno']
-    );
-    const newUserId = userResult.insertId;
-    if (!newUserId) {
-      await rollback(connection, 'Error al crear el usuario base.');
-    }
-
-    // Crear perfil en Investigadores_UNSA con información adicional según el tipo de hélice
+    // Construir el nombre completo según el tipo de hélice
     let nombres_completos = userData.nombres_apellidos;
     
-    // Si es un grupo, laboratorio o centro, agregar el nombre de la entidad
     if (userData.tipo_helice === 'grupos-centros-institutos' && userData.nombre_grupo) {
       nombres_completos = `${userData.nombres_apellidos} (${userData.nombre_grupo})`;
     } else if (userData.tipo_helice === 'laboratorios' && userData.nombre_laboratorio) {
@@ -422,13 +412,18 @@ export const createInternoUser = async (userData: UnsaUserData) => {
     } else if (userData.tipo_helice === 'centros-unidades-produccion' && userData.nombre_centro) {
       nombres_completos = `${userData.nombres_apellidos} (${userData.nombre_centro})`;
     }
-
-    await connection.execute(
-      `INSERT INTO Investigadores_UNSA 
-       (usuario_id, nombres_apellidos, cargo, telefono, unidad_academica) 
-       VALUES (?, ?, ?, ?, ?)`,
-      [newUserId, nombres_completos, userData.cargo, userData.telefono || null, userData.unidad_academica]
+    
+    // GUARDAR EL NOMBRE EN LA TABLA USUARIOS
+    const [userResult] = await connection.execute<OkPacket>(
+      'INSERT INTO Usuarios (email, password_hash, rol, nombres_apellidos) VALUES (?, ?, ?, ?)',
+      [userData.email, passwordHash, 'interno', nombres_completos]
     );
+    const newUserId = userResult.insertId;
+    if (!newUserId) {
+      await rollback(connection, 'Error al crear el usuario base.');
+    }
+
+    // Ya no insertar en Investigadores_UNSA porque la tabla no existe
 
     await connection.commit();
     connection.release();
@@ -440,7 +435,6 @@ export const createInternoUser = async (userData: UnsaUserData) => {
     throw new Error(error.message || 'Error interno del servidor durante el registro.');
   }
 };
-
 // --- SERVICIO DE LOGIN ---
 // /backend/src/api/auth/auth.service.ts
 
@@ -455,7 +449,7 @@ export const login = async (email: string, password: string) => {
 
   // 1. Busca al usuario base por email
   const [users] = await dbPool.execute<RowDataPacket[]>(
-    'SELECT * FROM Usuarios WHERE email = ?', [email]
+    'SELECT usuario_id, email, password_hash, rol, nombres_apellidos FROM Usuarios WHERE email = ?', [email]
   );
   if (users.length === 0) {
     throw new Error('Credenciales inválidas.');
@@ -468,34 +462,17 @@ export const login = async (email: string, password: string) => {
     throw new Error('Credenciales inválidas.');
   }
 
-  // --- 3. Buscar nombre en registro de hélice interna si existe ---
-  let userProfile: RowDataPacket | null = null;
-  try {
-    // Intentar buscar en registros de hélice interna
-    const [heliceRecords] = await dbPool.execute<RowDataPacket[]>(
-      'SELECT nombre_completo, nombre_entidad FROM registros_helice_interna WHERE usuario_id = ? LIMIT 1',
-      [user.usuario_id]
-    );
-    if (heliceRecords.length > 0) {
-      const record = heliceRecords[0];
-      userProfile = { 
-        nombres_apellidos: record.nombre_completo || record.nombre_entidad || user.email 
-      } as RowDataPacket;
-    }
-  } catch (error) {
-    // Si la tabla no existe o hay error, continuar sin el perfil
-    console.log('No se pudo obtener el perfil del usuario desde hélice interna');
-  }
-
-  // Si no hay perfil, usar el email como nombre
-  if (!userProfile) {
+  // 3. Determinar el nombre a mostrar
+  let displayName = user.nombres_apellidos;
+  
+  // Si no hay nombre en la tabla Usuarios, usar valores por defecto
+  if (!displayName) {
     if (user.rol === 'admin') {
-      userProfile = { nombres_apellidos: 'Administrador' } as RowDataPacket;
+      displayName = 'Administrador';
     } else {
-      userProfile = { nombres_apellidos: user.email } as RowDataPacket;
+      displayName = user.email;
     }
   }
-
 
   // 4. Crea el token JWT
   const token = jwt.sign(
@@ -511,8 +488,7 @@ export const login = async (email: string, password: string) => {
       id: user.usuario_id,
       email: user.email,
       rol: user.rol,
-      // Añade el nombre completo (o email si no se encontró el perfil por alguna razón)
-      nombres_apellidos: userProfile?.nombres_apellidos || user.email,
+      nombres_apellidos: displayName,
     }
   };
 };
@@ -524,7 +500,7 @@ export const verify = async (token: string) => {
   try {
     const payload = jwt.verify(token, env.JWT_SECRET) as JwtPayload;
     const [users] = await dbPool.execute<RowDataPacket[]>(
-      'SELECT usuario_id, email, rol FROM Usuarios WHERE usuario_id = ?',
+      'SELECT usuario_id, email, rol, nombres_apellidos FROM Usuarios WHERE usuario_id = ?',
       [payload.userId]
     );
     if (users.length === 0) {
@@ -533,19 +509,32 @@ export const verify = async (token: string) => {
     
     const user = users[0];
     
-    // Intentar obtener el ID del perfil desde registros_helice_interna
+    // Intentar obtener el ID del perfil según el rol
     let profileId = null;
-    try {
-      const [heliceRecords] = await dbPool.execute<RowDataPacket[]>(
-        'SELECT id FROM registros_helice_interna WHERE usuario_id = ? LIMIT 1',
-        [user.usuario_id]
-      );
-      if (heliceRecords.length > 0) {
-        profileId = heliceRecords[0].id;
+    
+    if (user.rol === 'interno') {
+      // Buscar en las tablas de hélice interna
+      const tablas = [
+        'Registro_Docente_Investigador',
+        'Registro_Grupo_Centro_Instituto',
+        'Registro_Laboratorio',
+        'Registro_Centro_Produccion'
+      ];
+      
+      for (const tabla of tablas) {
+        try {
+          const [records] = await dbPool.execute<RowDataPacket[]>(
+            `SELECT registro_id FROM ${tabla} WHERE usuario_id = ? LIMIT 1`,
+            [user.usuario_id]
+          );
+          if (records.length > 0) {
+            profileId = records[0].registro_id;
+            break;
+          }
+        } catch (error) {
+          // Continuar con la siguiente tabla
+        }
       }
-    } catch (error) {
-      // Si la tabla no existe, continuar sin perfil
-      console.log('No se pudo obtener el perfil desde hélice interna');
     }
     
     return {

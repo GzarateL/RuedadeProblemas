@@ -44,27 +44,18 @@ export default function LoginPage() {
       login(data.user, data.token);
       toast.success("¡Bienvenido!", { description: "Has iniciado sesión correctamente." });
 
-      // Verificar si hay un tipo de registro de hélice interna pendiente
-      const tipoRegistroPendiente = localStorage.getItem('registro_helice_tipo');
-      if (tipoRegistroPendiente && data.user.rol === 'interno') {
-        localStorage.removeItem('registro_helice_tipo');
-        router.push(`/registro-helice-interna/${tipoRegistroPendiente}`);
-        return;
-      }
-
-      // Verificar si hay una redirección pendiente
+      // Verificar si hay una redirección pendiente (tiene prioridad)
       const redirect = searchParams.get('redirect');
       if (redirect) {
         router.push(redirect);
         return;
       }
 
-      // Redirigir según el rol
+      // Redirigir según el rol (por defecto a home page)
       if (data.user.rol === 'admin') {
         router.push("/admin/dashboard");
       } else {
-        // (Aquí irán los dashboards de 'externo' e 'interno')
-        router.push("/"); // Por ahora al inicio
+        router.push("/"); // Home page por defecto
       }
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : "Error al iniciar sesión.";

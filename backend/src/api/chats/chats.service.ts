@@ -49,7 +49,7 @@ export const crearChatDesdeSolicitud = async (solicitudId: number): Promise<numb
           WHEN s.tipo_match = 'desafio' THEN d.titulo
         END AS titulo_match
        FROM Solicitudes s
-       LEFT JOIN Capacidades_UNSA c ON s.tipo_match = 'capacidad' AND s.match_id = c.capacidad_id
+       LEFT JOIN registros_helice_interna r ON s.tipo_match = 'capacidad' AND s.match_id = r.id
        LEFT JOIN Desafios d ON s.tipo_match = 'desafio' AND s.match_id = d.desafio_id
        WHERE s.solicitud_id = ? AND s.estado = 'aceptada'`,
       [solicitudId]

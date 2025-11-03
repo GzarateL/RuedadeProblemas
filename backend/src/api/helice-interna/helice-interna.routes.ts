@@ -12,12 +12,14 @@ router.get('/ocde/areas/:areaId/sub-areas', heliceInternaController.getSubAreasO
 router.get('/ocde/sub-areas/:subAreaId/disciplinas', heliceInternaController.getDisciplinasOCDE);
 router.get('/ods/objetivos', heliceInternaController.getObjetivosODS);
 router.get('/ods/objetivos/:objetivoId/metas', heliceInternaController.getMetasODS);
+router.get('/keywords', heliceInternaController.getKeywords);
 
 // Rutas para usuarios UNSA
 router.post('/registros', authenticateToken, heliceInternaController.crearRegistro);
 router.get('/registros', authenticateToken, heliceInternaController.getRegistrosUsuario);
 router.get('/registros/:id', authenticateToken, heliceInternaController.getRegistro);
 router.put('/registros/:id', authenticateToken, heliceInternaController.actualizarRegistro);
+router.delete('/registros/:id', authenticateToken, heliceInternaController.eliminarRegistro);
 router.post('/registros/:id/completar', authenticateToken, heliceInternaController.completarRegistro);
 
 // Rutas para administradores
