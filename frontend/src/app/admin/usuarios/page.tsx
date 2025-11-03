@@ -6,7 +6,7 @@ import Cookies from "js-cookie";
 import { toast } from "sonner";
 import Link from "next/link";
 
-type Rol = "admin" | "externo" | "unsa";
+type Rol = "admin" | "externo" | "interno";
 type RolFiltro = "todos" | Rol;
 
 type UserRow = {
@@ -35,6 +35,13 @@ export default function UsuariosPage() {
   const [rol, setRol] = useState<RolFiltro>("todos");
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
+
+  // Modal para añadir admin
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [newAdminEmail, setNewAdminEmail] = useState("");
+  const [newAdminPassword, setNewAdminPassword] = useState("");
+  const [newAdminNombre, setNewAdminNombre] = useState("");
+  const [addingAdmin, setAddingAdmin] = useState(false);
 
   // Debounce de 'q'
   const [qDebounced, setQDebounced] = useState("");
@@ -188,12 +195,94 @@ export default function UsuariosPage() {
     }
   };
 
+  const handleDeleteUser = async (userId: number, email: string) => {
+    if (!confirm(`¿Estás seguro de eliminar al usuario ${email}?`)) {
+      return;
+    }
+
+    try {
+      const token = Cookies.get("token");
+      if (!token) {
+        toast.error("Sesión expirada. Inicia sesión nuevamente.");
+        return;
+      }
+
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/users/${userId}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.message || `Error ${res.status}`);
+      }
+
+      toast.success("Usuario eliminado exitosamente.");
+      // Recargar la lista
+      setPage(1);
+      setPrevState(null);
+    } catch (e: any) {
+      console.error(e);
+      toast.error(e.message || "No se pudo eliminar el usuario.");
+    }
+  };
+
+  const handleAddAdmin = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!newAdminEmail || !newAdminPassword) {
+      toast.error("Email y contraseña son requeridos.");
+      return;
+    }
+
+    setAddingAdmin(true);
+    try {
+      const token = Cookies.get("token");
+      if (!token) {
+        toast.error("Sesión expirada. Inicia sesión nuevamente.");
+        return;
+      }
+
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/users/admin`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          email: newAdminEmail,
+          password: newAdminPassword,
+          nombres_apellidos: newAdminNombre || undefined,
+        }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.message || `Error ${res.status}`);
+      }
+
+      toast.success("Usuario admin creado exitosamente.");
+      setShowAddModal(false);
+      setNewAdminEmail("");
+      setNewAdminPassword("");
+      setNewAdminNombre("");
+      // Recargar la lista
+      setPage(1);
+      setPrevState(null);
+    } catch (e: any) {
+      console.error(e);
+      toast.error(e.message || "No se pudo crear el usuario admin.");
+    } finally {
+      setAddingAdmin(false);
+    }
+  };
+
   return (
     <div className="p-6 space-y-6">
       <div className="flex items-center justify-between flex-wrap gap-3">
         <h1 className="text-2xl font-semibold">Usuarios</h1>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           {/* Filtro por Rol (server-side) */}
           <select
             value={rol}
@@ -204,7 +293,7 @@ export default function UsuariosPage() {
             <option value="todos">Todos los roles</option>
             <option value="admin">Admin</option>
             <option value="externo">Externo</option>
-            <option value="unsa">UNSA</option>
+            <option value="interno">Interno</option>
           </select>
 
           {/* Buscador con live search */}
@@ -238,6 +327,13 @@ export default function UsuariosPage() {
             title="Exportar CSV"
           >
             Exportar CSV
+          </button>
+          <button
+            onClick={() => setShowAddModal(true)}
+            className="px-4 py-2 rounded-xl bg-blue-600 text-white hover:bg-blue-700"
+            title="Añadir usuario admin"
+          >
+            + Añadir Admin
           </button>
         </div>
       </div>
@@ -293,18 +389,19 @@ export default function UsuariosPage() {
               <th className="text-left px-4 py-3">Rol</th>
               <th className="text-left px-4 py-3">Teléfono</th>
               <th className="text-left px-4 py-3">Unidad Académica</th>
+              <th className="text-left px-4 py-3">Acciones</th>
             </tr>
           </thead>
           <tbody>
             {loading ? (
               <tr>
-                <td colSpan={6} className="px-4 py-6 text-center">
+                <td colSpan={7} className="px-4 py-6 text-center">
                   Cargando...
                 </td>
               </tr>
             ) : rows.length === 0 ? (
               <tr>
-                <td colSpan={6} className="px-4 py-6 text-center">
+                <td colSpan={7} className="px-4 py-6 text-center">
                   Sin resultados
                 </td>
               </tr>
@@ -317,12 +414,94 @@ export default function UsuariosPage() {
                   <td className="px-4 py-3 capitalize">{u.rol}</td>
                   <td className="px-4 py-3">{u.telefono ?? "—"}</td>
                   <td className="px-4 py-3">{u.unidad_academica ?? "—"}</td>
+                  <td className="px-4 py-3">
+                    <button
+                      onClick={() => handleDeleteUser(u.usuario_id, u.email)}
+                      className="px-3 py-1 text-sm rounded-lg bg-red-100 text-red-700 hover:bg-red-200"
+                      title="Eliminar usuario"
+                    >
+                      Eliminar
+                    </button>
+                  </td>
                 </tr>
               ))
             )}
           </tbody>
         </table>
       </div>
+
+      {/* Modal para añadir admin */}
+      {showAddModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl p-6 max-w-md w-full">
+            <h2 className="text-xl font-semibold mb-4">Añadir Usuario Admin</h2>
+            <form onSubmit={handleAddAdmin} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium mb-1">
+                  Email <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="email"
+                  value={newAdminEmail}
+                  onChange={(e) => setNewAdminEmail(e.target.value)}
+                  className="w-full border rounded-lg px-3 py-2 outline-none focus:ring"
+                  required
+                  disabled={addingAdmin}
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">
+                  Contraseña <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="password"
+                  value={newAdminPassword}
+                  onChange={(e) => setNewAdminPassword(e.target.value)}
+                  className="w-full border rounded-lg px-3 py-2 outline-none focus:ring"
+                  required
+                  minLength={6}
+                  disabled={addingAdmin}
+                />
+                <p className="text-xs text-gray-500 mt-1">Mínimo 6 caracteres</p>
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">
+                  Nombres y Apellidos (opcional)
+                </label>
+                <input
+                  type="text"
+                  value={newAdminNombre}
+                  onChange={(e) => setNewAdminNombre(e.target.value)}
+                  className="w-full border rounded-lg px-3 py-2 outline-none focus:ring"
+                  disabled={addingAdmin}
+                />
+              </div>
+              <div className="flex gap-2 justify-end pt-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowAddModal(false);
+                    setNewAdminEmail("");
+                    setNewAdminPassword("");
+                    setNewAdminNombre("");
+                  }}
+                  className="px-4 py-2 rounded-lg border hover:bg-gray-50"
+                  disabled={addingAdmin}
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50"
+                  disabled={addingAdmin}
+                >
+                  {addingAdmin ? "Creando..." : "Crear Admin"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       <div className="pt-2">
         <Link href="/admin/dashboard" className="text-sm underline hover:opacity-80">

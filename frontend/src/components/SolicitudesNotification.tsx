@@ -12,8 +12,8 @@ export default function SolicitudesNotification() {
   const [pendientes, setPendientes] = useState(0);
 
   useEffect(() => {
-    // Solo cargar para usuarios admin
-    if (!user || user.rol !== 'admin') return;
+    // Solo cargar para usuarios interno o externo (no admin)
+    if (!user || (user.rol !== 'interno' && user.rol !== 'externo')) return;
 
     const fetchConteo = async () => {
       const token = Cookies.get('token');
@@ -29,10 +29,7 @@ export default function SolicitudesNotification() {
           setPendientes(data.total || 0);
         }
       } catch (err) {
-        // Silenciar error si no es admin
-        if (user?.rol === 'admin') {
-          console.error("Error fetching conteo solicitudes:", err);
-        }
+        console.error("Error fetching conteo solicitudes:", err);
       }
     };
 

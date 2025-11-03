@@ -1,6 +1,7 @@
 // /backend/src/api/users/users.service.ts
 import dbPool from '../../config/db';
 import { RowDataPacket } from 'mysql2/promise';
+import bcrypt from 'bcrypt';
 
 export type Rol = 'admin' | 'externo' | 'interno';
 
@@ -35,17 +36,17 @@ export async function listUsers(
     paramsCount.push(role);
   }
 
-  // IMPORTANTE: interpolar LIMIT/OFFSET ya sanitizados
+  // Consulta simplificada usando solo la tabla Usuarios
   const listSql = `
     SELECT 
-      u.usuario_id, u.email, u.rol,
-      COALESCE(pe.nombres_apellidos, iu.nombres_apellidos, NULL) AS nombres_apellidos,
-      COALESCE(pe.telefono, iu.telefono, NULL) AS telefono,
-      iu.unidad_academica
+      u.usuario_id, 
+      u.email, 
+      u.rol,
+      u.nombres_apellidos,
+      NULL AS telefono,
+      NULL AS unidad_academica
     FROM Usuarios u
-    LEFT JOIN Participantes_Externos pe ON pe.usuario_id = u.usuario_id
-    LEFT JOIN Investigadores_UNSA iu  ON iu.usuario_id = u.usuario_id
-    WHERE (u.email LIKE ? OR COALESCE(pe.nombres_apellidos, iu.nombres_apellidos, '') LIKE ?)
+    WHERE (u.email LIKE ? OR COALESCE(u.nombres_apellidos, '') LIKE ?)
       ${roleCond}
     ORDER BY u.usuario_id DESC
     LIMIT ${safePageSize} OFFSET ${offset}
@@ -56,13 +57,27 @@ export async function listUsers(
   const countSql = `
     SELECT COUNT(*) AS total
     FROM Usuarios u
-    LEFT JOIN Participantes_Externos pe ON pe.usuario_id = u.usuario_id
-    LEFT JOIN Investigadores_UNSA iu  ON iu.usuario_id = u.usuario_id
-    WHERE (u.email LIKE ? OR COALESCE(pe.nombres_apellidos, iu.nombres_apellidos, '') LIKE ?)
+    WHERE (u.email LIKE ? OR COALESCE(u.nombres_apellidos, '') LIKE ?)
       ${roleCond}
   `;
   const [countRows] = await dbPool.execute<RowDataPacket[]>(countSql, paramsCount);
   const total = Number((countRows[0] as any)?.total ?? 0);
 
   return { data: rows as unknown as UserRow[], total };
+}
+
+export async function deleteUser(userId: number): Promise<void> {
+  // Eliminar el usuario directamente
+  await dbPool.execute('DELETE FROM Usuarios WHERE usuario_id = ?', [userId]);
+}
+
+export async function createAdminUser(email: string, password: string, nombresApellidos?: string): Promise<number> {
+  const passwordHash = await bcrypt.hash(password, 10);
+
+  const [result] = await dbPool.execute<any>(
+    'INSERT INTO Usuarios (email, password_hash, rol, nombres_apellidos) VALUES (?, ?, ?, ?)',
+    [email, passwordHash, 'admin', nombresApellidos || null]
+  );
+
+  return result.insertId;
 }

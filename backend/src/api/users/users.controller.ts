@@ -1,6 +1,6 @@
 // /backend/src/api/users/users.controller.ts
 import { Request, Response } from 'express';
-import { listUsers, Rol } from './users.service';
+import { listUsers, deleteUser, createAdminUser, Rol } from './users.service';
 
 function parseRole(roleParam?: string): Rol | undefined {
   if (roleParam === 'admin' || roleParam === 'externo' || roleParam === 'interno') return roleParam;
@@ -19,6 +19,54 @@ export async function getUsers(req: Request, res: Response) {
   } catch (err: any) {
     console.error(err);
     res.status(500).json({ message: 'No se pudo obtener la lista de usuarios.' });
+  }
+}
+
+export async function removeUser(req: Request, res: Response) {
+  try {
+    const userId = Number(req.params.id);
+    if (!userId || isNaN(userId)) {
+      return res.status(400).json({ message: 'ID de usuario inválido.' });
+    }
+
+    await deleteUser(userId);
+    res.json({ message: 'Usuario eliminado exitosamente.' });
+  } catch (err: any) {
+    console.error(err);
+    res.status(500).json({ message: 'No se pudo eliminar el usuario.' });
+  }
+}
+
+export async function addAdminUser(req: Request, res: Response) {
+  try {
+    const { email, password, nombres_apellidos } = req.body;
+
+    if (!email || !password) {
+      return res.status(400).json({ message: 'Email y contraseña son requeridos.' });
+    }
+
+    // Validar formato de email
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return res.status(400).json({ message: 'Formato de email inválido.' });
+    }
+
+    // Validar longitud de contraseña
+    if (password.length < 6) {
+      return res.status(400).json({ message: 'La contraseña debe tener al menos 6 caracteres.' });
+    }
+
+    const userId = await createAdminUser(email, password, nombres_apellidos);
+    res.status(201).json({ 
+      message: 'Usuario admin creado exitosamente.',
+      usuario_id: userId 
+    });
+  } catch (err: any) {
+    console.error(err);
+    if (err.code === 'ER_DUP_ENTRY') {
+      return res.status(409).json({ message: 'El email ya está registrado.' });
+    }
+    res.status(500).json({ message: 'No se pudo crear el usuario admin.' });
   }
 }
 
