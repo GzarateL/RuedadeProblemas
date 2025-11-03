@@ -409,6 +409,10 @@ export default function RegistroLaboratorio() {
         paso_actual: totalSteps
       };
 
+      console.log('=== DATOS A ENVIAR AL BACKEND ===');
+      console.log('ODS completo:', JSON.stringify(datosRegistro.ods, null, 2));
+      console.log('Total items ODS:', datosRegistro.ods.length);
+
       const token = Cookies.get('token');
       if (!token) {
         throw new Error('No se encontró el token de autenticación');
@@ -420,6 +424,8 @@ export default function RegistroLaboratorio() {
         : `${process.env.NEXT_PUBLIC_API_URL}/api/helice-interna/registros`;
 
       const method = editId ? 'PUT' : 'POST';
+
+      console.log(`Enviando ${method} a ${url}`);
 
       const response = await fetch(url, {
         method,

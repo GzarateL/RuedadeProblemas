@@ -361,10 +361,18 @@ export default function RegistroCentroProduccion() {
 
         ocde: ocdeArray,
 
-        ods: formData.objetivosODS.map(objetivoId => ({
-          objetivo_id: objetivoId,
-          meta_id: null
-        })),
+        ods: [
+          // Agregar objetivos seleccionados
+          ...formData.objetivosODS.map(objetivoId => ({
+            objetivo_id: objetivoId,
+            meta_id: null
+          })),
+          // Agregar metas seleccionadas (el backend buscará el objetivo_id)
+          ...formData.metasODS.map(metaId => ({
+            objetivo_id: null,
+            meta_id: metaId
+          }))
+        ],
 
         nivel_aporte_del: formData.nivelAporteDEL,
         nivel_aporte_ds: formData.nivelAporteDS,
@@ -394,6 +402,12 @@ export default function RegistroCentroProduccion() {
         paso_actual: totalSteps
       };
 
+      console.log('=== DATOS A ENVIAR AL BACKEND (CENTRO PRODUCCION) ===');
+      console.log('ODS completo:', JSON.stringify(datosRegistro.ods, null, 2));
+      console.log('Total items ODS:', datosRegistro.ods.length);
+      console.log('Objetivos:', formData.objetivosODS);
+      console.log('Metas:', formData.metasODS);
+
       const token = Cookies.get('token');
       if (!token) {
         throw new Error('No se encontró el token de autenticación');
@@ -405,6 +419,8 @@ export default function RegistroCentroProduccion() {
         : `${process.env.NEXT_PUBLIC_API_URL}/api/helice-interna/registros`;
 
       const method = editId ? 'PUT' : 'POST';
+
+      console.log(`Enviando ${method} a ${url}`);
 
       const response = await fetch(url, {
         method,

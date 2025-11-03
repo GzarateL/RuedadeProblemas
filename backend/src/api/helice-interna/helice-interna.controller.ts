@@ -62,6 +62,13 @@ export class HeliceInternaController {
         return res.status(401).json({ error: 'Usuario no autenticado' });
       }
 
+      console.log('=== ACTUALIZAR REGISTRO ===');
+      console.log('Usuario ID:', userId);
+      console.log('Registro ID:', registroId);
+      console.log('Tipo:', req.body.tipo);
+      console.log('ODS recibido:', JSON.stringify(req.body.ods, null, 2));
+      console.log('Total items ODS:', req.body.ods?.length || 0);
+
       const registro = await this.heliceInternaService.actualizarRegistro(
         registroId,
         userId,
@@ -73,9 +80,14 @@ export class HeliceInternaController {
       }
 
       res.json(registro);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error al actualizar registro:', error);
-      res.status(500).json({ error: 'Error interno del servidor' });
+      console.error('Error stack:', error.stack);
+      res.status(500).json({ 
+        error: 'Error interno del servidor',
+        message: error.message,
+        details: process.env.NODE_ENV === 'development' ? error.stack : undefined
+      });
     }
   };
 

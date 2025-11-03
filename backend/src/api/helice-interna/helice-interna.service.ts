@@ -250,8 +250,12 @@ export class HeliceInternaService {
       }
 
       if (datos.ods && datos.ods.length > 0) {
-        console.log('Guardando ODS:', datos.ods);
+        console.log('=== DATOS ODS RECIBIDOS EN CREAR REGISTRO ===');
+        console.log('Cantidad de items ODS:', datos.ods.length);
+        console.log('Items ODS:', JSON.stringify(datos.ods, null, 2));
         await this.guardarODS(connection, usuarioId, registroId, datos.tipo, datos.ods);
+      } else {
+        console.log('⚠️ No se recibieron datos ODS o el array está vacío');
       }
 
       if (datos.nivel_aporte_del !== undefined && datos.nivel_aporte_ds !== undefined) {
@@ -363,9 +367,14 @@ export class HeliceInternaService {
       }
 
       if (datos.ods !== undefined) {
+        console.log('=== DATOS ODS RECIBIDOS EN ACTUALIZAR REGISTRO ===');
+        console.log('Cantidad de items ODS:', datos.ods.length);
+        console.log('Items ODS:', JSON.stringify(datos.ods, null, 2));
         await connection.execute('DELETE FROM Registro_ODS WHERE usuario_id = ? AND registro_id = ? AND tipo = ?', [usuarioId, registroId, datos.tipo]);
         if (datos.ods.length > 0) {
           await this.guardarODS(connection, usuarioId, registroId, datos.tipo, datos.ods);
+        } else {
+          console.log('⚠️ Array ODS está vacío, no se guardará nada');
         }
       }
 
@@ -439,28 +448,49 @@ export class HeliceInternaService {
   }
 
   private async guardarODS(connection: PoolConnection, usuarioId: number, registroId: number, tipo: string, ods: Array<{objetivo_id: number | null, meta_id?: number | null}>) {
-    for (const item of ods) {
+    console.log(`=== GUARDAR ODS - INICIO ===`);
+    console.log(`Total de items ODS a guardar: ${ods.length}`);
+    console.log(`Usuario: ${usuarioId}, Registro: ${registroId}, Tipo: ${tipo}`);
+    console.log(`Items ODS recibidos:`, JSON.stringify(ods, null, 2));
+    
+    for (let i = 0; i < ods.length; i++) {
+      const item = ods[i];
+      console.log(`\n--- Procesando item ${i + 1}/${ods.length} ---`);
+      console.log(`Item original:`, JSON.stringify(item, null, 2));
+      
       let objetivoId = item.objetivo_id;
+      let metaId = item.meta_id || null;
       
       // Si solo se proporcionó meta_id, buscar el objetivo_id correspondiente
-      if (!objetivoId && item.meta_id) {
+      if (!objetivoId && metaId) {
+        console.log(`Buscando objetivo_id para meta_id: ${metaId}`);
         const [metaRows] = await connection.execute<RowDataPacket[]>(
           'SELECT objetivo_id FROM metas WHERE id = ?',
-          [item.meta_id]
+          [metaId]
         );
+        console.log(`Resultado de búsqueda:`, metaRows);
         if (metaRows.length > 0) {
           objetivoId = metaRows[0].objetivo_id;
+          console.log(`✓ Encontrado objetivo_id: ${objetivoId} para meta_id: ${metaId}`);
+        } else {
+          console.warn(`✗ No se encontró objetivo_id para meta_id: ${metaId}`);
         }
       }
       
       // Solo insertar si tenemos al menos un objetivo_id
       if (objetivoId) {
-        await connection.execute(
+        console.log(`Insertando en BD: objetivo_id=${objetivoId}, meta_id=${metaId}`);
+        const [result] = await connection.execute<ResultSetHeader>(
           'INSERT INTO Registro_ODS (usuario_id, registro_id, tipo, objetivo_id, meta_id) VALUES (?, ?, ?, ?, ?)',
-          [usuarioId, registroId, tipo, objetivoId, item.meta_id || null]
+          [usuarioId, registroId, tipo, objetivoId, metaId]
         );
+        console.log(`✓ Insertado con ID: ${result.insertId}`);
+      } else {
+        console.error(`✗ ERROR: No se pudo insertar ODS porque objetivo_id es null`);
+        console.error(`Item problemático:`, item);
       }
     }
+    console.log(`\n=== GUARDAR ODS - FIN ===\n`);
   }
 
   private async guardarAportes(connection: PoolConnection, usuarioId: number, registroId: number, tipo: string, nivelDEL: number, nivelDS: number) {
