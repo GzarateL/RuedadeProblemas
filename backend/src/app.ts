@@ -10,6 +10,7 @@ import matchingRoutes from './api/matching/matching.routes';
 import solicitudesRoutes from './api/solicitudes/solicitudes.routes';
 import chatsRoutes from './api/chats/chats.routes';
 import { heliceInternaRoutes } from './api/helice-interna/helice-interna.routes';
+import heliceExternaRoutes from './api/helice-externa/helice-externa.routes';
 
 const app = express();
 
@@ -36,5 +37,6 @@ app.use('/api/matches', matchingRoutes);
 app.use('/api/solicitudes', solicitudesRoutes);
 app.use('/api/chats', chatsRoutes);
 app.use('/api/helice-interna', heliceInternaRoutes);
+app.use('/api/helice-externa', heliceExternaRoutes);
 
 export default app;

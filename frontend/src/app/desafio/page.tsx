@@ -1,190 +1,146 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
-import Cookies from 'js-cookie';
-import { toast } from 'sonner';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, Plus } from 'lucide-react';
-import Link from 'next/link';
+import Link from "next/link";
+import { API_URL } from "@/config/api";
 
 interface Desafio {
   desafio_id: number;
   titulo: string;
-  descripcion: string | null;
+  descripcion: string;
+  impacto: string;
+  intentos_previos: string;
   fecha_creacion: string;
-  palabras_clave: string | null;
 }
 
 export default function MisDesafiosPage() {
-  const { user, isLoading: authLoading } = useAuth();
+  const { user, isLoading } = useAuth();
   const router = useRouter();
   const [desafios, setDesafios] = useState<Desafio[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!authLoading && !user) {
-      router.push("/login?error=unauthorized");
-    } else if (!authLoading && user && user.rol !== 'externo') {
+    if (!isLoading && !user) {
+      router.push("/login");
+      return;
+    }
+
+    if (user && user.rol !== "externo") {
       router.push("/");
+      return;
     }
-  }, [user, authLoading, router]);
 
-  useEffect(() => {
-    const fetchDesafios = async () => {
-      if (!user || user.rol !== 'externo') return;
+    if (user) {
+      cargarDesafios();
+    }
+  }, [user, isLoading, router]);
 
-      const token = Cookies.get('token');
-      if (!token) return;
+  const cargarDesafios = async () => {
+    try {
+      const response = await fetch(`${API_URL}/api/helice-externa/desafios`, {
+        headers: {
+          "Authorization": `Bearer ${localStorage.getItem("token")}`
+        }
+      });
 
-      try {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/desafios/mis-desafios`, {
-          headers: { "Authorization": `Bearer ${token}` }
-        });
-
-        if (!res.ok) throw new Error('Error al cargar desafíos');
-
-        const data = await res.json();
+      if (response.ok) {
+        const data = await response.json();
         setDesafios(data);
-      } catch (err: any) {
-        console.error("Error fetching desafios:", err);
-        toast.error("Error", { description: err.message });
-      } finally {
-        setIsLoading(false);
       }
-    };
-
-    if (user && user.rol === 'externo') {
-      fetchDesafios();
+    } catch (error) {
+      console.error("Error al cargar desafíos:", error);
+    } finally {
+      setLoading(false);
     }
-  }, [user]);
+  };
 
-  if (authLoading || !user || user.rol !== 'externo') {
+  if (isLoading || loading) {
     return (
-      <div className="flex justify-center items-center min-h-[calc(100vh-theme(space.16))]">
-        <Loader2 className="w-8 h-8 animate-spin" />
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-red-600"></div>
       </div>
     );
   }
 
+  const getImpactoColor = (impacto: string) => {
+    const colors: Record<string, string> = {
+      microlocal: "bg-blue-100 text-blue-800",
+      local: "bg-green-100 text-green-800",
+      distrital: "bg-yellow-100 text-yellow-800",
+      provincial: "bg-orange-100 text-orange-800",
+      regional: "bg-red-100 text-red-800"
+    };
+    return colors[impacto] || "bg-gray-100 text-gray-800";
+  };
+
   return (
-    <div className="max-w-6xl mx-auto p-6">
-      <div className="flex justify-between items-start mb-6">
-        <div>
-          <h1 className="text-3xl font-bold text-neutral-900">Mis Desafíos</h1>
-          <p className="text-neutral-600 mt-2">
-            Gestiona tus desafíos registrados
-          </p>
-        </div>
-        <div className="flex gap-2">
-          <Link href="/desafio/registrar">
-            <Button className="flex items-center gap-2">
-              <Plus className="w-4 h-4" />
-              Nuevo Desafío
-            </Button>
-          </Link>
-        </div>
-      </div>
-
-      {isLoading ? (
-        <div className="flex justify-center items-center min-h-[200px]">
-          <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
-        </div>
-      ) : desafios.length === 0 ? (
-        <Card>
-          <CardContent className="p-12 text-center">
-            <p className="text-neutral-500 mb-4">
-              No tienes desafíos registrados aún.
+    <div className="min-h-screen bg-gray-50 py-12">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex justify-between items-center mb-8">
+          <div>
+            <h1 className="text-4xl font-bold text-gray-900">Mis Desafíos</h1>
+            <p className="text-gray-600 mt-2">
+              Gestiona los desafíos que has registrado
             </p>
-            <Link href="/desafio/registrar">
-              <Button>Registrar mi primer desafío</Button>
-            </Link>
-          </CardContent>
-        </Card>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {desafios.map((desafio) => (
-            <div
-              key={desafio.desafio_id}
-              className="card-electric-fill p-6 rounded-xl border-2 border-black transition-all duration-350 ease-in-out relative"
-            >
-              <div className="mb-3">
-                <h3 className="text-lg font-semibold mb-2">{desafio.titulo}</h3>
-                <p className="text-sm opacity-80">
-                  Registrado el {new Date(desafio.fecha_creacion).toLocaleDateString()}
-                </p>
-              </div>
-
-              {desafio.descripcion && (
-                <p className="text-sm mb-3 line-clamp-3 opacity-90">
-                  {desafio.descripcion}
-                </p>
-              )}
-
-              {desafio.palabras_clave && (
-                <div className="mb-3">
-                  <p className="text-xs font-medium opacity-70 mb-1">Palabras clave:</p>
-                  <div className="flex flex-wrap gap-1">
-                    {desafio.palabras_clave.split(',').map((palabra, idx) => (
-                      <span
-                        key={idx}
-                        className="text-xs px-2.5 py-0.5 rounded-full border border-current opacity-80"
-                      >
-                        {palabra.trim()}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              <div className="flex gap-2 mt-2">
-                <Link href={`/desafio/editar/${desafio.desafio_id}`}>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="bg-white border-2 border-black text-black hover:bg-[#FF0000] hover:border-[#FF0000] hover:text-white transition-all duration-250"
-                  >
-                    Editar
-                  </Button>
-                </Link>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="bg-white border-2 border-black text-black hover:bg-[#FF0000] hover:border-[#FF0000] hover:text-white transition-all duration-250"
-                  onClick={async () => {
-                    if (!confirm('¿Estás seguro de que deseas eliminar este desafío?')) return;
-
-                    const token = Cookies.get('token');
-                    if (!token) {
-                      toast.error("No autenticado");
-                      return;
-                    }
-
-                    try {
-                      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/desafios/${desafio.desafio_id}`, {
-                        method: 'DELETE',
-                        headers: { "Authorization": `Bearer ${token}` }
-                      });
-
-                      if (!res.ok) throw new Error('Error al eliminar desafío');
-
-                      toast.success("Desafío eliminado exitosamente");
-                      setDesafios(prev => prev.filter(d => d.desafio_id !== desafio.desafio_id));
-                    } catch (err: any) {
-                      toast.error("Error", { description: err.message });
-                    }
-                  }}
-                >
-                  Eliminar
-                </Button>
-              </div>
-            </div>
-          ))}
+          </div>
+          <Button asChild className="bg-red-600 hover:bg-red-700">
+            <Link href="/registro-helice-externa">Registrar Nuevo Desafío</Link>
+          </Button>
         </div>
-      )}
+
+        {desafios.length === 0 ? (
+          <Card>
+            <CardContent className="py-12 text-center">
+              <p className="text-gray-500 mb-4">
+                Aún no has registrado ningún desafío
+              </p>
+              <Button asChild className="bg-red-600 hover:bg-red-700">
+                <Link href="/registro-helice-externa">Registrar Mi Primer Desafío</Link>
+              </Button>
+            </CardContent>
+          </Card>
+        ) : (
+          <div className="grid grid-cols-1 gap-6">
+            {desafios.map((desafio) => (
+              <Card key={desafio.desafio_id} className="hover:shadow-lg transition-shadow">
+                <CardHeader>
+                  <div className="flex justify-between items-start">
+                    <div className="flex-1">
+                      <CardTitle className="text-2xl mb-2">{desafio.titulo}</CardTitle>
+                      <CardDescription>
+                        Registrado el {new Date(desafio.fecha_creacion).toLocaleDateString('es-ES')}
+                      </CardDescription>
+                    </div>
+                    <Badge className={getImpactoColor(desafio.impacto)}>
+                      {desafio.impacto.charAt(0).toUpperCase() + desafio.impacto.slice(1)}
+                    </Badge>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <div>
+                      <h3 className="font-semibold text-gray-700 mb-2">Descripción:</h3>
+                      <p className="text-gray-600">{desafio.descripcion}</p>
+                    </div>
+                    
+                    {desafio.intentos_previos && (
+                      <div>
+                        <h3 className="font-semibold text-gray-700 mb-2">Intentos Previos:</h3>
+                        <p className="text-gray-600">{desafio.intentos_previos}</p>
+                      </div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

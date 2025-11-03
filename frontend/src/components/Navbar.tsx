@@ -150,16 +150,14 @@ export function Navbar() {
                 )}
                 {user.rol === 'externo' && (
                   <Link
-                    href="/desafio/registrar"
-                    className={`text-sm transition-all duration-300 ${pathname.startsWith('/desafio/registrar')
+                    href="/registro-helice-externa"
+                    className={`text-sm transition-all duration-300 ${pathname.startsWith('/registro-helice-externa')
                       ? 'text-electric underline underline-offset-4'
                       : 'text-neutral-900 hover:text-electric'
                       }`}
                   >
                     Registrar rol en Hélice Externa
                   </Link>
-
-
                 )}
                 {user.rol === 'admin' && (
                   <Link
