@@ -790,6 +790,33 @@ export class HeliceInternaService {
     return rows;
   }
 
+  // Obtener información de una disciplina específica
+  async getDisciplinaById(disciplinaId: number) {
+    const [rows] = await db.execute<RowDataPacket[]>(
+      'SELECT * FROM disciplinas WHERE id = ?',
+      [disciplinaId]
+    );
+    return rows[0] || null;
+  }
+
+  // Obtener información de una sub-área específica
+  async getSubAreaById(subAreaId: number) {
+    const [rows] = await db.execute<RowDataPacket[]>(
+      'SELECT * FROM sub_areas WHERE id = ?',
+      [subAreaId]
+    );
+    return rows[0] || null;
+  }
+
+  // Obtener información de una meta específica
+  async getMetaById(metaId: number) {
+    const [rows] = await db.execute<RowDataPacket[]>(
+      'SELECT * FROM metas WHERE id = ?',
+      [metaId]
+    );
+    return rows[0] || null;
+  }
+
   // Métodos para administradores
   async getRegistrosParaAprobacion() {
     const registros: any[] = [];

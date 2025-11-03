@@ -10,8 +10,11 @@ router.get('/tipos', heliceInternaController.getTipos);
 router.get('/ocde/areas', heliceInternaController.getAreasOCDE);
 router.get('/ocde/areas/:areaId/sub-areas', heliceInternaController.getSubAreasOCDE);
 router.get('/ocde/sub-areas/:subAreaId/disciplinas', heliceInternaController.getDisciplinasOCDE);
+router.get('/ocde/sub-areas/:subAreaId', heliceInternaController.getSubAreaById);
+router.get('/ocde/disciplinas/:disciplinaId', heliceInternaController.getDisciplinaById);
 router.get('/ods/objetivos', heliceInternaController.getObjetivosODS);
 router.get('/ods/objetivos/:objetivoId/metas', heliceInternaController.getMetasODS);
+router.get('/ods/metas/:metaId', heliceInternaController.getMetaById);
 router.get('/keywords', heliceInternaController.getKeywords);
 
 // Rutas para usuarios UNSA

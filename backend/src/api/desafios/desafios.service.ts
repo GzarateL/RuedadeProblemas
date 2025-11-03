@@ -141,19 +141,8 @@ export class DesafiosService {
     const connection = await pool.getConnection();
     
     try {
-      // Obtener el tipo de participante del usuario
-      const [participante] = await connection.query<RowDataPacket[]>(
-        `SELECT tipo_participante FROM Registros_Participantes WHERE usuario_id = ? LIMIT 1`,
-        [userId]
-      );
-
-      if (participante.length === 0) {
-        throw new Error("Usuario no tiene registro de participante");
-      }
-
-      const tipoParticipante = participante[0].tipo_participante;
       console.log(`=== OBTENER DESAFÍO ${desafioId} ===`);
-      console.log(`Usuario: ${userId}, Tipo: ${tipoParticipante}`);
+      console.log(`Usuario: ${userId}`);
 
       // Obtener desafío básico
       const [desafios] = await connection.query<RowDataPacket[]>(
@@ -167,43 +156,43 @@ export class DesafiosService {
 
       const desafio = desafios[0];
 
-      // Obtener OCDE del desafío específico
+      // Obtener OCDE del desafío - buscar por registro_id (desafio_id) sin importar el tipo
       const [ocde] = await connection.query<RowDataPacket[]>(
         `SELECT 
           ro.area_id,
           ro.sub_area_id,
           ro.disciplina_id
         FROM Registro_OCDE ro
-        WHERE ro.usuario_id = ? AND ro.registro_id = ? AND ro.tipo = ?`,
-        [userId, desafioId, tipoParticipante]
+        WHERE ro.usuario_id = ? AND ro.registro_id = ?`,
+        [userId, desafioId]
       );
       console.log(`OCDE encontrados: ${ocde.length}`, ocde);
 
-      // Obtener ODS del desafío específico
+      // Obtener ODS del desafío - buscar por registro_id (desafio_id) sin importar el tipo
       const [ods] = await connection.query<RowDataPacket[]>(
         `SELECT 
           ro.objetivo_id,
           ro.meta_id
         FROM Registro_ODS ro
-        WHERE ro.usuario_id = ? AND ro.registro_id = ? AND ro.tipo = ?`,
-        [userId, desafioId, tipoParticipante]
+        WHERE ro.usuario_id = ? AND ro.registro_id = ?`,
+        [userId, desafioId]
       );
       console.log(`ODS encontrados: ${ods.length}`, ods);
 
-      // Obtener Keywords del desafío específico
+      // Obtener Keywords del desafío - buscar por registro_id (desafio_id) sin importar el tipo
       const [keywords] = await connection.query<RowDataPacket[]>(
         `SELECT keyword_id FROM Registro_Keywords 
-         WHERE usuario_id = ? AND registro_id = ? AND tipo = ?`,
-        [userId, desafioId, tipoParticipante]
+         WHERE usuario_id = ? AND registro_id = ?`,
+        [userId, desafioId]
       );
       console.log(`Keywords encontradas: ${keywords.length}`, keywords);
 
-      // Obtener Soluciones del desafío específico
+      // Obtener Soluciones del desafío - buscar por registro_id (desafio_id) sin importar el tipo
       const [soluciones] = await connection.query<RowDataPacket[]>(
         `SELECT * FROM Registro_Soluciones 
-         WHERE usuario_id = ? AND registro_id = ? AND tipo = ? 
+         WHERE usuario_id = ? AND registro_id = ? 
          ORDER BY orden`,
-        [userId, desafioId, tipoParticipante]
+        [userId, desafioId]
       );
       console.log(`Soluciones encontradas: ${soluciones.length}`, soluciones);
 
@@ -275,8 +264,8 @@ export class DesafiosService {
 
       // 2. Eliminar y reinsertar OCDE del desafío específico
       await connection.query(
-        `DELETE FROM Registro_OCDE WHERE usuario_id = ? AND registro_id = ? AND tipo = ?`, 
-        [userId, desafioId, tipoParticipante]
+        `DELETE FROM Registro_OCDE WHERE usuario_id = ? AND registro_id = ?`, 
+        [userId, desafioId]
       );
       if (data.ocde_ids && data.ocde_ids.length > 0) {
         for (const disciplinaId of data.ocde_ids) {
@@ -301,8 +290,8 @@ export class DesafiosService {
 
       // 3. Eliminar y reinsertar ODS del desafío específico
       await connection.query(
-        `DELETE FROM Registro_ODS WHERE usuario_id = ? AND registro_id = ? AND tipo = ?`, 
-        [userId, desafioId, tipoParticipante]
+        `DELETE FROM Registro_ODS WHERE usuario_id = ? AND registro_id = ?`, 
+        [userId, desafioId]
       );
       if (data.ods_ids && data.ods_ids.length > 0) {
         for (const metaId of data.ods_ids) {
@@ -322,8 +311,8 @@ export class DesafiosService {
 
       // 4. Eliminar y reinsertar Keywords del desafío específico
       await connection.query(
-        `DELETE FROM Registro_Keywords WHERE usuario_id = ? AND registro_id = ? AND tipo = ?`, 
-        [userId, desafioId, tipoParticipante]
+        `DELETE FROM Registro_Keywords WHERE usuario_id = ? AND registro_id = ?`, 
+        [userId, desafioId]
       );
       if (data.keyword_ids && data.keyword_ids.length > 0) {
         for (const keywordId of data.keyword_ids) {
@@ -336,8 +325,8 @@ export class DesafiosService {
 
       // 5. Eliminar y reinsertar Soluciones del desafío específico
       await connection.query(
-        `DELETE FROM Registro_Soluciones WHERE usuario_id = ? AND registro_id = ? AND tipo = ?`, 
-        [userId, desafioId, tipoParticipante]
+        `DELETE FROM Registro_Soluciones WHERE usuario_id = ? AND registro_id = ?`, 
+        [userId, desafioId]
       );
       if (data.soluciones && data.soluciones.length > 0) {
         for (const solucion of data.soluciones) {
@@ -392,26 +381,26 @@ export class DesafiosService {
       }
 
       // Eliminar datos relacionados en tablas compartidas
-      console.log(`Eliminando datos relacionados del desafío ${desafioId}, usuario ${userId}, tipo ${tipoParticipante}`);
+      console.log(`Eliminando datos relacionados del desafío ${desafioId}, usuario ${userId}`);
       
       await connection.query(
-        `DELETE FROM Registro_OCDE WHERE usuario_id = ? AND registro_id = ? AND tipo = ?`,
-        [userId, desafioId, tipoParticipante]
+        `DELETE FROM Registro_OCDE WHERE usuario_id = ? AND registro_id = ?`,
+        [userId, desafioId]
       );
 
       await connection.query(
-        `DELETE FROM Registro_ODS WHERE usuario_id = ? AND registro_id = ? AND tipo = ?`,
-        [userId, desafioId, tipoParticipante]
+        `DELETE FROM Registro_ODS WHERE usuario_id = ? AND registro_id = ?`,
+        [userId, desafioId]
       );
 
       await connection.query(
-        `DELETE FROM Registro_Keywords WHERE usuario_id = ? AND registro_id = ? AND tipo = ?`,
-        [userId, desafioId, tipoParticipante]
+        `DELETE FROM Registro_Keywords WHERE usuario_id = ? AND registro_id = ?`,
+        [userId, desafioId]
       );
 
       await connection.query(
-        `DELETE FROM Registro_Soluciones WHERE usuario_id = ? AND registro_id = ? AND tipo = ?`,
-        [userId, desafioId, tipoParticipante]
+        `DELETE FROM Registro_Soluciones WHERE usuario_id = ? AND registro_id = ?`,
+        [userId, desafioId]
       );
 
       // Eliminar el desafío
