@@ -29,6 +29,11 @@ export async function removeUser(req: Request, res: Response) {
       return res.status(400).json({ message: 'ID de usuario inválido.' });
     }
 
+    // Proteger al super admin (usuario_id = 1)
+    if (userId === 1) {
+      return res.status(403).json({ message: 'No se puede eliminar al super administrador.' });
+    }
+
     await deleteUser(userId);
     res.json({ message: 'Usuario eliminado exitosamente.' });
   } catch (err: any) {

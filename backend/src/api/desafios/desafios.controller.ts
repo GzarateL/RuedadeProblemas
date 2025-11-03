@@ -43,6 +43,26 @@ export class DesafiosController {
     }
   };
 
+  obtenerTodosDesafios = async (req: Request, res: Response) => {
+    try {
+      const user = (req as any).user;
+      
+      if (!user || !user.userId) {
+        return res.status(401).json({ error: "Usuario no autenticado" });
+      }
+
+      if (user.rol !== 'admin') {
+        return res.status(403).json({ error: "Solo administradores pueden ver todos los desafíos" });
+      }
+
+      const result = await this.service.obtenerTodosDesafios();
+      res.status(200).json(result);
+    } catch (error: any) {
+      console.error("Error en obtenerTodosDesafios:", error);
+      res.status(500).json({ error: error.message });
+    }
+  };
+
   obtenerDesafio = async (req: Request, res: Response) => {
     try {
       const userId = (req as any).user.userId;

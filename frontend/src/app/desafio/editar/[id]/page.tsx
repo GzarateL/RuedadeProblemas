@@ -67,7 +67,13 @@ export default function EditarDesafioPage() {
 
       if (response.ok) {
         const data = await response.json();
-        console.log("Datos cargados del desafío:", data);
+        console.log("=== DATOS CARGADOS DEL DESAFÍO ===");
+        console.log("Datos completos:", data);
+        console.log("OCDE - disciplina_ids:", data.disciplina_ids);
+        console.log("ODS - meta_ids:", data.meta_ids);
+        console.log("Keywords:", data.keyword_ids);
+        console.log("Soluciones:", data.soluciones);
+        
         setFormData({
           titulo: data.titulo,
           descripcion: data.descripcion,
@@ -111,15 +117,7 @@ export default function EditarDesafioPage() {
       return;
     }
 
-    if (formData.disciplinas.length === 0) {
-      alert("Debe seleccionar al menos una disciplina OCDE");
-      return;
-    }
 
-    if (formData.metas.length === 0) {
-      alert("Debe seleccionar al menos una meta ODS");
-      return;
-    }
 
     if (formData.keyword_ids.length === 0) {
       alert("Debe seleccionar al menos una palabra clave");

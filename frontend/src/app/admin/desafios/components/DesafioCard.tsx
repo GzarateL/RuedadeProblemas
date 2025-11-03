@@ -10,16 +10,21 @@ interface DesafioCardProps {
 }
 
 export default function DesafioCard({ desafio, onViewDetails }: DesafioCardProps) {
-  const keywords = desafio.palabras_clave
-    ? desafio.palabras_clave.split(',').map(kw => kw.trim()).filter(kw => kw)
-    : [];
-
-  // Truncamiento (mantenemos la lógica por si acaso, aunque la imagen no lo muestra)
-  const maxDescLength = 80; // Reducimos un poco para dar más énfasis al título
+  // Truncamiento
+  const maxDescLength = 80;
   const truncatedDesc = desafio.descripcion && desafio.descripcion.length > maxDescLength
     ? desafio.descripcion.substring(0, maxDescLength) + "..."
     : desafio.descripcion;
   const needsSeeMore = desafio.descripcion && desafio.descripcion.length > maxDescLength;
+
+  // Mapeo de impacto a etiquetas legibles
+  const impactoLabels: Record<string, string> = {
+    'microlocal': 'Microlocal',
+    'local': 'Local',
+    'distrital': 'Distrital',
+    'provincial': 'Provincial',
+    'regional': 'Regional'
+  };
 
   return (
     // Card: Añadimos bordes más redondeados (rounded-xl)
@@ -47,18 +52,17 @@ export default function DesafioCard({ desafio, onViewDetails }: DesafioCardProps
          )}
       </CardContent>
 
-      {/* CardFooter: Contiene keywords y botón */}
+      {/* CardFooter: Contiene impacto y botón */}
       <CardFooter className="pt-0 pb-4 px-5 flex justify-between items-center">
-         {/* Contenedor para las Palabras Clave */}
-         <div className="flex flex-wrap gap-1">
-            {keywords.slice(0, 2).map((kw, index) => ( // Muestra max 2 keywords
-              // Badge: Más redondeado (rounded-full), borde gris, texto pequeño
-              <Badge key={index} variant="outline" className="text-[10px] px-2.5 py-0.5 font-medium border-gray-400 rounded-full bg-white text-gray-700"> {/* Estilo píldora */}
-                {kw}
-              </Badge>
-            ))}
-            {keywords.length > 2 && ( // Puntos suspensivos si hay más
-               <Badge variant="outline" className="text-[10px] px-2.5 py-0.5 font-medium border-gray-400 rounded-full bg-white text-gray-700">...</Badge>
+         {/* Contenedor para el impacto y organización */}
+         <div className="flex flex-col gap-1">
+            <Badge variant="outline" className="text-[10px] px-2.5 py-0.5 font-medium border-gray-400 rounded-full bg-white text-gray-700 w-fit">
+              {impactoLabels[desafio.impacto] || desafio.impacto}
+            </Badge>
+            {desafio.nombre_organizacion && (
+              <span className="text-[10px] text-gray-600 truncate max-w-[150px]">
+                {desafio.nombre_organizacion}
+              </span>
             )}
          </div>
 

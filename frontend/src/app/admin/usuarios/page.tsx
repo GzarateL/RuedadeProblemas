@@ -415,13 +415,19 @@ export default function UsuariosPage() {
                   <td className="px-4 py-3">{u.telefono ?? "—"}</td>
                   <td className="px-4 py-3">{u.unidad_academica ?? "—"}</td>
                   <td className="px-4 py-3">
-                    <button
-                      onClick={() => handleDeleteUser(u.usuario_id, u.email)}
-                      className="px-3 py-1 text-sm rounded-lg bg-red-100 text-red-700 hover:bg-red-200"
-                      title="Eliminar usuario"
-                    >
-                      Eliminar
-                    </button>
+                    {u.usuario_id === 3 ? (
+                      <span className="px-3 py-1 text-sm text-gray-400" title="Super admin protegido">
+                        Protegido
+                      </span>
+                    ) : (
+                      <button
+                        onClick={() => handleDeleteUser(u.usuario_id, u.email)}
+                        className="px-3 py-1 text-sm rounded-lg bg-red-100 text-red-700 hover:bg-red-200"
+                        title="Eliminar usuario"
+                      >
+                        Eliminar
+                      </button>
+                    )}
                   </td>
                 </tr>
               ))

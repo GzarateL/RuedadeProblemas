@@ -10,6 +10,7 @@ router.use(authenticateToken);
 
 // Rutas de desafíos
 router.post("/", controller.crearDesafio);
+router.get("/admin/todos", controller.obtenerTodosDesafios); // Ruta específica para admin
 router.get("/", controller.obtenerMisDesafios);
 router.get("/:id", controller.obtenerDesafio);
 router.put("/:id", controller.actualizarDesafio);

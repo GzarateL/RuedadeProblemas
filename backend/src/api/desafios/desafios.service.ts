@@ -137,6 +137,44 @@ export class DesafiosService {
     }
   }
 
+  async obtenerTodosDesafios() {
+    const connection = await pool.getConnection();
+    
+    try {
+      const [desafios] = await connection.query<RowDataPacket[]>(
+        `SELECT 
+          d.desafio_id,
+          d.usuario_id,
+          d.titulo,
+          d.descripcion,
+          d.impacto,
+          d.intentos_previos,
+          d.fecha_creacion,
+          u.nombres_apellidos as nombre,
+          u.email,
+          rp.tipo_participante,
+          COALESCE(
+            rg.nombre_institucion,
+            rcp.nombre_institucion,
+            re.nombre_empresa,
+            rsc.nombre_organizacion
+          ) as nombre_organizacion
+        FROM Desafios d
+        INNER JOIN Usuarios u ON d.usuario_id = u.usuario_id
+        LEFT JOIN Registros_Participantes rp ON d.usuario_id = rp.usuario_id
+        LEFT JOIN Registro_Gobierno rg ON d.usuario_id = rg.usuario_id
+        LEFT JOIN Registro_Colegio_Profesional rcp ON d.usuario_id = rcp.usuario_id
+        LEFT JOIN Registro_Empresa re ON d.usuario_id = re.usuario_id
+        LEFT JOIN Registro_Sociedad_Civil rsc ON d.usuario_id = rsc.usuario_id
+        ORDER BY d.fecha_creacion DESC`
+      );
+
+      return desafios;
+    } finally {
+      connection.release();
+    }
+  }
+
   async obtenerDesafio(desafioId: number, userId: number) {
     const connection = await pool.getConnection();
     
