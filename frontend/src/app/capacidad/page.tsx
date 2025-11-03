@@ -80,16 +80,16 @@ export default function MisCapacidadesPage() {
     <div className="max-w-6xl mx-auto p-6">
       <div className="flex justify-between items-start mb-6">
         <div>
-          <h1 className="text-3xl font-bold text-neutral-900">Mis Capacidades</h1>
+          <h1 className="text-3xl font-bold text-neutral-900">Mis Registros</h1>
           <p className="text-neutral-600 mt-2">
-            Gestiona tus capacidades registradas
+            Gestiona tus registros de helice
           </p>
         </div>
         <div className="flex gap-2">
           <Link href="/capacidad/registrar">
             <Button className="flex items-center gap-2">
               <Plus className="w-4 h-4" />
-              Nueva Capacidad
+              Nuevo Registro
             </Button>
           </Link>
         </div>
