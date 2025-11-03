@@ -101,11 +101,6 @@ export default function RegistrarDesafioPage() {
       return;
     }
 
-    if (formData.disciplinas.length === 0) {
-      alert("Debe seleccionar al menos una disciplina OCDE");
-      return;
-    }
-
     if (formData.metas.length === 0) {
       alert("Debe seleccionar al menos una meta ODS");
       return;

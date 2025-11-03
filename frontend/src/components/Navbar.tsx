@@ -113,15 +113,7 @@ export function Navbar() {
                     >
                       Mis Desafíos
                     </Link>
-                    <Link
-                      href="/chats"
-                      className={`text-sm transition-all duration-300 ${pathname === '/chats'
-                        ? 'text-electric underline underline-offset-4'
-                        : 'text-neutral-900 hover:text-electric'
-                        }`}
-                    >
-                      Chats
-                    </Link>
+
                   </>
                 )}
 

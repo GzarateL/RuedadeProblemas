@@ -38,18 +38,27 @@ export default function ODSSelector({
     fetchODSData();
   }, []);
 
-  // Expandir y cargar metas cuando hay objetivos seleccionados (modo edición)
+  // Expandir y cargar metas cuando hay metas seleccionadas (modo edición)
   useEffect(() => {
     const loadSelectedData = async () => {
       if (objetivos.length === 0) return;
-      if (selectedObjetivos.length === 0) return;
+      if (selectedMetas.length === 0) return;
 
-      // Expandir y cargar metas para objetivos seleccionados
-      for (const objetivoId of selectedObjetivos) {
-        setExpandedObjetivos(prev => new Set(prev).add(objetivoId));
-        const objetivoMetas = metas.filter(m => m.objetivo_id === objetivoId);
-        if (objetivoMetas.length === 0) {
-          await fetchMetas(objetivoId);
+      console.log('Cargando datos ODS seleccionados:', { selectedMetas });
+
+      // Cargar metas basándose en las metas seleccionadas
+      for (const metaId of selectedMetas) {
+        try {
+          const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/helice-interna/ods/metas/${metaId}`);
+          if (response.ok) {
+            const metaData = await response.json();
+            
+            // Expandir el objetivo correspondiente y cargar sus metas
+            setExpandedObjetivos(prev => new Set(prev).add(metaData.objetivo_id));
+            await fetchMetas(metaData.objetivo_id);
+          }
+        } catch (error) {
+          console.error('Error loading meta data:', error);
         }
       }
     };

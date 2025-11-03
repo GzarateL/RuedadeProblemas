@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
 import { API_URL } from "@/config/api";
+import { Pencil, Trash2 } from "lucide-react";
 
 interface Desafio {
   desafio_id: number;
@@ -23,6 +24,7 @@ export default function MisDesafiosPage() {
   const router = useRouter();
   const [desafios, setDesafios] = useState<Desafio[]>([]);
   const [loading, setLoading] = useState(true);
+  const [eliminando, setEliminando] = useState<number | null>(null);
 
   useEffect(() => {
     if (!isLoading && !user) {
@@ -42,9 +44,12 @@ export default function MisDesafiosPage() {
 
   const cargarDesafios = async () => {
     try {
-      const response = await fetch(`${API_URL}/api/helice-externa/desafios`, {
+      const Cookies = (await import('js-cookie')).default;
+      const token = Cookies.get("token");
+      
+      const response = await fetch(`${API_URL}/api/desafios`, {
         headers: {
-          "Authorization": `Bearer ${localStorage.getItem("token")}`
+          "Authorization": `Bearer ${token}`
         }
       });
 
@@ -56,6 +61,39 @@ export default function MisDesafiosPage() {
       console.error("Error al cargar desafíos:", error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleEliminar = async (desafioId: number) => {
+    if (!confirm("¿Está seguro de que desea eliminar este desafío? Esta acción no se puede deshacer.")) {
+      return;
+    }
+
+    setEliminando(desafioId);
+
+    try {
+      const Cookies = (await import('js-cookie')).default;
+      const token = Cookies.get("token");
+      
+      const response = await fetch(`${API_URL}/api/desafios/${desafioId}`, {
+        method: "DELETE",
+        headers: {
+          "Authorization": `Bearer ${token}`
+        }
+      });
+
+      if (response.ok) {
+        alert("Desafío eliminado exitosamente");
+        cargarDesafios();
+      } else {
+        const error = await response.json();
+        alert(error.error || "Error al eliminar desafío");
+      }
+    } catch (error) {
+      console.error("Error al eliminar desafío:", error);
+      alert("Error al eliminar desafío");
+    } finally {
+      setEliminando(null);
     }
   };
 
@@ -89,7 +127,7 @@ export default function MisDesafiosPage() {
             </p>
           </div>
           <Button asChild className="bg-red-600 hover:bg-red-700">
-            <Link href="/registro-helice-externa">Registrar Nuevo Desafío</Link>
+            <Link href="/desafio/registrar">Registrar Nuevo Desafío</Link>
           </Button>
         </div>
 
@@ -100,7 +138,7 @@ export default function MisDesafiosPage() {
                 Aún no has registrado ningún desafío
               </p>
               <Button asChild className="bg-red-600 hover:bg-red-700">
-                <Link href="/registro-helice-externa">Registrar Mi Primer Desafío</Link>
+                <Link href="/desafio/registrar">Registrar Mi Primer Desafío</Link>
               </Button>
             </CardContent>
           </Card>
@@ -116,9 +154,11 @@ export default function MisDesafiosPage() {
                         Registrado el {new Date(desafio.fecha_creacion).toLocaleDateString('es-ES')}
                       </CardDescription>
                     </div>
-                    <Badge className={getImpactoColor(desafio.impacto)}>
-                      {desafio.impacto.charAt(0).toUpperCase() + desafio.impacto.slice(1)}
-                    </Badge>
+                    <div className="flex items-center gap-2">
+                      <Badge className={getImpactoColor(desafio.impacto)}>
+                        {desafio.impacto.charAt(0).toUpperCase() + desafio.impacto.slice(1)}
+                      </Badge>
+                    </div>
                   </div>
                 </CardHeader>
                 <CardContent>
@@ -134,6 +174,28 @@ export default function MisDesafiosPage() {
                         <p className="text-gray-600">{desafio.intentos_previos}</p>
                       </div>
                     )}
+
+                    <div className="flex gap-2 pt-4 border-t">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => router.push(`/desafio/editar/${desafio.desafio_id}`)}
+                        className="flex items-center gap-2"
+                      >
+                        <Pencil className="w-4 h-4" />
+                        Editar
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleEliminar(desafio.desafio_id)}
+                        disabled={eliminando === desafio.desafio_id}
+                        className="flex items-center gap-2 text-red-600 hover:text-red-700 hover:bg-red-50"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                        {eliminando === desafio.desafio_id ? "Eliminando..." : "Eliminar"}
+                      </Button>
+                    </div>
                   </div>
                 </CardContent>
               </Card>

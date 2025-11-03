@@ -12,5 +12,7 @@ router.use(authenticateToken);
 router.post("/", controller.crearDesafio);
 router.get("/", controller.obtenerMisDesafios);
 router.get("/:id", controller.obtenerDesafio);
+router.put("/:id", controller.actualizarDesafio);
+router.delete("/:id", controller.eliminarDesafio);
 
 export default router;

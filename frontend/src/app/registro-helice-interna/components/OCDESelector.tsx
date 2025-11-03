@@ -54,23 +54,45 @@ export default function OCDESelector({
   useEffect(() => {
     const loadSelectedData = async () => {
       if (areas.length === 0) return;
-      if (selectedAreas.length === 0 && selectedSubAreas.length === 0) return;
+      if (selectedDisciplinas.length === 0) return;
 
-      // Expandir y cargar sub-áreas para áreas seleccionadas
-      for (const areaId of selectedAreas) {
-        setExpandedAreas(prev => new Set(prev).add(areaId));
-        const areaSubAreas = subAreas.filter(sa => sa.area_id === areaId);
-        if (areaSubAreas.length === 0) {
-          await fetchSubAreas(areaId);
-        }
-      }
+      console.log('Cargando datos OCDE seleccionados:', { selectedDisciplinas });
 
-      // Expandir y cargar disciplinas para sub-áreas seleccionadas
-      for (const subAreaId of selectedSubAreas) {
-        setExpandedSubAreas(prev => new Set(prev).add(subAreaId));
-        const subAreaDisciplinas = disciplinas.filter(d => d.sub_area_id === subAreaId);
-        if (subAreaDisciplinas.length === 0) {
-          await fetchDisciplinas(subAreaId);
+      // Cargar datos basándose en las disciplinas seleccionadas
+      for (const disciplinaId of selectedDisciplinas) {
+        try {
+          // Obtener información de la disciplina desde el backend
+          const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/helice-interna/ocde/disciplinas/${disciplinaId}`);
+          if (response.ok) {
+            const discData = await response.json();
+            
+            // Cargar sub-área si no está cargada
+            const subAreaExists = subAreas.find(sa => sa.id === discData.sub_area_id);
+            if (!subAreaExists) {
+              const saResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/helice-interna/ocde/sub-areas/${discData.sub_area_id}`);
+              if (saResponse.ok) {
+                const saData = await saResponse.json();
+                setSubAreas(prev => {
+                  const exists = prev.find(sa => sa.id === saData.id);
+                  return exists ? prev : [...prev, saData];
+                });
+                
+                // Expandir el área correspondiente y cargar todas sus sub-áreas
+                setExpandedAreas(prev => new Set(prev).add(saData.area_id));
+                await fetchSubAreas(saData.area_id);
+              }
+            } else {
+              // Si la sub-área ya existe, solo expandir el área
+              setExpandedAreas(prev => new Set(prev).add(subAreaExists.area_id));
+              await fetchSubAreas(subAreaExists.area_id);
+            }
+            
+            // Expandir la sub-área y cargar sus disciplinas
+            setExpandedSubAreas(prev => new Set(prev).add(discData.sub_area_id));
+            await fetchDisciplinas(discData.sub_area_id);
+          }
+        } catch (error) {
+          console.error('Error loading disciplina data:', error);
         }
       }
     };
