@@ -1,21 +1,20 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { API_URL } from "@/config/api";
+import DiasInteresSelector from "../components/DiasInteresSelector";
 
 export default function RegistroEmpresaPage() {
-  const { user } = useAuth();
+  const { user, isLoading } = useAuth();
   const router = useRouter();
   const [loading, setLoading] = useState(false);
-  const [currentStep, setCurrentStep] = useState(1);
 
   const [formData, setFormData] = useState({
     nombre_empresa: "",
@@ -26,16 +25,21 @@ export default function RegistroEmpresaPage() {
     clasificacion_empresa: "",
     email: "",
     telefono: "",
-    titulo: "",
-    descripcion: "",
-    impacto: "",
-    intentos_previos: "",
-    ocde_ids: [] as number[],
-    ods_ids: [] as number[],
-    keywords: [] as string[],
-    tipo_participacion: "",
-    dias_interes: [] as number[]
+    dias_interes: [] as number[],
+    tipo_participacion: ""
   });
+
+  useEffect(() => {
+    if (!isLoading && !user) {
+      router.push("/login");
+      return;
+    }
+
+    if (user && user.rol !== "externo") {
+      alert("Solo los usuarios externos pueden registrarse en la hélice externa");
+      router.push("/");
+    }
+  }, [user, isLoading, router]);
 
   const handleInputChange = (field: string, value: any) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -49,252 +53,55 @@ export default function RegistroEmpresaPage() {
       return;
     }
 
+    if (!formData.nombre_empresa || !formData.nombre_completo || !formData.cargo || 
+        !formData.tipo_empresa || !formData.tamano_empresa || !formData.clasificacion_empresa ||
+        !formData.email || !formData.telefono || !formData.tipo_participacion) {
+      alert("Por favor complete todos los campos obligatorios");
+      return;
+    }
+
     setLoading(true);
 
     try {
+      const Cookies = (await import('js-cookie')).default;
+      const token = Cookies.get("token");
+      
+      if (!token) {
+        alert("No se encontró token de autenticación. Por favor inicie sesión nuevamente.");
+        router.push("/login");
+        return;
+      }
+      
       const response = await fetch(`${API_URL}/api/helice-externa/empresa`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${localStorage.getItem("token")}`
+          "Authorization": `Bearer ${token}`
         },
         body: JSON.stringify(formData)
       });
 
       if (!response.ok) {
-        throw new Error("Error al registrar");
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Error al registrar");
       }
 
       router.push("/registro-helice-externa/confirmacion");
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error:", error);
-      alert("Error al registrar. Por favor intente nuevamente.");
+      alert(error.message || "Error al registrar. Por favor intente nuevamente.");
     } finally {
       setLoading(false);
     }
   };
 
-  const renderStep = () => {
-    switch (currentStep) {
-      case 1:
-        return (
-          <div className="space-y-6">
-            <h2 className="text-2xl font-bold">Datos de la Empresa</h2>
-            
-            <div>
-              <Label htmlFor="nombre_empresa">Nombre de la Empresa</Label>
-              <Input
-                id="nombre_empresa"
-                value={formData.nombre_empresa}
-                onChange={(e) => handleInputChange("nombre_empresa", e.target.value)}
-                required
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="nombre_completo">Nombre Completo</Label>
-              <Input
-                id="nombre_completo"
-                value={formData.nombre_completo}
-                onChange={(e) => handleInputChange("nombre_completo", e.target.value)}
-                required
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="cargo">Cargo</Label>
-              <Input
-                id="cargo"
-                value={formData.cargo}
-                onChange={(e) => handleInputChange("cargo", e.target.value)}
-                required
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="tipo_empresa">Tipo de Empresa</Label>
-              <Select
-                value={formData.tipo_empresa}
-                onValueChange={(value) => handleInputChange("tipo_empresa", value)}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Seleccione el tipo" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="persona_natural_con_negocio">Persona Natural con Negocio</SelectItem>
-                  <SelectItem value="persona_juridica">Persona Jurídica</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div>
-              <Label htmlFor="tamano_empresa">Tamaño de Empresa</Label>
-              <Select
-                value={formData.tamano_empresa}
-                onValueChange={(value) => handleInputChange("tamano_empresa", value)}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Seleccione el tamaño" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="menos_de_4">Menos de 4 trabajadores</SelectItem>
-                  <SelectItem value="de_4_a_10">De 4 a 10 trabajadores</SelectItem>
-                  <SelectItem value="de_11_a_20">De 11 a 20 trabajadores</SelectItem>
-                  <SelectItem value="de_21_a_50">De 21 a 50 trabajadores</SelectItem>
-                  <SelectItem value="mas_de_50">Más de 50 trabajadores</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div>
-              <Label htmlFor="clasificacion_empresa">Clasificación de Empresa</Label>
-              <Select
-                value={formData.clasificacion_empresa}
-                onValueChange={(value) => handleInputChange("clasificacion_empresa", value)}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Seleccione la clasificación" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="microempresa">Microempresa</SelectItem>
-                  <SelectItem value="mype">MYPE</SelectItem>
-                  <SelectItem value="mediana">Mediana Empresa</SelectItem>
-                  <SelectItem value="gran_empresa">Gran Empresa</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div>
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                value={formData.email}
-                onChange={(e) => handleInputChange("email", e.target.value)}
-                required
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="telefono">Teléfono</Label>
-              <Input
-                id="telefono"
-                value={formData.telefono}
-                onChange={(e) => handleInputChange("telefono", e.target.value)}
-                required
-              />
-            </div>
-          </div>
-        );
-
-      case 2:
-        return (
-          <div className="space-y-6">
-            <h2 className="text-2xl font-bold">Descripción del Desafío</h2>
-            
-            <div>
-              <Label htmlFor="titulo">Título del Desafío</Label>
-              <Input
-                id="titulo"
-                value={formData.titulo}
-                onChange={(e) => handleInputChange("titulo", e.target.value)}
-                required
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="descripcion">Descripción</Label>
-              <Textarea
-                id="descripcion"
-                value={formData.descripcion}
-                onChange={(e) => handleInputChange("descripcion", e.target.value)}
-                rows={6}
-                placeholder="Identifique el problema, cómo afecta, desde cuándo afecta, quiénes se beneficiarían"
-                required
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="impacto">Impacto</Label>
-              <Select
-                value={formData.impacto}
-                onValueChange={(value) => handleInputChange("impacto", value)}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Seleccione el tipo de impacto" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="microlocal">Microlocal</SelectItem>
-                  <SelectItem value="local">Local</SelectItem>
-                  <SelectItem value="distrital">Distrital</SelectItem>
-                  <SelectItem value="provincial">Provincial</SelectItem>
-                  <SelectItem value="regional">Regional</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div>
-              <Label htmlFor="intentos_previos">Intentos Previos</Label>
-              <Textarea
-                id="intentos_previos"
-                value={formData.intentos_previos}
-                onChange={(e) => handleInputChange("intentos_previos", e.target.value)}
-                rows={4}
-                placeholder="Describa qué soluciones previas se han dado a este problema"
-              />
-            </div>
-          </div>
-        );
-
-      case 3:
-        return (
-          <div className="space-y-6">
-            <h2 className="text-2xl font-bold">Clasificación</h2>
-            <p className="text-gray-600">
-              Seleccione las áreas OCDE, ODS y palabras clave relacionadas con su desafío
-            </p>
-            <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-              <p className="text-sm text-yellow-800">
-                Esta sección requiere componentes adicionales para selección de OCDE, ODS y Keywords.
-                Por ahora puede continuar al siguiente paso.
-              </p>
-            </div>
-          </div>
-        );
-
-      case 4:
-        return (
-          <div className="space-y-6">
-            <h2 className="text-2xl font-bold">Tipo de Participación</h2>
-            
-            <div>
-              <Label htmlFor="tipo_participacion">Tipo de Participación</Label>
-              <Select
-                value={formData.tipo_participacion}
-                onValueChange={(value) => handleInputChange("tipo_participacion", value)}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Seleccione el tipo" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="presencial">Presencial</SelectItem>
-                  <SelectItem value="virtual">Virtual</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
-              <p className="text-sm text-blue-800">
-                Todos tendrán acceso a la rueda en forma presencial, sin embargo, puede seleccionar un tipo para su participación.
-              </p>
-            </div>
-          </div>
-        );
-
-      default:
-        return null;
-    }
-  };
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-red-600"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 py-12">
@@ -303,39 +110,161 @@ export default function RegistroEmpresaPage() {
           <CardHeader>
             <CardTitle>Registro - Empresa</CardTitle>
             <CardDescription>
-              Paso {currentStep} de 4
+              Complete los datos de su empresa
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleSubmit}>
-              {renderStep()}
+            <form onSubmit={handleSubmit} className="space-y-6">
+              
+              <div>
+                <Label htmlFor="nombre_empresa">Nombre de la Empresa (razón social o comercial) *</Label>
+                <Input
+                  id="nombre_empresa"
+                  value={formData.nombre_empresa}
+                  onChange={(e) => handleInputChange("nombre_empresa", e.target.value)}
+                  placeholder="Registre el nombre de su organización"
+                  required
+                />
+              </div>
 
-              <div className="flex justify-between mt-8">
+              <div>
+                <Label htmlFor="nombre_completo">Nombre Completo *</Label>
+                <Input
+                  id="nombre_completo"
+                  value={formData.nombre_completo}
+                  onChange={(e) => handleInputChange("nombre_completo", e.target.value)}
+                  placeholder="Registre sus nombres y apellidos"
+                  required
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="cargo">Cargo *</Label>
+                <Input
+                  id="cargo"
+                  value={formData.cargo}
+                  onChange={(e) => handleInputChange("cargo", e.target.value)}
+                  placeholder="Registre su cargo actual"
+                  required
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="tipo_empresa">Tipo de Empresa *</Label>
+                <Select
+                  value={formData.tipo_empresa}
+                  onValueChange={(value) => handleInputChange("tipo_empresa", value)}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Seleccione el tipo de empresa" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="persona_natural_con_negocio">Persona Natural con Negocio Propio</SelectItem>
+                    <SelectItem value="persona_juridica">Persona Jurídica</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <Label htmlFor="tamano_empresa">Tamaño de Empresa *</Label>
+                <Select
+                  value={formData.tamano_empresa}
+                  onValueChange={(value) => handleInputChange("tamano_empresa", value)}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Seleccione el tamaño" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="menos_de_4">Menos de 4 personas</SelectItem>
+                    <SelectItem value="de_4_a_10">De 4 a 10 personas</SelectItem>
+                    <SelectItem value="de_11_a_20">De 11 a 20 personas</SelectItem>
+                    <SelectItem value="de_21_a_50">De 21 a 50 personas</SelectItem>
+                    <SelectItem value="mas_de_50">Más de 50 personas</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <Label htmlFor="clasificacion_empresa">La Empresa Es *</Label>
+                <Select
+                  value={formData.clasificacion_empresa}
+                  onValueChange={(value) => handleInputChange("clasificacion_empresa", value)}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Seleccione la clasificación" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="microempresa">Microempresa</SelectItem>
+                    <SelectItem value="mype">MYPE</SelectItem>
+                    <SelectItem value="mediana">Mediana</SelectItem>
+                    <SelectItem value="gran_empresa">Gran Empresa</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <Label htmlFor="email">Email *</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  value={formData.email}
+                  onChange={(e) => handleInputChange("email", e.target.value)}
+                  placeholder="Registre su correo corporativo"
+                  required
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="telefono">Teléfono *</Label>
+                <Input
+                  id="telefono"
+                  value={formData.telefono}
+                  onChange={(e) => handleInputChange("telefono", e.target.value)}
+                  placeholder="Registre su número de teléfono"
+                  required
+                />
+              </div>
+
+              <DiasInteresSelector
+                selectedSesiones={formData.dias_interes}
+                onChange={(sesiones) => handleInputChange("dias_interes", sesiones)}
+              />
+
+              <div>
+                <Label htmlFor="tipo_participacion">Tipo de Participación *</Label>
+                <p className="text-sm text-gray-600 mb-2">
+                  Todos tendrán acceso a la rueda en forma presencial, sin embargo, puede seleccionar un tipo para su participación
+                </p>
+                <Select
+                  value={formData.tipo_participacion}
+                  onValueChange={(value) => handleInputChange("tipo_participacion", value)}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Seleccione el tipo" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="presencial">Presencial</SelectItem>
+                    <SelectItem value="virtual">Virtual</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="flex justify-between pt-6">
                 <Button
                   type="button"
                   variant="outline"
-                  onClick={() => currentStep > 1 ? setCurrentStep(currentStep - 1) : router.back()}
+                  onClick={() => router.back()}
                 >
-                  {currentStep === 1 ? "Cancelar" : "Anterior"}
+                  Cancelar
                 </Button>
 
-                {currentStep < 4 ? (
-                  <Button
-                    type="button"
-                    onClick={() => setCurrentStep(currentStep + 1)}
-                    className="bg-red-600 hover:bg-red-700"
-                  >
-                    Siguiente
-                  </Button>
-                ) : (
-                  <Button
-                    type="submit"
-                    disabled={loading}
-                    className="bg-red-600 hover:bg-red-700"
-                  >
-                    {loading ? "Registrando..." : "Finalizar Registro"}
-                  </Button>
-                )}
+                <Button
+                  type="submit"
+                  disabled={loading}
+                  className="bg-red-600 hover:bg-red-700"
+                >
+                  {loading ? "Registrando..." : "Finalizar Registro"}
+                </Button>
               </div>
             </form>
           </CardContent>

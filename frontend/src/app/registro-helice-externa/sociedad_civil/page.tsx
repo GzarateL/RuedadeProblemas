@@ -1,21 +1,20 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { API_URL } from "@/config/api";
+import DiasInteresSelector from "../components/DiasInteresSelector";
 
 export default function RegistroSociedadCivilPage() {
-  const { user } = useAuth();
+  const { user, isLoading } = useAuth();
   const router = useRouter();
   const [loading, setLoading] = useState(false);
-  const [currentStep, setCurrentStep] = useState(1);
 
   const [formData, setFormData] = useState({
     nombre_organizacion: "",
@@ -25,16 +24,21 @@ export default function RegistroSociedadCivilPage() {
     tamano_organizacion: "",
     email: "",
     telefono: "",
-    titulo: "",
-    descripcion: "",
-    impacto: "",
-    intentos_previos: "",
-    ocde_ids: [] as number[],
-    ods_ids: [] as number[],
-    keywords: [] as string[],
-    tipo_participacion: "",
-    dias_interes: [] as number[]
+    dias_interes: [] as number[],
+    tipo_participacion: ""
   });
+
+  useEffect(() => {
+    if (!isLoading && !user) {
+      router.push("/login");
+      return;
+    }
+
+    if (user && user.rol !== "externo") {
+      alert("Solo los usuarios externos pueden registrarse en la hélice externa");
+      router.push("/");
+    }
+  }, [user, isLoading, router]);
 
   const handleInputChange = (field: string, value: any) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -48,244 +52,55 @@ export default function RegistroSociedadCivilPage() {
       return;
     }
 
+    if (!formData.nombre_organizacion || !formData.nombre_completo || !formData.cargo || 
+        !formData.tipo_organizacion || !formData.tamano_organizacion ||
+        !formData.email || !formData.telefono || !formData.tipo_participacion) {
+      alert("Por favor complete todos los campos obligatorios");
+      return;
+    }
+
     setLoading(true);
 
     try {
+      const Cookies = (await import('js-cookie')).default;
+      const token = Cookies.get("token");
+      
+      if (!token) {
+        alert("No se encontró token de autenticación. Por favor inicie sesión nuevamente.");
+        router.push("/login");
+        return;
+      }
+      
       const response = await fetch(`${API_URL}/api/helice-externa/sociedad-civil`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${localStorage.getItem("token")}`
+          "Authorization": `Bearer ${token}`
         },
         body: JSON.stringify(formData)
       });
 
       if (!response.ok) {
-        throw new Error("Error al registrar");
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Error al registrar");
       }
 
       router.push("/registro-helice-externa/confirmacion");
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error:", error);
-      alert("Error al registrar. Por favor intente nuevamente.");
+      alert(error.message || "Error al registrar. Por favor intente nuevamente.");
     } finally {
       setLoading(false);
     }
   };
 
-  const renderStep = () => {
-    switch (currentStep) {
-      case 1:
-        return (
-          <div className="space-y-6">
-            <h2 className="text-2xl font-bold">Datos de la Organización</h2>
-            
-            <div>
-              <Label htmlFor="nombre_organizacion">Nombre de la Organización</Label>
-              <Input
-                id="nombre_organizacion"
-                value={formData.nombre_organizacion}
-                onChange={(e) => handleInputChange("nombre_organizacion", e.target.value)}
-                required
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="nombre_completo">Nombre Completo</Label>
-              <Input
-                id="nombre_completo"
-                value={formData.nombre_completo}
-                onChange={(e) => handleInputChange("nombre_completo", e.target.value)}
-                required
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="cargo">Cargo</Label>
-              <Input
-                id="cargo"
-                value={formData.cargo}
-                onChange={(e) => handleInputChange("cargo", e.target.value)}
-                required
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="tipo_organizacion">Tipo de Organización</Label>
-              <Select
-                value={formData.tipo_organizacion}
-                onValueChange={(value) => handleInputChange("tipo_organizacion", value)}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Seleccione el tipo" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="gremio_sindical">Gremio Sindical</SelectItem>
-                  <SelectItem value="sociedad_civil_sin_fines_lucro">Sociedad Civil sin Fines de Lucro</SelectItem>
-                  <SelectItem value="sociedad_civil_con_fines_lucro">Sociedad Civil con Fines de Lucro</SelectItem>
-                  <SelectItem value="ong">ONG</SelectItem>
-                  <SelectItem value="colegio_profesional">Colegio Profesional</SelectItem>
-                  <SelectItem value="gremio_empresarial">Gremio Empresarial</SelectItem>
-                  <SelectItem value="persona_natural">Persona Natural</SelectItem>
-                  <SelectItem value="junta_vecinal">Junta Vecinal</SelectItem>
-                  <SelectItem value="comedor_popular">Comedor Popular</SelectItem>
-                  <SelectItem value="asociacion_civil">Asociación Civil</SelectItem>
-                  <SelectItem value="asociacion_militar">Asociación Militar</SelectItem>
-                  <SelectItem value="otro">Otro</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div>
-              <Label htmlFor="tamano_organizacion">Tamaño de Organización</Label>
-              <Select
-                value={formData.tamano_organizacion}
-                onValueChange={(value) => handleInputChange("tamano_organizacion", value)}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Seleccione el tamaño" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="menos_de_4">Menos de 4 miembros</SelectItem>
-                  <SelectItem value="de_4_a_10">De 4 a 10 miembros</SelectItem>
-                  <SelectItem value="de_11_a_20">De 11 a 20 miembros</SelectItem>
-                  <SelectItem value="de_21_a_50">De 21 a 50 miembros</SelectItem>
-                  <SelectItem value="mas_de_50">Más de 50 miembros</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div>
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                value={formData.email}
-                onChange={(e) => handleInputChange("email", e.target.value)}
-                required
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="telefono">Teléfono</Label>
-              <Input
-                id="telefono"
-                value={formData.telefono}
-                onChange={(e) => handleInputChange("telefono", e.target.value)}
-                required
-              />
-            </div>
-          </div>
-        );
-
-      case 2:
-        return (
-          <div className="space-y-6">
-            <h2 className="text-2xl font-bold">Descripción del Desafío</h2>
-            
-            <div>
-              <Label htmlFor="titulo">Título del Desafío</Label>
-              <Input
-                id="titulo"
-                value={formData.titulo}
-                onChange={(e) => handleInputChange("titulo", e.target.value)}
-                required
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="descripcion">Descripción</Label>
-              <Textarea
-                id="descripcion"
-                value={formData.descripcion}
-                onChange={(e) => handleInputChange("descripcion", e.target.value)}
-                rows={6}
-                placeholder="Identifique el problema, cómo afecta, desde cuándo afecta, quiénes se beneficiarían"
-                required
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="impacto">Impacto</Label>
-              <Select
-                value={formData.impacto}
-                onValueChange={(value) => handleInputChange("impacto", value)}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Seleccione el tipo de impacto" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="microlocal">Microlocal</SelectItem>
-                  <SelectItem value="local">Local</SelectItem>
-                  <SelectItem value="distrital">Distrital</SelectItem>
-                  <SelectItem value="provincial">Provincial</SelectItem>
-                  <SelectItem value="regional">Regional</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div>
-              <Label htmlFor="intentos_previos">Intentos Previos</Label>
-              <Textarea
-                id="intentos_previos"
-                value={formData.intentos_previos}
-                onChange={(e) => handleInputChange("intentos_previos", e.target.value)}
-                rows={4}
-                placeholder="Describa qué soluciones previas se han dado a este problema"
-              />
-            </div>
-          </div>
-        );
-
-      case 3:
-        return (
-          <div className="space-y-6">
-            <h2 className="text-2xl font-bold">Clasificación</h2>
-            <p className="text-gray-600">
-              Seleccione las áreas OCDE, ODS y palabras clave relacionadas con su desafío
-            </p>
-            <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-              <p className="text-sm text-yellow-800">
-                Esta sección requiere componentes adicionales para selección de OCDE, ODS y Keywords.
-                Por ahora puede continuar al siguiente paso.
-              </p>
-            </div>
-          </div>
-        );
-
-      case 4:
-        return (
-          <div className="space-y-6">
-            <h2 className="text-2xl font-bold">Tipo de Participación</h2>
-            
-            <div>
-              <Label htmlFor="tipo_participacion">Tipo de Participación</Label>
-              <Select
-                value={formData.tipo_participacion}
-                onValueChange={(value) => handleInputChange("tipo_participacion", value)}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Seleccione el tipo" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="presencial">Presencial</SelectItem>
-                  <SelectItem value="virtual">Virtual</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
-              <p className="text-sm text-blue-800">
-                Todos tendrán acceso a la rueda en forma presencial, sin embargo, puede seleccionar un tipo para su participación.
-              </p>
-            </div>
-          </div>
-        );
-
-      default:
-        return null;
-    }
-  };
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-red-600"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 py-12">
@@ -294,39 +109,156 @@ export default function RegistroSociedadCivilPage() {
           <CardHeader>
             <CardTitle>Registro - Sociedad Civil</CardTitle>
             <CardDescription>
-              Paso {currentStep} de 4
+              Complete los datos de su organización
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleSubmit}>
-              {renderStep()}
+            <form onSubmit={handleSubmit} className="space-y-6">
+              
+              <div>
+                <Label htmlFor="nombre_organizacion">Nombre de la Organización a la que Representa *</Label>
+                <Input
+                  id="nombre_organizacion"
+                  value={formData.nombre_organizacion}
+                  onChange={(e) => handleInputChange("nombre_organizacion", e.target.value)}
+                  placeholder='Registre el nombre de su organización, caso contrario, indique "YO MISMO"'
+                  required
+                />
+              </div>
 
-              <div className="flex justify-between mt-8">
+              <div>
+                <Label htmlFor="nombre_completo">Nombre Completo *</Label>
+                <Input
+                  id="nombre_completo"
+                  value={formData.nombre_completo}
+                  onChange={(e) => handleInputChange("nombre_completo", e.target.value)}
+                  placeholder="Registre sus nombres y apellidos"
+                  required
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="cargo">Cargo *</Label>
+                <Input
+                  id="cargo"
+                  value={formData.cargo}
+                  onChange={(e) => handleInputChange("cargo", e.target.value)}
+                  placeholder='Registre su cargo actual, caso contrario, indique "YO MISMO"'
+                  required
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="tipo_organizacion">Tipo de Organización Civil *</Label>
+                <p className="text-sm text-gray-600 mb-2">
+                  Seleccione el tipo de organización civil que mejor describa la suya
+                </p>
+                <Select
+                  value={formData.tipo_organizacion}
+                  onValueChange={(value) => handleInputChange("tipo_organizacion", value)}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Seleccione el tipo" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="gremio_sindical">Gremio Sindical</SelectItem>
+                    <SelectItem value="sociedad_civil_sin_fines_lucro">Sociedad Civil sin Fines de Lucro</SelectItem>
+                    <SelectItem value="sociedad_civil_con_fines_lucro">Sociedad Civil con Fines de Lucro</SelectItem>
+                    <SelectItem value="ong">ONG</SelectItem>
+                    <SelectItem value="colegio_profesional">Colegio Profesional</SelectItem>
+                    <SelectItem value="gremio_empresarial">Gremio Empresarial</SelectItem>
+                    <SelectItem value="persona_natural">Persona Natural</SelectItem>
+                    <SelectItem value="junta_vecinal">Junta Vecinal</SelectItem>
+                    <SelectItem value="comedor_popular">Comedor Popular</SelectItem>
+                    <SelectItem value="asociacion_civil">Asociación Civil</SelectItem>
+                    <SelectItem value="asociacion_militar">Asociación Militar</SelectItem>
+                    <SelectItem value="otro">Otro</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <Label htmlFor="tamano_organizacion">Tamaño de Organización *</Label>
+                <Select
+                  value={formData.tamano_organizacion}
+                  onValueChange={(value) => handleInputChange("tamano_organizacion", value)}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Seleccione el tamaño" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="menos_de_4">Menos de 4 personas</SelectItem>
+                    <SelectItem value="de_4_a_10">De 4 a 10 personas</SelectItem>
+                    <SelectItem value="de_11_a_20">De 11 a 20 personas</SelectItem>
+                    <SelectItem value="de_21_a_50">De 21 a 50 personas</SelectItem>
+                    <SelectItem value="mas_de_50">Más de 50 personas</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <Label htmlFor="email">Email *</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  value={formData.email}
+                  onChange={(e) => handleInputChange("email", e.target.value)}
+                  placeholder="Registre su correo corporativo"
+                  required
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="telefono">Teléfono *</Label>
+                <Input
+                  id="telefono"
+                  value={formData.telefono}
+                  onChange={(e) => handleInputChange("telefono", e.target.value)}
+                  placeholder="Registre su número de teléfono"
+                  required
+                />
+              </div>
+
+              <DiasInteresSelector
+                selectedSesiones={formData.dias_interes}
+                onChange={(sesiones) => handleInputChange("dias_interes", sesiones)}
+              />
+
+              <div>
+                <Label htmlFor="tipo_participacion">Tipo de Participación *</Label>
+                <p className="text-sm text-gray-600 mb-2">
+                  Todos tendrán acceso a la rueda en forma presencial, sin embargo, puede seleccionar un tipo para su participación
+                </p>
+                <Select
+                  value={formData.tipo_participacion}
+                  onValueChange={(value) => handleInputChange("tipo_participacion", value)}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Seleccione el tipo" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="presencial">Presencial</SelectItem>
+                    <SelectItem value="virtual">Virtual</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="flex justify-between pt-6">
                 <Button
                   type="button"
                   variant="outline"
-                  onClick={() => currentStep > 1 ? setCurrentStep(currentStep - 1) : router.back()}
+                  onClick={() => router.back()}
                 >
-                  {currentStep === 1 ? "Cancelar" : "Anterior"}
+                  Cancelar
                 </Button>
 
-                {currentStep < 4 ? (
-                  <Button
-                    type="button"
-                    onClick={() => setCurrentStep(currentStep + 1)}
-                    className="bg-red-600 hover:bg-red-700"
-                  >
-                    Siguiente
-                  </Button>
-                ) : (
-                  <Button
-                    type="submit"
-                    disabled={loading}
-                    className="bg-red-600 hover:bg-red-700"
-                  >
-                    {loading ? "Registrando..." : "Finalizar Registro"}
-                  </Button>
-                )}
+                <Button
+                  type="submit"
+                  disabled={loading}
+                  className="bg-red-600 hover:bg-red-700"
+                >
+                  {loading ? "Registrando..." : "Finalizar Registro"}
+                </Button>
               </div>
             </form>
           </CardContent>

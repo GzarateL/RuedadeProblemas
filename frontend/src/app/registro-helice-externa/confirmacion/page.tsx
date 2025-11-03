@@ -27,8 +27,8 @@ export default function ConfirmacionHeliceExternaPage() {
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
               <h3 className="font-semibold text-lg mb-2">¿Qué sigue?</h3>
               <ul className="text-left space-y-2 text-gray-700">
-                <li>• Su desafío ha sido registrado en el sistema</li>
-                <li>• Podrá ver y gestionar sus desafíos desde su panel</li>
+                <li>• Su registro en la hélice externa ha sido completado</li>
+                <li>• Ahora puede registrar desafíos desde su panel</li>
                 <li>• El sistema buscará coincidencias con capacidades de la hélice interna</li>
                 <li>• Recibirá notificaciones cuando haya matches disponibles</li>
               </ul>
@@ -36,7 +36,7 @@ export default function ConfirmacionHeliceExternaPage() {
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button asChild className="bg-red-600 hover:bg-red-700">
-                <Link href="/desafio">Ver Mis Desafíos</Link>
+                <Link href="/desafio/registrar">Registrar un Desafío</Link>
               </Button>
               <Button asChild variant="outline">
                 <Link href="/">Ir al Inicio</Link>

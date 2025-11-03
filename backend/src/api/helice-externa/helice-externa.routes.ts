@@ -17,5 +17,6 @@ router.post("/sociedad-civil", controller.registrarSociedadCivil);
 // Rutas para obtener registros del usuario
 router.get("/mis-registros", controller.obtenerMisRegistros);
 router.get("/desafios", controller.obtenerDesafios);
+router.get("/verificar-registro", controller.verificarRegistro);
 
 export default router;

@@ -33,21 +33,7 @@ export class HeliceExternaService {
         [userId, data.tipo_participacion || 'presencial']
       );
 
-      // 3. Insertar desafío
-      const [desafioResult] = await connection.query<ResultSetHeader>(
-        `INSERT INTO Desafios 
-        (usuario_id, titulo, descripcion, impacto, intentos_previos)
-        VALUES (?, ?, ?, ?, ?)`,
-        [
-          userId,
-          data.titulo,
-          data.descripcion,
-          data.impacto,
-          data.intentos_previos
-        ]
-      );
-
-      // 4. Insertar días de interés si existen
+      // 3. Insertar días de interés si existen
       if (data.dias_interes && data.dias_interes.length > 0) {
         for (const sesionId of data.dias_interes) {
           await connection.query(
@@ -62,8 +48,7 @@ export class HeliceExternaService {
       return {
         success: true,
         message: "Registro de gobierno completado exitosamente",
-        registroId: registroResult.insertId,
-        desafioId: desafioResult.insertId
+        registroId: registroResult.insertId
       };
     } catch (error) {
       await connection.rollback();
@@ -101,13 +86,6 @@ export class HeliceExternaService {
         [userId, data.tipo_participacion || 'presencial']
       );
 
-      const [desafioResult] = await connection.query<ResultSetHeader>(
-        `INSERT INTO Desafios 
-        (usuario_id, titulo, descripcion, impacto, intentos_previos)
-        VALUES (?, ?, ?, ?, ?)`,
-        [userId, data.titulo, data.descripcion, data.impacto, data.intentos_previos]
-      );
-
       if (data.dias_interes && data.dias_interes.length > 0) {
         for (const sesionId of data.dias_interes) {
           await connection.query(
@@ -122,8 +100,7 @@ export class HeliceExternaService {
       return {
         success: true,
         message: "Registro de colegio profesional completado exitosamente",
-        registroId: registroResult.insertId,
-        desafioId: desafioResult.insertId
+        registroId: registroResult.insertId
       };
     } catch (error) {
       await connection.rollback();
@@ -163,13 +140,6 @@ export class HeliceExternaService {
         [userId, data.tipo_participacion || 'presencial']
       );
 
-      const [desafioResult] = await connection.query<ResultSetHeader>(
-        `INSERT INTO Desafios 
-        (usuario_id, titulo, descripcion, impacto, intentos_previos)
-        VALUES (?, ?, ?, ?, ?)`,
-        [userId, data.titulo, data.descripcion, data.impacto, data.intentos_previos]
-      );
-
       if (data.dias_interes && data.dias_interes.length > 0) {
         for (const sesionId of data.dias_interes) {
           await connection.query(
@@ -184,8 +154,7 @@ export class HeliceExternaService {
       return {
         success: true,
         message: "Registro de empresa completado exitosamente",
-        registroId: registroResult.insertId,
-        desafioId: desafioResult.insertId
+        registroId: registroResult.insertId
       };
     } catch (error) {
       await connection.rollback();
@@ -224,13 +193,6 @@ export class HeliceExternaService {
         [userId, data.tipo_participacion || 'presencial']
       );
 
-      const [desafioResult] = await connection.query<ResultSetHeader>(
-        `INSERT INTO Desafios 
-        (usuario_id, titulo, descripcion, impacto, intentos_previos)
-        VALUES (?, ?, ?, ?, ?)`,
-        [userId, data.titulo, data.descripcion, data.impacto, data.intentos_previos]
-      );
-
       if (data.dias_interes && data.dias_interes.length > 0) {
         for (const sesionId of data.dias_interes) {
           await connection.query(
@@ -245,8 +207,7 @@ export class HeliceExternaService {
       return {
         success: true,
         message: "Registro de sociedad civil completado exitosamente",
-        registroId: registroResult.insertId,
-        desafioId: desafioResult.insertId
+        registroId: registroResult.insertId
       };
     } catch (error) {
       await connection.rollback();
@@ -295,6 +256,24 @@ export class HeliceExternaService {
       );
 
       return desafios;
+    } finally {
+      connection.release();
+    }
+  }
+
+  async verificarRegistro(userId: number) {
+    const connection = await pool.getConnection();
+    
+    try {
+      const [registros] = await connection.query<RowDataPacket[]>(
+        `SELECT tipo_participante FROM Registros_Participantes WHERE usuario_id = ? LIMIT 1`,
+        [userId]
+      );
+
+      return {
+        tieneRegistro: registros.length > 0,
+        tipoParticipante: registros.length > 0 ? registros[0].tipo_participante : null
+      };
     } finally {
       connection.release();
     }

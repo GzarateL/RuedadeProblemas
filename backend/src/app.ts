@@ -11,6 +11,7 @@ import solicitudesRoutes from './api/solicitudes/solicitudes.routes';
 import chatsRoutes from './api/chats/chats.routes';
 import { heliceInternaRoutes } from './api/helice-interna/helice-interna.routes';
 import heliceExternaRoutes from './api/helice-externa/helice-externa.routes';
+import desafiosRoutes from './api/desafios/desafios.routes';
 
 const app = express();
 
@@ -38,5 +39,6 @@ app.use('/api/solicitudes', solicitudesRoutes);
 app.use('/api/chats', chatsRoutes);
 app.use('/api/helice-interna', heliceInternaRoutes);
 app.use('/api/helice-externa', heliceExternaRoutes);
+app.use('/api/desafios', desafiosRoutes);
 
 export default app;

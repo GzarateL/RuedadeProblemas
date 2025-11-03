@@ -10,7 +10,18 @@ export class HeliceExternaController {
 
   registrarGobierno = async (req: Request, res: Response) => {
     try {
-      const userId = (req as any).user.userId;
+      const user = (req as any).user;
+      console.log("Usuario autenticado:", user);
+      
+      if (!user || !user.userId) {
+        return res.status(401).json({ error: "Usuario no autenticado" });
+      }
+
+      if (user.rol !== 'externo') {
+        return res.status(403).json({ error: "Solo usuarios externos pueden registrarse en la hélice externa" });
+      }
+
+      const userId = user.userId;
       const data = req.body;
 
       const result = await this.service.registrarGobierno(userId, data);
@@ -23,7 +34,17 @@ export class HeliceExternaController {
 
   registrarColegioProfesional = async (req: Request, res: Response) => {
     try {
-      const userId = (req as any).user.userId;
+      const user = (req as any).user;
+      
+      if (!user || !user.userId) {
+        return res.status(401).json({ error: "Usuario no autenticado" });
+      }
+
+      if (user.rol !== 'externo') {
+        return res.status(403).json({ error: "Solo usuarios externos pueden registrarse en la hélice externa" });
+      }
+
+      const userId = user.userId;
       const data = req.body;
 
       const result = await this.service.registrarColegioProfesional(userId, data);
@@ -36,7 +57,17 @@ export class HeliceExternaController {
 
   registrarEmpresa = async (req: Request, res: Response) => {
     try {
-      const userId = (req as any).user.userId;
+      const user = (req as any).user;
+      
+      if (!user || !user.userId) {
+        return res.status(401).json({ error: "Usuario no autenticado" });
+      }
+
+      if (user.rol !== 'externo') {
+        return res.status(403).json({ error: "Solo usuarios externos pueden registrarse en la hélice externa" });
+      }
+
+      const userId = user.userId;
       const data = req.body;
 
       const result = await this.service.registrarEmpresa(userId, data);
@@ -49,7 +80,17 @@ export class HeliceExternaController {
 
   registrarSociedadCivil = async (req: Request, res: Response) => {
     try {
-      const userId = (req as any).user.userId;
+      const user = (req as any).user;
+      
+      if (!user || !user.userId) {
+        return res.status(401).json({ error: "Usuario no autenticado" });
+      }
+
+      if (user.rol !== 'externo') {
+        return res.status(403).json({ error: "Solo usuarios externos pueden registrarse en la hélice externa" });
+      }
+
+      const userId = user.userId;
       const data = req.body;
 
       const result = await this.service.registrarSociedadCivil(userId, data);
@@ -80,6 +121,18 @@ export class HeliceExternaController {
       res.status(200).json(result);
     } catch (error: any) {
       console.error("Error en obtenerDesafios:", error);
+      res.status(500).json({ error: error.message });
+    }
+  };
+
+  verificarRegistro = async (req: Request, res: Response) => {
+    try {
+      const userId = (req as any).user.userId;
+
+      const result = await this.service.verificarRegistro(userId);
+      res.status(200).json(result);
+    } catch (error: any) {
+      console.error("Error en verificarRegistro:", error);
       res.status(500).json({ error: error.message });
     }
   };
